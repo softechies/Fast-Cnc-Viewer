@@ -1,4 +1,6 @@
 import { users, type User, type InsertUser, models, type Model, type InsertModel } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { db } from "./db";
 
 // Interface for storage operations
 export interface IStorage {
@@ -13,6 +15,7 @@ export interface IStorage {
   deleteModel(id: number): Promise<boolean>;
 }
 
+// In-memory storage implementation
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private models: Map<number, Model>;
@@ -45,7 +48,15 @@ export class MemStorage implements IStorage {
 
   async createModel(insertModel: InsertModel): Promise<Model> {
     const id = this.modelIdCounter++;
-    const model: Model = { ...insertModel, id };
+    // Ensure all nullable fields are explicitly null rather than undefined
+    const modelData = { 
+      ...insertModel, 
+      userId: insertModel.userId ?? null,
+      format: insertModel.format ?? null,
+      sourceSystem: insertModel.sourceSystem ?? null,
+      metadata: insertModel.metadata ?? null 
+    };
+    const model: Model = { ...modelData, id };
     this.models.set(id, model);
     return model;
   }
@@ -65,4 +76,50 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// PostgreSQL storage implementation
+export class PostgresStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  async createModel(insertModel: InsertModel): Promise<Model> {
+    // Ensure all nullable fields are explicitly null rather than undefined
+    const modelData = { 
+      ...insertModel, 
+      userId: insertModel.userId ?? null,
+      format: insertModel.format ?? null,
+      sourceSystem: insertModel.sourceSystem ?? null,
+      metadata: insertModel.metadata ?? null 
+    };
+    const result = await db.insert(models).values(modelData).returning();
+    return result[0];
+  }
+
+  async getModel(id: number): Promise<Model | undefined> {
+    const result = await db.select().from(models).where(eq(models.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getModelsByUserId(userId: number): Promise<Model[]> {
+    return await db.select().from(models).where(eq(models.userId, userId));
+  }
+
+  async deleteModel(id: number): Promise<boolean> {
+    const result = await db.delete(models).where(eq(models.id, id)).returning({ id: models.id });
+    return result.length > 0;
+  }
+}
+
+// Use PostgreSQL storage
+export const storage = new PostgresStorage();
