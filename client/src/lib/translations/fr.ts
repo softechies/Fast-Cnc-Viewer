@@ -2,8 +2,8 @@
 
 const translations = {
   // Common UI elements
-  appTitle: "Visualiseur CAD",
-  applicationName: "Visualiseur CAD",
+  appTitle: "Fast CNC",
+  applicationName: "Fast CNC",
   home: "Accueil",
   upload: "Télécharger",
   uploadModel: "Télécharger un modèle",
