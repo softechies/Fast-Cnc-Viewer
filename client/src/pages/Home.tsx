@@ -124,7 +124,12 @@ export default function Home() {
         onClose={() => setIsUploadModalOpen(false)}
         isUploading={isUploading}
         uploadProgress={uploadProgress}
-        onUpload={(file) => upload(file, '/api/models/upload')}
+        onUpload={(file) => {
+          const fileExtension = file.name.split('.').pop()?.toLowerCase();
+          const isStlFile = fileExtension === 'stl';
+          const uploadUrl = isStlFile ? '/api/models/upload-stl' : '/api/models/upload';
+          upload(file, uploadUrl);
+        }}
       />
     </div>
   );

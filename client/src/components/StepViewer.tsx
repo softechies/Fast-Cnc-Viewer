@@ -204,7 +204,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   });
   
   // Fetch STL model file (converted) when modelId changes
-  const { data: stlFileUrl, isLoading: isLoadingStlFile } = useQuery({
+  const { data: stlFileInfo, isLoading: isLoadingStlFile } = useQuery({
     queryKey: [`/api/models/${modelId}/stl`],
     enabled: !!modelId,
     queryFn: async ({ queryKey }) => {
@@ -212,14 +212,27 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       setDebugInfo(`Sprawdzanie dostępności pliku STL...`);
       
       try {
+        // Najpierw sprawdź, czy to jest bezpośrednio załadowany plik STL
+        const infoResponse = await fetch(`/api/models/${modelId}`);
+        let isDirectStl = false;
+        
+        if (infoResponse.ok) {
+          const modelData = await infoResponse.json();
+          isDirectStl = modelData.format === 'STL' || !!modelData.metadata?.isDirectStl;
+          if (isDirectStl) {
+            setDebugInfo(`Wykryto bezpośredni model STL`);
+          }
+        }
+        
+        // Pobierz plik STL
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}`);
         }
         
-        // Jeśli plik STL istnieje, zwróć jego URL
-        setDebugInfo(`Plik STL dostępny`);
-        return url;
+        // Jeśli plik STL istnieje, zwróć jego URL i informację czy to bezpośredni STL
+        setDebugInfo(`Plik STL dostępny ${isDirectStl ? '(bezpośredni upload)' : ''}`);
+        return { url, isDirectStl };
       } catch (error) {
         console.error("STL file not available:", error);
         setDebugInfo(`Plik STL niedostępny - użycie generowanego modelu`);
@@ -261,10 +274,10 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       let model: THREE.Object3D;
       
       // Pierwsza próba: Wczytaj model STL, jeśli dostępny
-      if (stlFileUrl && renderMode === 'advanced') {
+      if (stlFileInfo?.url && renderMode === 'advanced') {
         try {
-          setDebugInfo("Ładowanie modelu STL...");
-          model = await loadSTLModel(stlFileUrl, (event) => {
+          setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
+          model = await loadSTLModel(stlFileInfo.url, (event) => {
             if (event.lengthComputable) {
               const percent = Math.round((event.loaded / event.total) * 100);
               setDebugInfo(`Ładowanie STL: ${percent}%`);
@@ -306,7 +319,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         fitCameraToObject(model, cameraRef.current, controlsRef.current);
       }
       
-      setDebugInfo(`Model wczytany (tryb: ${renderMode}${stlFileUrl ? ', format: STL' : ''})`);
+      setDebugInfo(`Model wczytany (tryb: ${renderMode}${stlFileInfo ? ', format: STL' : ''})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
@@ -371,7 +384,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Clear stored content
       stepContentRef.current = null;
     };
-  }, [fileData, renderMode, stlFileUrl]);
+  }, [fileData, renderMode, stlFileInfo]);
   
   // Helper function to create a simple model representation
   function createSimpleModelRepresentation(complexity: number) {
@@ -486,7 +499,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (pełna geometria)'}
           </Badge>
         </div>
-        {stlFileUrl ? (
+        {stlFileInfo ? (
           <div className="flex items-center gap-2 mt-1">
             Format: 
             <Badge variant="outline" className="bg-green-900/50">

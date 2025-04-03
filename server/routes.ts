@@ -390,7 +390,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get model info
+  // Get model basic data
+  app.get("/api/models/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const model = await storage.getModel(id);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      res.json(model);
+    } catch (error) {
+      console.error("Error getting model:", error);
+      res.status(500).json({ message: "Failed to get model" });
+    }
+  });
+
+  // Get model detailed info
   app.get("/api/models/:id/info", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
