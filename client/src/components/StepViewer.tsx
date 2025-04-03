@@ -366,16 +366,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
-      // Sprawdź czy to standardowa część (śruba, nakrętka, itp.)
-      if (fileData && isStandardPart(fileData.name)) {
-        parsers.push(async () => {
-          setDebugInfo("Wykryto standardową część mechaniczną...");
-          const { createStandardPartFromFileName } = await import('../lib/standard-parts');
-          const partModel = createStandardPartFromFileName(fileData.name);
-          setDebugInfo(`Model standardowej części wczytany (${fileData.name})`);
-          return partModel;
-        });
-      }
+      // Usunięto specjalny parser standardowych części - 
+      // zamiast tego skupiamy się na uniwersalnym parsowaniu
       
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
