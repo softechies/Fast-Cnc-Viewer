@@ -17,11 +17,6 @@ function SharedModelLayout() {
   if (isSharedRoute) {
     return (
       <div className="flex flex-col min-h-screen">
-        <header className="bg-gray-800 text-white p-3">
-          <div className="container mx-auto">
-            <h1 className="text-xl font-bold">STEP Viewer - Udostępniony model</h1>
-          </div>
-        </header>
         <main className="flex-grow">
           <SharedModelPage />
         </main>
