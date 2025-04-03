@@ -36,8 +36,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
   
-  // Używamy tylko jednego trybu renderowania
-  const renderMode = 'simple' as const;
+  // Z powodu ograniczeń WASM w aktualnej konfiguracji używamy uproszczonego renderowania
+  const renderMode = 'simple' as const; // 'simple' używa uproszczonego renderowania bez WebAssembly
   
   // Initialize Three.js scene
   useEffect(() => {
@@ -258,8 +258,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
       const useTryStlFirst = Boolean(stlFileInfo?.url);
       
-      // Zawsze używamy uproszczonego trybu
-      const useTryOpenCascade = false;
+      // W trybie simple nie używamy OpenCascade.js
+      const useTryOpenCascade = false; // W przyszłości możemy to włączyć, gdy rozwiążemy problemy z WASM
       
       // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
       const useAlwaysApproximate = false; // Testowa flaga - ustaw na true, aby zawsze używać przybliżenie
@@ -294,8 +294,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
-      // W trybie prostym - nie używamy OpenCascade.js
-      // Ten blok kodu został celowo usunięty
+      // OpenCascade.js jest tymczasowo wyłączone z powodu ograniczeń WASM
+      // Zamiast tego używamy przybliżonego parsera
       
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
