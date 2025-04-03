@@ -8,17 +8,7 @@ import Test3D from "@/pages/Test3D";
 import FileUploadTest from "@/pages/FileUploadTest";
 import SharedModelPage from "@/pages/SharedModelPage";
 
-// Navigation header component
-function NavHeader() {
-  return (
-    <header className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex flex-wrap justify-between items-center">
-        <h1 className="text-xl font-bold">STEP Viewer</h1>
-        {/* Menu nawigacyjne zostało usunięte */}
-      </div>
-    </header>
-  );
-}
+// Komponent nagłówka został usunięty, ponieważ jest już obecny w komponencie Home
 
 // Sprawdza czy jesteśmy na stronie udostępnionego modelu
 function SharedModelLayout() {
@@ -55,7 +45,6 @@ function Router() {
   
   return (
     <div className="flex flex-col min-h-screen">
-      <NavHeader />
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />

@@ -26,7 +26,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
           className="bg-primary hover:bg-blue-700 text-white"
         >
           <Upload className="mr-2 h-4 w-4" />
-          <span>Wczytaj plik STEP</span>
+          <span>Wczytaj plik CAD</span>
         </Button>
       </div>
     </header>
