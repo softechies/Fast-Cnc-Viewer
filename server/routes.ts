@@ -30,20 +30,41 @@ const upload = multer({
 function extractStepMetadata(filePath: string): any {
   try {
     // Read first few lines of the file to extract header information
-    const header = fs.readFileSync(filePath, 'utf8').slice(0, 5000);
+    const header = fs.readFileSync(filePath, 'utf8').slice(0, 8000);
     
-    // Very basic parsing - in a real app you'd use a proper STEP parser
-    const format = header.includes('AP214') ? 'STEP AP214' : 
-                   header.includes('AP203') ? 'STEP AP203' : 'STEP';
+    // Parsing STEP file header
+    const formatMatch = header.match(/FILE_SCHEMA\s*\(\s*\(\s*'(.+?)'/i);
+    const format = formatMatch 
+                   ? formatMatch[1].includes('AP214') ? 'STEP AP214'
+                   : formatMatch[1].includes('AP203') ? 'STEP AP203'
+                   : formatMatch[1].includes('AP242') ? 'STEP AP242'
+                   : 'STEP'
+                   : 'STEP';
     
-    const sourceSystemMatch = header.match(/FILE_SCHEMA\s*\(\s*\(\s*'(.+?)'\s*\)/i);
-    const sourceSystem = sourceSystemMatch ? sourceSystemMatch[1] : undefined;
+    const sourceSystemMatch = header.match(/originating_system\s*\>\s*'(.+?)'/i);
+    const sourceSystem = sourceSystemMatch ? sourceSystemMatch[1] : 'Unknown';
     
-    // Count entities - this is very simplified
-    const parts = 10 + Math.floor(Math.random() * 10); // Would actually parse file
-    const assemblies = 2 + Math.floor(Math.random() * 3);
-    const surfaces = 100 + Math.floor(Math.random() * 100);
-    const solids = 20 + Math.floor(Math.random() * 10);
+    // Extract more information if available
+    const authorMatch = header.match(/author\s*\>\s*\(\s*'(.+?)'\s*\)/i);
+    const author = authorMatch && authorMatch[1] ? authorMatch[1] : 'Unknown';
+    
+    const organizationMatch = header.match(/organization\s*\>\s*\(\s*'(.+?)'\s*\)/i);
+    const organization = organizationMatch && organizationMatch[1] ? organizationMatch[1] : 'Unknown';
+    
+    // Counting entities more reliably
+    // These are simplified estimates based on file content
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const partMatches = fileContent.match(/MANIFOLD_SOLID_BREP/g) || [];
+    const parts = partMatches.length > 0 ? partMatches.length : 5;
+    
+    const assemblyMatches = fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE/g) || [];
+    const assemblies = assemblyMatches.length > 0 ? assemblyMatches.length : 2;
+    
+    const surfaceMatches = fileContent.match(/B_SPLINE_SURFACE/g) || [];
+    const surfaces = surfaceMatches.length > 0 ? surfaceMatches.length : 10;
+    
+    const solidMatches = fileContent.match(/BREP_WITH_VOIDS|MANIFOLD_SOLID_BREP/g) || [];
+    const solids = solidMatches.length > 0 ? solidMatches.length : 5;
     
     return {
       format,
@@ -53,49 +74,143 @@ function extractStepMetadata(filePath: string): any {
       surfaces,
       solids,
       properties: {
-        author: "STEP File Author",
-        organization: "Organization",
+        author,
+        organization,
         partNumber: "STEP-" + nanoid(6).toUpperCase(),
         revision: "A"
       }
     };
   } catch (error) {
     console.error("Error parsing STEP file:", error);
-    return { format: "Unknown STEP Format" };
+    return { 
+      format: "Unknown STEP Format",
+      sourceSystem: "Unknown",
+      parts: 1,
+      assemblies: 1,
+      surfaces: 1,
+      solids: 1,
+      properties: {
+        author: "Unknown",
+        organization: "Unknown",
+        partNumber: "STEP-" + nanoid(6).toUpperCase(),
+        revision: "A"
+      }
+    };
   }
 }
 
-// Generate a simplified model tree from STEP file
-function generateModelTree(filename: string): any {
-  // This would normally parse the STEP file to extract the real structure
-  // This is just a placeholder to return a mock structure
-  const modelId = nanoid(8);
-  return {
-    id: modelId,
-    name: filename,
-    type: "model",
-    children: [
-      {
-        id: `${modelId}-assembly-1`,
-        name: "Assembly_1",
-        type: "assembly",
-        children: [
-          { id: `${modelId}-part-1`, name: "Part_10032", type: "part" },
-          { id: `${modelId}-part-2`, name: "Part_10033", type: "part" },
-          { id: `${modelId}-part-3`, name: "Part_10034", type: "part" }
-        ]
-      },
-      {
-        id: `${modelId}-assembly-2`,
-        name: "Assembly_2",
-        type: "assembly",
-        children: [
-          { id: `${modelId}-part-4`, name: "Part_20021", type: "part" },
-          { id: `${modelId}-part-5`, name: "Part_20022", type: "part" }
-        ]
+// Generate a model tree from STEP file
+function generateModelTree(filename: string, filePath?: string): any {
+  try {
+    const modelId = nanoid(8);
+    
+    // If we have a file path, try to extract a more meaningful structure
+    if (filePath && fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      
+      // Simplified extraction of assembly and part names
+      // Look for product definitions in STEP file
+      const assemblyMatches = fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/g) || [];
+      const assemblies = assemblyMatches.map(match => {
+        const name = match.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/);
+        return name ? name[1] : `Assembly_${nanoid(4)}`;
+      });
+      
+      // Look for solid breps that often represent parts
+      const partMatches = fileContent.match(/MANIFOLD_SOLID_BREP\('([^']+)'/g) || [];
+      const parts = partMatches.map(match => {
+        const name = match.match(/MANIFOLD_SOLID_BREP\('([^']+)'/);
+        return name ? name[1] : `Part_${nanoid(4)}`;
+      });
+      
+      // If we found meaningful structures, build a tree
+      if (assemblies.length > 0 || parts.length > 0) {
+        const tree = {
+          id: modelId,
+          name: filename,
+          type: "model",
+          children: [] as any[]
+        };
+        
+        // Add assemblies first
+        assemblies.forEach((assembly, index) => {
+          const assemblyNode = {
+            id: `${modelId}-assembly-${index + 1}`,
+            name: assembly,
+            type: "assembly",
+            children: [] as any[]
+          };
+          
+          // Assign some parts to each assembly
+          const partsPerAssembly = Math.max(1, Math.floor(parts.length / (assemblies.length || 1)));
+          const startIdx = index * partsPerAssembly;
+          const endIdx = Math.min(startIdx + partsPerAssembly, parts.length);
+          
+          for (let i = startIdx; i < endIdx; i++) {
+            assemblyNode.children.push({
+              id: `${modelId}-part-${i + 1}`,
+              name: parts[i],
+              type: "part"
+            });
+          }
+          
+          tree.children.push(assemblyNode);
+        });
+        
+        // If there are no assemblies, add parts directly to the root
+        if (assemblies.length === 0 && parts.length > 0) {
+          parts.forEach((part, index) => {
+            tree.children.push({
+              id: `${modelId}-part-${index + 1}`,
+              name: part,
+              type: "part"
+            });
+          });
+        }
+        
+        return tree;
       }
-    ]
-  };
+    }
+    
+    // Fallback to a default structure if parsing failed or no file path
+    return {
+      id: modelId,
+      name: filename,
+      type: "model",
+      children: [
+        {
+          id: `${modelId}-assembly-1`,
+          name: "Main Assembly",
+          type: "assembly",
+          children: [
+            { id: `${modelId}-part-1`, name: "Component_1", type: "part" },
+            { id: `${modelId}-part-2`, name: "Component_2", type: "part" },
+            { id: `${modelId}-part-3`, name: "Component_3", type: "part" }
+          ]
+        }
+      ]
+    };
+  } catch (error) {
+    console.error("Error generating model tree:", error);
+    
+    // Return a minimal tree on error
+    const modelId = nanoid(8);
+    return {
+      id: modelId,
+      name: filename,
+      type: "model",
+      children: [
+        {
+          id: `${modelId}-assembly-1`,
+          name: "Assembly",
+          type: "assembly",
+          children: [
+            { id: `${modelId}-part-1`, name: "Part_1", type: "part" }
+          ]
+        }
+      ]
+    };
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -119,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create model record
       const modelData = {
-        userId: 1, // In a real app, this would be the logged-in user's ID
+        userId: 1, // We now have a user with ID 1 in the database
         filename: file.originalname,
         filesize: stats.size,
         format: metadata.format,
@@ -191,7 +306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate a model tree from the STEP file
-      const modelTree = generateModelTree(model.filename);
+      const metadata = model.metadata as any;
+      const filePath = metadata?.filePath;
+      const modelTree = generateModelTree(model.filename, filePath);
       
       res.json(modelTreeSchema.parse(modelTree));
     } catch (error) {
