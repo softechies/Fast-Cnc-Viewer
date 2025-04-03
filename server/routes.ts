@@ -15,8 +15,6 @@ import util from "util";
 import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
-import { sendShareNotification as sendSendgridNotification, sendSharingRevokedNotification as sendSendgridRevokedNotification } from "./sendgrid";
-import { initializeGmailService, sendShareNotificationGmail, sendSharingRevokedNotificationGmail } from "./gmail";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
 
 // ES modules compatibility (replacement for __dirname)
@@ -378,21 +376,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (smtpInitialized) {
         console.log("Custom SMTP email service initialized successfully");
       }
-    }
-    
-    // Sprawdzamy czy możemy zainicjalizować Gmail
-    if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-      const gmailInitialized = initializeGmailService({
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASSWORD,
-        from: process.env.GMAIL_FROM || `"CAD Viewer" <${process.env.GMAIL_USER}>`,
-      });
-      
-      if (gmailInitialized) {
-        console.log("Gmail email service initialized successfully");
-      }
-    } else if (!process.env.SMTP_HOST) {
-      console.warn("Neither custom SMTP nor Gmail credentials were provided, email notifications will use test service only");
+    } else {
+      console.warn("No custom SMTP credentials provided, email notifications will use test service only");
     }
   } catch (error) {
     console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
@@ -914,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
           console.log(`Using language for email: ${userLanguage} (${shareData.language ? 'from frontend' : 'from browser header'})`);
           
-          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, potem Gmail, potem SendGrid, a na końcu Nodemailer jako fallback
+          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, a potem Nodemailer jako fallback
           let emailSent = false;
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
@@ -930,41 +915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (emailSent) {
               console.log(`Share notification email sent via custom SMTP to ${shareData.email} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Gmail");
-            }
-          }
-          
-          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
-          if (!emailSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-            emailSent = await sendShareNotificationGmail(
-              updatedModel!, 
-              shareData.email, 
-              baseUrl,
-              shareData.password, // Przekazujemy niezahashowane hasło
-              userLanguage // Przekazujemy wykryty język użytkownika
-            );
-            
-            if (emailSent) {
-              console.log(`Share notification email sent via Gmail to ${shareData.email} in ${userLanguage}`);
-            } else {
-              console.warn("Gmail email failed, trying SendGrid fallback");
-            }
-          }
-          
-          // Jeśli Gmail nie zadziałał i mamy klucz SendGrid, spróbuj SendGrid
-          if (!emailSent && process.env.SENDGRID_API_KEY) {
-            emailSent = await sendSendgridNotification(
-              updatedModel!, 
-              shareData.email, 
-              baseUrl,
-              shareData.password, // Przekazujemy niezahashowane hasło
-              userLanguage // Przekazujemy wykryty język użytkownika
-            );
-            
-            if (emailSent) {
-              console.log(`Share notification email sent via SendGrid to ${shareData.email} in ${userLanguage}`);
-            } else {
-              console.warn("SendGrid email failed, trying Nodemailer fallback");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
@@ -996,7 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
@@ -1014,27 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Gmail");
-            }
-          }
-          
-          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
-          if (!revocationSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail!);
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
-            } else {
-              console.warn("Gmail email failed, trying SendGrid");
-            }
-          }
-          
-          // Spróbuj SendGrid jako kolejną opcję
-          if (!revocationSent && process.env.SENDGRID_API_KEY) {
-            revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail!);
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
-            } else {
-              console.warn("SendGrid email failed, trying Nodemailer");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
@@ -1182,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
       if (model.shareEmail) {
         try {
-          // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
@@ -1198,27 +1129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Gmail");
-            }
-          }
-          
-          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
-          if (!revocationSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail);
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
-            } else {
-              console.warn("Gmail email failed, trying SendGrid");
-            }
-          }
-          
-          // Spróbuj SendGrid jako kolejną opcję
-          if (!revocationSent && process.env.SENDGRID_API_KEY) {
-            revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail);
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
-            } else {
-              console.warn("SendGrid email failed, trying Nodemailer");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
