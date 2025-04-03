@@ -50,6 +50,23 @@ const stlUpload = multer({
   }
 });
 
+// Configure multer for 2D CAD file uploads (DXF/DWG)
+const cadUpload = multer({
+  dest: path.join(os.tmpdir(), "cad-uploads"),
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only DXF/DWG files
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.dxf' || ext === '.dwg') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only DXF or DWG files are allowed') as any, false);
+    }
+  }
+});
+
 // Simple STEP file parser to extract metadata
 function extractStepMetadata(filePath: string): any {
   try {
@@ -566,6 +583,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading STL model:", error);
       res.status(500).json({ message: "Failed to upload STL model" });
+    }
+  });
+
+  // Upload DXF/DWG file
+  app.post("/api/models/upload-cad", cadUpload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      const file = req.file;
+      const stats = fs.statSync(file.path);
+      
+      // Determine file format based on extension
+      const fileExtension = path.extname(file.originalname).toLowerCase();
+      const format = fileExtension === '.dxf' ? 'DXF' : 'DWG';
+      
+      // Create model record for 2D CAD file
+      const modelData = {
+        userId: 1,
+        filename: file.originalname,
+        filesize: stats.size,
+        format: format,
+        created: new Date().toISOString(),
+        sourceSystem: 'direct_upload',
+        metadata: {
+          filePath: file.path,
+          fileType: '2d',
+          cadFormat: format.toLowerCase(),
+          entities: 0, // To be determined by the renderer
+          layers: 0,  // To be determined by the renderer
+          properties: {
+            author: "User",
+            organization: "Direct Upload",
+            drawingNumber: format + "-" + nanoid(6).toUpperCase(),
+            revision: "A"
+          }
+        }
+      };
+      
+      const validatedData = insertModelSchema.parse(modelData);
+      const model = await storage.createModel(validatedData);
+      
+      res.status(201).json({
+        id: model.id,
+        filename: model.filename,
+        filesize: model.filesize,
+        format: model.format,
+        created: model.created,
+        is2D: true
+      });
+    } catch (error) {
+      console.error("Error uploading CAD model:", error);
+      res.status(500).json({ message: "Failed to upload CAD model" });
     }
   });
 

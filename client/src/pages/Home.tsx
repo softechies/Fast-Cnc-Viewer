@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
-import StepViewer from "@/components/StepViewer";
+import ModelViewer from "@/components/ModelViewer";
 import ModelTreeView from "@/components/ModelTreeView";
 import ModelInfo from "@/components/ModelInfo";
 import FooterBar from "@/components/FooterBar";
@@ -61,17 +61,17 @@ export default function Home() {
             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
               <Box className="w-16 h-16 mb-4 text-gray-300" />
               <h2 className="text-xl font-medium mb-2">Brak modelu do wyświetlenia</h2>
-              <p className="text-center max-w-md mb-6">Wczytaj plik STEP (.stp lub .step) aby rozpocząć przeglądanie</p>
+              <p className="text-center max-w-md mb-6">Wczytaj plik CAD (STEP, STL, DXF, DWG) aby rozpocząć przeglądanie</p>
               <button 
                 onClick={() => setIsUploadModalOpen(true)} 
                 className="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center font-medium transition-colors duration-200"
               >
                 <i className="fas fa-upload mr-2"></i>
-                <span>Wczytaj plik STEP</span>
+                <span>Wczytaj plik CAD</span>
               </button>
             </div>
           ) : (
-            <StepViewer modelId={activeModelId} />
+            <ModelViewer modelId={activeModelId} />
           )}
         </section>
         
@@ -126,8 +126,14 @@ export default function Home() {
         uploadProgress={uploadProgress}
         onUpload={(file) => {
           const fileExtension = file.name.split('.').pop()?.toLowerCase();
-          const isStlFile = fileExtension === 'stl';
-          const uploadUrl = isStlFile ? '/api/models/upload-stl' : '/api/models/upload';
+          let uploadUrl = '/api/models/upload'; // domyślnie dla STEP
+          
+          if (fileExtension === 'stl') {
+            uploadUrl = '/api/models/upload-stl';
+          } else if (fileExtension === 'dxf' || fileExtension === 'dwg') {
+            uploadUrl = '/api/models/upload-cad';
+          }
+          
           upload(file, uploadUrl);
         }}
       />

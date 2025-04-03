@@ -50,7 +50,7 @@ export default function UploadModal({
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.name.match(/\.(stp|step|stl)$/i)) {
+      if (file.name.match(/\.(stp|step|stl|dxf|dwg)$/i)) {
         setSelectedFile(file);
       }
     }
@@ -71,7 +71,7 @@ export default function UploadModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Wczytaj plik modelu 3D</DialogTitle>
+          <DialogTitle className="text-xl">Wczytaj plik CAD</DialogTitle>
         </DialogHeader>
         
         {isUploading ? (
@@ -95,13 +95,13 @@ export default function UploadModal({
               <p className="text-sm text-gray-500 text-center mb-4">
                 {selectedFile 
                   ? `Wybrany plik: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
-                  : 'Przeciągnij i upuść plik STEP lub STL, albo kliknij aby wybrać'}
+                  : 'Przeciągnij i upuść plik CAD, albo kliknij aby wybrać'}
               </p>
               <input 
                 type="file" 
                 ref={fileInputRef} 
                 className="hidden" 
-                accept=".stp,.step,.stl" 
+                accept=".stp,.step,.stl,.dxf,.dwg" 
                 onChange={handleFileSelect}
               />
               <Button 
@@ -111,7 +111,7 @@ export default function UploadModal({
                 Wybierz plik
               </Button>
             </div>
-            <p className="mt-2 text-xs text-gray-500">Obsługiwane formaty: STEP (AP203, AP214), STL</p>
+            <p className="mt-2 text-xs text-gray-500">Obsługiwane formaty: STEP (AP203, AP214), STL, DXF, DWG</p>
             
             <DialogFooter className="mt-4">
               <Button 
