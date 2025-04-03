@@ -1,5 +1,24 @@
 import * as THREE from 'three';
 
+// Interfejs dla wierzchołka
+interface Point3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+// Interfejs dla elementu geometrycznego
+interface GeometricElement {
+  type: string;
+  id: string;
+  points?: Point3D[];
+  radius?: number;
+  height?: number;
+  center?: Point3D;
+  axis?: Point3D;
+  normal?: Point3D;
+}
+
 /**
  * Zaawansowana przybliżona reprezentacja modelu STEP
  * Używana jako fallback gdy nie udaje się załadować OpenCascade.js
@@ -12,288 +31,236 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     // Analiza zawartości pliku STEP
     console.log("Tworzenie przybliżonego modelu STEP...");
     
-    // Spróbujmy wyodrębnić więcej informacji z pliku STEP
-    // najpierw szukamy nazwy produktu
-    const productNameMatch = stepContent.match(/PRODUCT\([^,]+,\s*'([^']+)'/);
-    const productName = productNameMatch ? productNameMatch[1] : "Unknown Model";
+    // Przeanalizuj plik STEP i wyodrębnij elementy geometryczne
+    const geometricElements = parseStepFile(stepContent);
     
-    // Liczenie elementów geometrycznych
-    const cylinderMatches = stepContent.match(/CYLINDRICAL_SURFACE/g) || [];
-    const cylinderCount = cylinderMatches.length;
+    if (geometricElements.length === 0) {
+      throw new Error("Nie znaleziono elementów geometrycznych w pliku STEP");
+    }
     
-    const planeMatches = stepContent.match(/PLANE/g) || [];
-    const planeCount = planeMatches.length;
-    
-    const circleMatches = stepContent.match(/CIRCLE/g) || [];
-    const circleCount = circleMatches.length;
-    
-    const lineMatches = stepContent.match(/LINE/g) || [];
-    const lineCount = lineMatches.length;
-    
-    const torusMatches = stepContent.match(/TOROIDAL_SURFACE/g) || [];
-    const torusCount = torusMatches.length;
-    
-    const sphereMatches = stepContent.match(/SPHERICAL_SURFACE/g) || [];
-    const sphereCount = sphereMatches.length;
-    
-    // Złożoność modelu - im więcej elementów, tym większy model
-    const complexity = Math.max(
-      1, 
-      Math.min(10, Math.floor(
-        (cylinderCount + planeCount + circleCount + torusCount + sphereCount) / 10
-      ))
-    );
-    
-    // Materiały
+    // Stwórz materiały
     const materials = {
-      base: new THREE.MeshStandardMaterial({
-        color: 0x3366cc,
-        metalness: 0.3,
-        roughness: 0.4
-      }),
-      cylinder: new THREE.MeshStandardMaterial({
-        color: 0x6699cc,
+      standard: new THREE.MeshStandardMaterial({
+        color: 0x3b82f6,
         metalness: 0.5,
-        roughness: 0.3
+        roughness: 0.3,
+        flatShading: false,
       }),
-      plane: new THREE.MeshStandardMaterial({
-        color: 0x4488bb,
-        metalness: 0.4,
-        roughness: 0.5
+      highlightedMetal: new THREE.MeshStandardMaterial({
+        color: 0x4488ff,
+        metalness: 0.8,
+        roughness: 0.2,
+        flatShading: false,
       }),
-      detail: new THREE.MeshStandardMaterial({
-        color: 0x22aadd,
-        metalness: 0.6,
-        roughness: 0.2
+      wire: new THREE.LineBasicMaterial({
+        color: 0x000000,
+        linewidth: 1,
       }),
-      wireframe: new THREE.LineBasicMaterial({
-        color: 0x000000
-      })
     };
     
-    // Baza modelu
-    const baseDimension = complexity * 2;
-    const baseGeometry = new THREE.BoxGeometry(
-      baseDimension, 
-      0.5, 
-      baseDimension
-    );
-    const base = new THREE.Mesh(baseGeometry, materials.base);
-    base.position.y = -0.25;
-    base.receiveShadow = true;
-    base.castShadow = true;
-    group.add(base);
-    
-    // Dodaj wireframe
-    const wireframe = new THREE.LineSegments(
-      new THREE.EdgesGeometry(baseGeometry),
-      materials.wireframe
-    );
-    base.add(wireframe);
-    
-    // Średnia pozycja Y dla elementów
-    let totalHeight = 0;
-    
-    // Funkcja rozmieszczająca elementy na bazie
-    const placeElement = (element: THREE.Object3D, index: number, total: number, radius: number = baseDimension/3) => {
-      if (total <= 1) {
-        element.position.set(0, element.position.y, 0);
-        return;
+    // Funkcja dodająca wireframe do mesh
+    const addWireframe = (mesh: THREE.Mesh) => {
+      try {
+        const wireframe = new THREE.LineSegments(
+          new THREE.EdgesGeometry(mesh.geometry),
+          materials.wire
+        );
+        mesh.add(wireframe);
+      } catch (e) {
+        console.warn("Nie można dodać wireframe:", e);
       }
-      
-      // Rozłóż elementy na okręgu
-      const angle = (index / total) * Math.PI * 2;
-      const x = Math.sin(angle) * radius;
-      const z = Math.cos(angle) * radius;
-      element.position.set(x, element.position.y, z);
-      
-      // Obróć element w kierunku środka
-      element.rotation.y = -angle;
     };
     
-    // Dodaj cylindry jeśli są obecne
-    if (cylinderCount > 0) {
-      const cylindersToAdd = Math.min(10, Math.max(1, cylinderCount / 5));
+    console.log(`Znaleziono ${geometricElements.length} elementów geometrycznych`);
+
+    // Dodaj elementy geometryczne do sceny
+    geometricElements.forEach((element, index) => {
+      let mesh: THREE.Mesh | null = null;
       
-      for (let i = 0; i < cylindersToAdd; i++) {
-        const height = 1 + Math.random() * complexity;
-        const radius = 0.3 + Math.random() * 0.7;
-        
-        const cylinderGeometry = new THREE.CylinderGeometry(
-          radius, radius, height, 16
-        );
-        const cylinder = new THREE.Mesh(cylinderGeometry, materials.cylinder);
-        
-        cylinder.position.y = height / 2;
-        totalHeight += height;
-        
-        cylinder.castShadow = true;
-        cylinder.receiveShadow = true;
-        
-        // Dodaj wireframe
-        const cylinderWireframe = new THREE.LineSegments(
-          new THREE.EdgesGeometry(cylinderGeometry),
-          materials.wireframe
-        );
-        cylinder.add(cylinderWireframe);
-        
-        // Rozmieść cylindry na bazie
-        placeElement(cylinder, i, cylindersToAdd);
-        
-        group.add(cylinder);
+      // Stwórz odpowiednią geometrię zależnie od typu
+      switch (element.type) {
+        case 'cylinder':
+          if (element.radius) {
+            const geometry = new THREE.CylinderGeometry(
+              element.radius, 
+              element.radius, 
+              element.height || 5.0, 
+              32
+            );
+            mesh = new THREE.Mesh(geometry, materials.standard);
+            
+            // Ustaw pozycję i orientację
+            if (element.center) {
+              mesh.position.set(element.center.x, element.center.y, element.center.z);
+            }
+            
+            // Obróć zgodnie z osią
+            if (element.axis) {
+              // Domyślna oś cylindra to [0,1,0]
+              const cylinderAxis = new THREE.Vector3(0, 1, 0);
+              const targetAxis = new THREE.Vector3(element.axis.x, element.axis.y, element.axis.z).normalize();
+              
+              // Obrót na podstawie kwaternionów
+              mesh.quaternion.setFromUnitVectors(cylinderAxis, targetAxis);
+            }
+          }
+          break;
+          
+        case 'sphere':
+          if (element.radius) {
+            const geometry = new THREE.SphereGeometry(element.radius, 32, 32);
+            mesh = new THREE.Mesh(geometry, materials.standard);
+            if (element.center) {
+              mesh.position.set(element.center.x, element.center.y, element.center.z);
+            }
+          }
+          break;
+          
+        case 'plane':
+          // Obsługa płaszczyzny nawet bez punktów
+          const planeSize = 5.0; // domyślny rozmiar płaszczyzny
+          const geometry = new THREE.PlaneGeometry(planeSize, planeSize);
+          mesh = new THREE.Mesh(geometry, materials.standard);
+          
+          // Ustaw pozycję jeśli jest dostępna
+          if (element.center) {
+            mesh.position.set(element.center.x, element.center.y, element.center.z);
+          }
+          
+          // Orientacja płaszczyzny zgodnie z wektorem normalnym
+          if (element.normal) {
+            const planeNormal = new THREE.Vector3(0, 0, 1); // domyślna normalna dla PlaneGeometry
+            const targetNormal = new THREE.Vector3(element.normal.x, element.normal.y, element.normal.z).normalize();
+            mesh.quaternion.setFromUnitVectors(planeNormal, targetNormal);
+          }
+          break;
+          
+        case 'torus':
+          if (element.radius && element.center) {
+            // Dla torusa potrzebujemy promienia głównego i promienia rurki
+            const outerRadius = element.radius;
+            const tubeRadius = outerRadius / 5; // Oszacowanie
+            
+            const geometry = new THREE.TorusGeometry(outerRadius, tubeRadius, 16, 48);
+            mesh = new THREE.Mesh(geometry, materials.highlightedMetal);
+            mesh.position.set(element.center.x, element.center.y, element.center.z);
+            
+            // Obróć zgodnie z osią
+            if (element.axis) {
+              // Domyślna oś torusa to [0,0,1]
+              const torusAxis = new THREE.Vector3(0, 0, 1);
+              const targetAxis = new THREE.Vector3(element.axis.x, element.axis.y, element.axis.z).normalize();
+              mesh.quaternion.setFromUnitVectors(torusAxis, targetAxis);
+            }
+          }
+          break;
+          
+        case 'cone':
+          if (element.radius && element.height && element.center && element.axis) {
+            const geometry = new THREE.ConeGeometry(element.radius, element.height, 32);
+            mesh = new THREE.Mesh(geometry, materials.standard);
+            
+            // Ustaw pozycję i orientację
+            mesh.position.set(element.center.x, element.center.y, element.center.z);
+            
+            // Obróć zgodnie z osią
+            if (element.axis) {
+              // Domyślna oś stożka to [0,1,0]
+              const coneAxis = new THREE.Vector3(0, 1, 0);
+              const targetAxis = new THREE.Vector3(element.axis.x, element.axis.y, element.axis.z).normalize();
+              mesh.quaternion.setFromUnitVectors(coneAxis, targetAxis);
+            }
+          }
+          break;
+          
+        case 'box':
+          if (element.points && element.points.length >= 2) {
+            // Oblicz rozmiar pudełka na podstawie punktów
+            const minX = Math.min(...element.points.map(p => p.x));
+            const maxX = Math.max(...element.points.map(p => p.x));
+            const minY = Math.min(...element.points.map(p => p.y));
+            const maxY = Math.max(...element.points.map(p => p.y));
+            const minZ = Math.min(...element.points.map(p => p.z));
+            const maxZ = Math.max(...element.points.map(p => p.z));
+            
+            const width = Math.max(0.1, maxX - minX);
+            const height = Math.max(0.1, maxY - minY);
+            const depth = Math.max(0.1, maxZ - minZ);
+            
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            mesh = new THREE.Mesh(geometry, materials.standard);
+            
+            // Centroid punktów jako pozycja
+            const center = {
+              x: (minX + maxX) / 2,
+              y: (minY + maxY) / 2,
+              z: (minZ + maxZ) / 2
+            };
+            mesh.position.set(center.x, center.y, center.z);
+          }
+          break;
+          
+        case 'complex':
+          if (element.points && element.points.length >= 8) {
+            // Dla złożonych kształtów spróbujemy stworzyć geometrię z trójkątów
+            try {
+              const vertices = [];
+              const indices = [];
+              
+              // Dodaj wierzchołki
+              for (let i = 0; i < element.points.length; i++) {
+                const p = element.points[i];
+                vertices.push(p.x, p.y, p.z);
+              }
+              
+              // Stwórz proste indeksy trójkątów (zakładając, że punkty są już uporządkowane)
+              for (let i = 0; i < element.points.length - 2; i++) {
+                indices.push(0, i + 1, i + 2);
+              }
+              
+              const geometry = new THREE.BufferGeometry();
+              geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+              geometry.setIndex(indices);
+              geometry.computeVertexNormals();
+              
+              mesh = new THREE.Mesh(geometry, materials.standard);
+            } catch (e) {
+              console.warn("Nie można utworzyć złożonej geometrii:", e);
+            }
+          }
+          break;
       }
-    }
-    
-    // Dodaj płaszczyzny jeśli są obecne
-    if (planeCount > 0) {
-      const planesToAdd = Math.min(5, Math.max(1, planeCount / 10));
       
-      for (let i = 0; i < planesToAdd; i++) {
-        const width = 1 + Math.random() * complexity;
-        const depth = 1 + Math.random() * complexity;
-        const height = 0.2;
-        
-        const planeGeometry = new THREE.BoxGeometry(width, height, depth);
-        const plane = new THREE.Mesh(planeGeometry, materials.plane);
-        
-        const y = 1 + Math.random() * complexity;
-        plane.position.y = y;
-        totalHeight += y;
-        
-        plane.castShadow = true;
-        plane.receiveShadow = true;
-        
-        // Dodaj wireframe
-        const planeWireframe = new THREE.LineSegments(
-          new THREE.EdgesGeometry(planeGeometry),
-          materials.wireframe
-        );
-        plane.add(planeWireframe);
-        
-        // Rozmieść płaszczyzny na bazie
-        placeElement(plane, i, planesToAdd);
-        
-        group.add(plane);
+      // Dodaj mesh do grupy jeśli został utworzony
+      if (mesh) {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        addWireframe(mesh);
+        group.add(mesh);
       }
-    }
-    
-    // Dodaj sfery jeśli są obecne
-    if (sphereCount > 0) {
-      const spheresToAdd = Math.min(sphereCount, 3);
-      
-      for (let i = 0; i < spheresToAdd; i++) {
-        const radius = 0.5 + Math.random() * 0.8;
-        
-        const sphereGeometry = new THREE.SphereGeometry(radius, 16, 16);
-        const sphere = new THREE.Mesh(sphereGeometry, materials.detail);
-        
-        const y = 1 + Math.random() * complexity;
-        sphere.position.y = y;
-        totalHeight += y;
-        
-        sphere.castShadow = true;
-        sphere.receiveShadow = true;
-        
-        // Dodaj wireframe
-        const sphereWireframe = new THREE.LineSegments(
-          new THREE.EdgesGeometry(sphereGeometry),
-          materials.wireframe
-        );
-        sphere.add(sphereWireframe);
-        
-        // Rozmieść sfery na bazie
-        placeElement(sphere, i, spheresToAdd, baseDimension/2.5);
-        
-        group.add(sphere);
-      }
-    }
-    
-    // Dodaj torusy jeśli są obecne
-    if (torusCount > 0) {
-      const torusesToAdd = Math.min(torusCount, 2);
-      
-      for (let i = 0; i < torusesToAdd; i++) {
-        const radius = 0.8 + Math.random() * 0.7;
-        const tubeRadius = 0.2 + Math.random() * 0.3;
-        
-        const torusGeometry = new THREE.TorusGeometry(
-          radius, tubeRadius, 16, 24
-        );
-        const torus = new THREE.Mesh(torusGeometry, materials.detail);
-        
-        // Obróć torus tak, aby leżał na płaszczyźnie
-        torus.rotation.x = Math.PI / 2;
-        
-        const y = 1 + Math.random() * complexity;
-        torus.position.y = y;
-        totalHeight += y;
-        
-        torus.castShadow = true;
-        torus.receiveShadow = true;
-        
-        // Rozmieść torusy na bazie
-        placeElement(torus, i, torusesToAdd, baseDimension/3);
-        
-        group.add(torus);
-      }
-    }
-    
-    // Dodaj połączenia między elementami
-    if (lineCount > 0 && complexity > 2) {
-      // Znajdź obiekty, które możemy połączyć
-      const connectableObjects: THREE.Object3D[] = [];
-      
-      group.traverse((object) => {
-        if (object !== base && object instanceof THREE.Mesh) {
-          connectableObjects.push(object);
-        }
-      });
-      
-      // Połącz niektóre obiekty liniami
-      if (connectableObjects.length >= 2) {
-        const linesToAdd = Math.min(connectableObjects.length - 1, 5);
-        
-        for (let i = 0; i < linesToAdd; i++) {
-          const obj1 = connectableObjects[i];
-          const obj2 = connectableObjects[(i + 1) % connectableObjects.length];
-          
-          // Utwórz geometrię łącznika
-          const start = new THREE.Vector3().copy(obj1.position);
-          const end = new THREE.Vector3().copy(obj2.position);
-          
-          // Wylicz rozmiar i pozycję łącznika
-          const distance = start.distanceTo(end);
-          const midpoint = new THREE.Vector3().addVectors(start, end).divideScalar(2);
-          
-          const connectionGeometry = new THREE.CylinderGeometry(
-            0.1, 0.1, distance, 8
-          );
-          const connection = new THREE.Mesh(connectionGeometry, materials.detail);
-          
-          // Obróć cylinder tak, aby łączył dwa punkty
-          connection.position.copy(midpoint);
-          connection.lookAt(end);
-          connection.rotateX(Math.PI / 2);
-          
-          connection.castShadow = true;
-          
-          group.add(connection);
-        }
-      }
-    }
+    });
     
     // Dodaj osie pomocnicze
-    const axesHelper = new THREE.AxesHelper(Math.max(2, complexity));
-    axesHelper.position.y = 0.1;
+    const axesHelper = new THREE.AxesHelper(5);
     group.add(axesHelper);
     
-    // Oblicz średnią wysokość dla kamery
-    const avgHeight = totalHeight / Math.max(1, cylinderCount + planeCount + sphereCount + torusCount);
-    console.log(`Średnia wysokość modelu: ${avgHeight}`);
+    // Dodaj siatkę podłoża
+    const gridHelper = new THREE.GridHelper(10, 10);
+    gridHelper.position.y = -0.01; // Lekko poniżej, aby uniknąć z-fighting
+    group.add(gridHelper);
     
-    console.log(`Przybliżony model utworzony (złożoność: ${complexity}, elementy: ${cylinderCount + planeCount + sphereCount + torusCount})`);
+    // Jeśli nic nie dodaliśmy, dodaj domyślną geometrię
+    if (group.children.length <= 2) { // axesHelper + gridHelper
+      console.warn("Nie udało się stworzyć modelu z analizy pliku STEP, używanie domyślnej geometrii");
+      const defaultGeometry = new THREE.BoxGeometry(2, 2, 2);
+      const defaultMesh = new THREE.Mesh(defaultGeometry, materials.standard);
+      addWireframe(defaultMesh);
+      group.add(defaultMesh);
+    }
     
+    console.log(`Przybliżony model utworzony (elementy: ${geometricElements.length})`);
     return group;
+    
   } catch (error) {
     console.error("Błąd tworzenia przybliżonego modelu:", error);
     
@@ -320,5 +287,195 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     group.add(axesHelper);
     
     return group;
+  }
+}
+
+/**
+ * Analizuje plik STEP i zwraca listę elementów geometrycznych
+ */
+function parseStepFile(content: string): GeometricElement[] {
+  const elements: GeometricElement[] = [];
+  
+  try {
+    // Znajdź wszystkie punkty kartezjańskie
+    const cartesianPoints: Record<string, Point3D> = {};
+    const pointRegex = /CARTESIAN_POINT\s*\(\s*'([^']+)'\s*,\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)\s*\)/g;
+    let pointMatch;
+    
+    while ((pointMatch = pointRegex.exec(content)) !== null) {
+      const id = pointMatch[1];
+      const x = parseFloat(pointMatch[2]);
+      const y = parseFloat(pointMatch[3]);
+      const z = parseFloat(pointMatch[4]);
+      
+      cartesianPoints[id] = { x, y, z };
+    }
+    
+    // Znajdź wszystkie wektory kierunkowe
+    const directionVectors: Record<string, Point3D> = {};
+    const directionRegex = /DIRECTION\s*\(\s*'([^']+)'\s*,\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)\s*\)/g;
+    let directionMatch;
+    
+    while ((directionMatch = directionRegex.exec(content)) !== null) {
+      const id = directionMatch[1];
+      const x = parseFloat(directionMatch[2]);
+      const y = parseFloat(directionMatch[3]);
+      const z = parseFloat(directionMatch[4]);
+      
+      directionVectors[id] = { x, y, z };
+    }
+    
+    // Znajdź wszystkie okręgi
+    const circleRegex = /CIRCLE\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let circleMatch;
+    
+    while ((circleMatch = circleRegex.exec(content)) !== null) {
+      const id = circleMatch[1];
+      const radius = parseFloat(circleMatch[3]);
+      
+      elements.push({
+        type: 'sphere',
+        id,
+        radius,
+        center: { x: 0, y: 0, z: 0 } // domyślne centrum, będzie aktualizowane jeśli znajdziemy axis placement
+      });
+    }
+    
+    // Znajdź wszystkie cylindry
+    const cylinderRegex = /CYLINDRICAL_SURFACE\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let cylinderMatch;
+    
+    while ((cylinderMatch = cylinderRegex.exec(content)) !== null) {
+      const id = cylinderMatch[1];
+      const axisPlacementRef = cylinderMatch[2];
+      const radius = parseFloat(cylinderMatch[3]);
+      
+      elements.push({
+        type: 'cylinder',
+        id,
+        radius,
+        height: 5.0, // domyślna wysokość
+        center: { x: 0, y: 0, z: 0 }, // domyślne centrum, będzie aktualizowane jeśli znajdziemy axis placement
+        axis: { x: 0, y: 1, z: 0 } // domyślna oś, będzie aktualizowana
+      });
+    }
+    
+    // Znajdź wszystkie torusy
+    const torusRegex = /TOROIDAL_SURFACE\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let torusMatch;
+    
+    while ((torusMatch = torusRegex.exec(content)) !== null) {
+      const id = torusMatch[1];
+      const majorRadius = parseFloat(torusMatch[3]);
+      const minorRadius = parseFloat(torusMatch[4]);
+      
+      elements.push({
+        type: 'torus',
+        id,
+        radius: majorRadius,
+        center: { x: 0, y: 0, z: 0 },
+        axis: { x: 0, y: 0, z: 1 }
+      });
+    }
+    
+    // Znajdź wszystkie płaszczyzny
+    const planeRegex = /PLANE\s*\(\s*'([^']+)'\s*,\s*([^)]+)\s*\)/g;
+    let planeMatch;
+    
+    while ((planeMatch = planeRegex.exec(content)) !== null) {
+      const id = planeMatch[1];
+      const axisPlacementRef = planeMatch[2];
+      
+      elements.push({
+        type: 'plane',
+        id,
+        center: { x: 0, y: 0, z: 0 },
+        normal: { x: 0, y: 1, z: 0 },
+        points: [] // punkty będą dodane jeśli znajdziemy je w pliku
+      });
+    }
+    
+    // Znajdź wszystkie stożki
+    const coneRegex = /CONICAL_SURFACE\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let coneMatch;
+    
+    while ((coneMatch = coneRegex.exec(content)) !== null) {
+      const id = coneMatch[1];
+      const radius = parseFloat(coneMatch[3]);
+      const semiAngle = parseFloat(coneMatch[4]); // Kąt stożka
+      
+      elements.push({
+        type: 'cone',
+        id,
+        radius,
+        height: 5.0, // domyślna wysokość
+        center: { x: 0, y: 0, z: 0 },
+        axis: { x: 0, y: 1, z: 0 }
+      });
+    }
+    
+    // Znajdź linie proste do tworzenia krawędzi
+    const lineRegex = /LINE\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let lineMatch;
+    
+    while ((lineMatch = lineRegex.exec(content)) !== null) {
+      const id = lineMatch[1];
+      const pointRef = lineMatch[2]; // Punkt początkowy
+      const directionRef = lineMatch[3]; // Kierunek
+      
+      // Znajdź punkt początkowy i kierunek
+      let startPoint = cartesianPoints[pointRef];
+      let direction = directionVectors[directionRef];
+      
+      // Dodaj linię jako element (dla wizualizacji krawędzi)
+      if (startPoint && direction) {
+        const endPoint = {
+          x: startPoint.x + direction.x * 5, // arbitrary length
+          y: startPoint.y + direction.y * 5,
+          z: startPoint.z + direction.z * 5
+        };
+        
+        elements.push({
+          type: 'box', // użyjemy pudełka do reprezentacji linii
+          id,
+          points: [startPoint, endPoint]
+        });
+      }
+    }
+    
+    // Analizuj położenia osi (AXIS2_PLACEMENT_3D) do ustawiania pozycji i orientacji
+    const axisPlacementRegex = /AXIS2_PLACEMENT_3D\s*\(\s*'([^']+)'\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/g;
+    let axisMatch;
+    
+    while ((axisMatch = axisPlacementRegex.exec(content)) !== null) {
+      const id = axisMatch[1];
+      const locationRef = axisMatch[2]; // referencja do punktu
+      const axisRef = axisMatch[3]; // referencja do osi (kierunku)
+      const refDirRef = axisMatch[4]; // referencja do kierunku odniesienia
+      
+      // Znajdź odpowiednie elementy, które używają tego placement
+      elements.forEach(element => {
+        // Aktualizuj centrum i oś dla elementów, które mogą odwoływać się do tego placement
+        if (cartesianPoints[locationRef]) {
+          element.center = cartesianPoints[locationRef];
+        }
+        
+        if (directionVectors[axisRef]) {
+          element.axis = directionVectors[axisRef];
+        }
+        
+        if (element.type === 'plane' && directionVectors[axisRef]) {
+          element.normal = directionVectors[axisRef];
+        }
+      });
+    }
+    
+    // Analizuj warstwy (SHELL_BASED_SURFACE_MODEL, OPEN_SHELL, itp.)
+    // Możemy w ten sposób znaleźć zaawansowane informacje o strukturze modelu
+    
+    return elements;
+  } catch (error) {
+    console.error("Błąd podczas analizy pliku STEP:", error);
+    return [];
   }
 }
