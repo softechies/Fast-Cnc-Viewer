@@ -19,9 +19,24 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   const [controls, setControls] = useState<OrbitControls | null>(null);
   const [model, setModel] = useState<THREE.Object3D | null>(null);
   
-  const { data: modelFile, isLoading } = useQuery({
-    queryKey: ['/api/models', modelId, 'file'],
+  const { data: modelFile, isLoading, error } = useQuery({
+    queryKey: [`/api/models/${modelId}/file`],
     enabled: !!modelId,
+    queryFn: async ({ queryKey }) => {
+      const url = queryKey[0] as string;
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/step'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching model: ${response.status} ${response.statusText}`);
+      }
+      
+      return response.blob();
+    }
   });
   
   // Initialize Three.js scene
@@ -75,7 +90,15 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   
   // Load model when modelFile changes
   useEffect(() => {
-    if (!scene || !modelFile) return;
+    if (!scene || !modelFile) {
+      console.log('No scene or model file available', { scene: !!scene, modelFile: !!modelFile });
+      return;
+    }
+    
+    console.log('Loading model file', { 
+      type: modelFile.type, 
+      size: modelFile.size
+    });
     
     // Clear previous model
     if (model) {
@@ -88,29 +111,52 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       const reader = new FileReader();
       
       reader.onload = (event) => {
-        if (!event.target || !event.target.result) return;
+        if (!event.target || !event.target.result) {
+          console.error('FileReader event target or result is null');
+          return;
+        }
         
         // Parse the STEP file content
         const stepContent = event.target.result as string;
+        console.log('Model content loaded, length:', stepContent.length);
         
-        // Create a 3D model from the STEP file using our parser
-        const stepModel = createModelFromSTEP(stepContent);
-        
-        // Add model to scene
-        scene.add(stepModel);
-        setModel(stepModel);
-        
-        // Reset camera and fit view to model
-        if (camera && controls) {
-          // Try to fit camera to model bounds
-          fitCameraToObject(camera, stepModel, 1.5, controls);
+        try {
+          // Create a 3D model from the STEP file using our parser
+          console.log('Creating 3D model from STEP file');
+          const stepModel = createModelFromSTEP(stepContent);
+          
+          // Add model to scene
+          scene.add(stepModel);
+          setModel(stepModel);
+          console.log('Model added to scene');
+          
+          // Reset camera and fit view to model
+          if (camera && controls) {
+            // Try to fit camera to model bounds
+            fitCameraToObject(camera, stepModel, 1.5, controls);
+            console.log('Camera position adjusted to model');
+          }
+        } catch (error) {
+          console.error('Error creating model from STEP content:', error);
+          createFallbackModel();
         }
+      };
+      
+      reader.onerror = (event) => {
+        console.error('Error reading file:', reader.error);
+        createFallbackModel();
       };
       
       // Read the model file as text
       reader.readAsText(modelFile as Blob);
     } catch (error) {
-      console.error("Error loading model:", error);
+      console.error("Error in model loading process:", error);
+      createFallbackModel();
+    }
+    
+    // Helper function to create a fallback model if something goes wrong
+    function createFallbackModel() {
+      if (!scene) return;
       
       // Fallback to simple box model if loading fails
       const geometry = new THREE.BoxGeometry(10, 10, 10);
@@ -123,6 +169,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       
       scene.add(mesh);
       setModel(mesh);
+      console.log('Fallback cube model added');
       
       // Reset camera view
       if (camera && controls) {
@@ -131,7 +178,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         controls.update();
       }
     }
-  }, [scene, modelFile, camera, controls]);
+  }, [scene, modelFile, camera, controls, model]);
   
   // Viewer controls functions
   const handleRotate = () => {
@@ -179,6 +226,27 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     return (
       <div className="w-full h-full bg-gray-100 flex items-center justify-center">
         <Skeleton className="w-64 h-64 rounded-lg" />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-700">
+        <div className="text-red-500 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+        <h3 className="text-xl font-medium mb-2">Nie można wczytać modelu</h3>
+        <p className="text-gray-500 text-center max-w-md mb-4">
+          Wystąpił błąd podczas próby wczytania modelu. Spróbuj ponownie lub wczytaj inny plik.
+        </p>
+        <div className="bg-gray-100 rounded p-3 text-xs text-gray-500 max-w-md overflow-auto">
+          {error instanceof Error ? error.message : 'Nieznany błąd'}
+        </div>
       </div>
     );
   }
