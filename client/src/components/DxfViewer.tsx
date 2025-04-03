@@ -100,7 +100,6 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
               <div 
                 className="h-full w-full flex items-center justify-center"
                 style={{ 
-                  minHeight: "400px",
                   position: "relative",
                   overflow: "hidden"
                 }}
@@ -108,12 +107,17 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                 <div 
                   className="svg-container"
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: "300px",
+                    height: "300px",
+                    maxWidth: "300px",
+                    maxHeight: "300px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "20px"
+                    padding: "10px",
+                    border: "1px solid #eaeaea",
+                    borderRadius: "4px",
+                    background: "#fff"
                   }}
                   dangerouslySetInnerHTML={{ __html: svgContent }}
                 />

@@ -14,13 +14,16 @@
 
 /* Style dla wizualizacji DXF */
 .svg-container svg {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto !important;
-  height: auto !important;
+  max-width: 280px;
+  max-height: 280px;
+  width: 280px !important;
+  height: 280px !important;
   object-fit: contain;
   display: block;
   margin: 0 auto;
+  transform-box: fill-box;
+  transform-origin: center;
+  overflow: visible;
 }
 
 /* Poprawne wyświetlanie elementów rysunku */
@@ -31,4 +34,10 @@
 .svg-container svg polygon {
   vector-effect: non-scaling-stroke;
   stroke-width: 0.5px;
+}
+
+/* Wymuszenie skalowania dla viewBoxów o dużych wartościach */
+.svg-container {
+  overflow: hidden;
+  position: relative;
 }
