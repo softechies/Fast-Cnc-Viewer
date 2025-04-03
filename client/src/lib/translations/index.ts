@@ -16,12 +16,14 @@ export const languageNames: Record<Language, string> = {
   fr: 'Français'
 };
 
-export const translations: Record<Language, typeof enTranslations> = {
+type TranslationType = typeof import('./en').default
+
+export const translations: Record<Language, TranslationType> = {
   en: enTranslations,
-  pl: plTranslations,
-  cs: csTranslations,
-  de: deTranslations,
-  fr: frTranslations
+  pl: plTranslations as unknown as TranslationType,
+  cs: csTranslations as unknown as TranslationType,
+  de: deTranslations as unknown as TranslationType,
+  fr: frTranslations as unknown as TranslationType
 };
 
 export default translations;

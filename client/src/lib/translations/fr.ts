@@ -117,7 +117,13 @@ const translations = {
     verification: "Vérification en cours",
     shared: {
       model: "modèle partagé"
-    }
+    },
+    password: "Mot de passe",
+    "password.share": "Protégé par mot de passe",
+    "password.share.placeholder": "Entrez le mot de passe pour partage",
+    expiry: "Date d'expiration",
+    email: "Email",
+    "email.placeholder": "Entrez l'email du destinataire"
   },
   
   // Layout

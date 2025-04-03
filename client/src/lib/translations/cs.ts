@@ -117,7 +117,13 @@ const translations = {
     verification: "Probíhá ověření",
     shared: {
       model: "sdílený model"
-    }
+    },
+    password: "Heslo",
+    "password.share": "Chráněno heslem",
+    "password.share.placeholder": "Zadejte heslo pro sdílení",
+    expiry: "Datum expirace",
+    email: "Email",
+    "email.placeholder": "Zadejte email příjemce"
   },
   
   // Layout

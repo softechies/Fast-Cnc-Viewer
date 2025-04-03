@@ -117,7 +117,13 @@ const translations = {
     verification: "Verification in progress",
     shared: {
       model: "shared model"
-    }
+    },
+    password: "Password",
+    "password.share": "Password protected",
+    "password.share.placeholder": "Enter password for sharing",
+    expiry: "Expiry date",
+    email: "Email",
+    "email.placeholder": "Enter recipient email"
   },
   
   // Layout

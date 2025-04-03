@@ -117,7 +117,13 @@ const translations = {
     verification: "Weryfikacja w toku",
     shared: {
       model: "udostępniony model"
-    }
+    },
+    password: "Hasło",
+    "password.share": "Chronione hasłem",
+    "password.share.placeholder": "Wprowadź hasło do udostępnienia",
+    expiry: "Data wygaśnięcia",
+    email: "Email",
+    "email.placeholder": "Wprowadź email odbiorcy"
   },
   
   // Layout
