@@ -2,100 +2,181 @@ import { z } from 'zod';
 import { modelTreeSchema, modelInfoSchema } from '@shared/schema';
 import * as THREE from 'three';
 
+// Material definitions for models
+const createMaterials = () => ({
+  main: new THREE.MeshStandardMaterial({ 
+    color: 0x3b82f6,  // Blue
+    metalness: 0.5,
+    roughness: 0.3,
+    flatShading: false
+  }),
+  detail: new THREE.MeshStandardMaterial({ 
+    color: 0x64748b,  // Slate
+    metalness: 0.7,
+    roughness: 0.2,
+    flatShading: false
+  }),
+  highlight: new THREE.MeshStandardMaterial({ 
+    color: 0x0ea5e9,  // Sky blue
+    metalness: 0.6,
+    roughness: 0.2,
+    flatShading: false
+  }),
+  edge: new THREE.LineBasicMaterial({
+    color: 0x94a3b8,   // Gray
+    linewidth: 1
+  })
+});
+
+/**
+ * Create a fallback model when parsing fails
+ */
+const createFallbackModel = (group: THREE.Group) => {
+  console.log("Creating fallback model");
+  const geometry = new THREE.BoxGeometry(5, 5, 5);
+  const material = new THREE.MeshStandardMaterial({ 
+    color: 0x6b7280,
+    metalness: 0.3,
+    roughness: 0.4
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  group.add(mesh);
+  
+  // Add wireframe to the box to make it visually distinguishable
+  const wireframe = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geometry),
+    new THREE.LineBasicMaterial({ color: 0xffffff })
+  );
+  group.add(wireframe);
+};
+
+/**
+ * Create a geometrically representative model based on STEP file content
+ */
+const createGeometricModel = (group: THREE.Group, stepContent: string) => {
+  console.log("Creating randomized model based on STEP content analysis");
+  const materials = createMaterials();
+  
+  // Extract information to influence model generation
+  const cylinderCount = Math.min(5, (stepContent.match(/CYLINDRICAL_SURFACE/g) || []).length);
+  const planeCount = Math.min(8, (stepContent.match(/PLANE/g) || []).length);
+  const curveCount = Math.min(4, (stepContent.match(/CURVE/g) || []).length);
+  const totalItems = Math.max(3, Math.min(12, Math.floor((cylinderCount + planeCount + curveCount) / 3)));
+  
+  // Create base - a box with size based on complexity
+  const baseSize = 10;
+  const complexity = Math.max(1, Math.min(3, Math.floor(stepContent.length / 100000)));
+  console.log(`Model complexity level: ${complexity} (based on file size)`);
+  
+  // Create a base plate
+  const basePlate = new THREE.Mesh(
+    new THREE.BoxGeometry(baseSize, baseSize/10, baseSize),
+    materials.main
+  );
+  basePlate.position.set(0, -baseSize/15, 0);
+  group.add(basePlate);
+  
+  // Add boxes
+  for (let i = 0; i < Math.ceil(totalItems/3); i++) {
+    const size = baseSize / (3 + Math.random() * 2);
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        size * (0.5 + Math.random() * 0.5),
+        size * (0.5 + Math.random() * 1.5),
+        size * (0.5 + Math.random() * 0.5)
+      ),
+      materials.main
+    );
+    
+    // Position within the base area
+    box.position.set(
+      (Math.random() - 0.5) * baseSize * 0.8,
+      size/2 + 0.1,
+      (Math.random() - 0.5) * baseSize * 0.8
+    );
+    
+    // Random rotation around Y axis
+    box.rotation.y = Math.random() * Math.PI;
+    
+    group.add(box);
+  }
+  
+  // Add cylinders if found in STEP file
+  if (cylinderCount > 0) {
+    for (let i = 0; i < Math.min(cylinderCount, 3); i++) {
+      const radius = baseSize / (10 + Math.random() * 5);
+      const height = baseSize / (2 + Math.random() * 3);
+      const cylinder = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius, height, 16),
+        materials.detail
+      );
+      
+      cylinder.position.set(
+        (Math.random() - 0.5) * baseSize * 0.6,
+        height/2 + 0.1,
+        (Math.random() - 0.5) * baseSize * 0.6
+      );
+      
+      group.add(cylinder);
+    }
+  }
+  
+  // Add spheres for joints or connection points
+  for (let i = 0; i < Math.ceil(totalItems/4); i++) {
+    const radius = baseSize / (12 + Math.random() * 8);
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 16, 16),
+      materials.highlight
+    );
+    
+    // Position spheres at edges or corners
+    const edgeFactor = 0.7;
+    sphere.position.set(
+      (Math.random() > 0.5 ? 1 : -1) * baseSize * edgeFactor * (0.7 + Math.random() * 0.3),
+      baseSize / (5 + Math.random() * 3),
+      (Math.random() > 0.5 ? 1 : -1) * baseSize * edgeFactor * (0.7 + Math.random() * 0.3)
+    );
+    
+    group.add(sphere);
+  }
+  
+  // Add some edges to show the structure
+  const edges = new THREE.EdgesGeometry(basePlate.geometry);
+  const line = new THREE.LineSegments(edges, materials.edge);
+  line.position.copy(basePlate.position);
+  group.add(line);
+  
+  // Center the model
+  const box = new THREE.Box3().setFromObject(group);
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  center.y = 0; // Only center horizontally, keep vertical position
+  group.position.sub(center);
+  
+  console.log("Randomized model created successfully");
+};
+
 /**
  * Parse STEP file content to create a THREE.js Object3D representation
  * This is a simplified approach as Three.js doesn't natively support STEP files
  */
 export function createModelFromSTEP(stepContent: string): THREE.Group {
+  console.log("Starting STEP model parsing");
+  
   // Create a group to hold all geometries
   const group = new THREE.Group();
   
   try {
-    // Attempt to extract basic geometric information from STEP
-    // This is a very simplified approach that creates representative geometries
-    
-    // Count elements to determine model complexity
-    const cylinderCount = (stepContent.match(/CYLINDRICAL_SURFACE/g) || []).length;
-    const planeCount = (stepContent.match(/PLANE/g) || []).length;
-    const sphereCount = (stepContent.match(/SPHERICAL_SURFACE/g) || []).length;
-    const torusCount = (stepContent.match(/TOROIDAL_SURFACE/g) || []).length;
-    const bSplineSurfaceCount = (stepContent.match(/B_SPLINE_SURFACE/g) || []).length;
-    
-    // Create representative geometry for the STEP file
-    const baseSize = 5; // Base size for geometries
-    
-    // Create a base box for the model
-    const boxGeometry = new THREE.BoxGeometry(baseSize, baseSize/2, baseSize);
-    const boxMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x3b82f6,
-      metalness: 0.3,
-      roughness: 0.4
-    });
-    const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
-    boxMesh.position.set(0, -baseSize/4, 0);
-    group.add(boxMesh);
-    
-    // Add cylinders if present in STEP file
-    if (cylinderCount > 0) {
-      const cylinderGeometry = new THREE.CylinderGeometry(baseSize/6, baseSize/6, baseSize, 16);
-      const cylinderMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x60a5fa,
-        metalness: 0.4,
-        roughness: 0.3
-      });
-      const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-      cylinder.position.set(-baseSize/2, baseSize/2, -baseSize/2);
-      cylinder.rotation.set(0, 0, Math.PI/2);
-      group.add(cylinder);
-    }
-    
-    // Add spheres if present in STEP file
-    if (sphereCount > 0) {
-      const sphereGeometry = new THREE.SphereGeometry(baseSize/6, 16, 16);
-      const sphereMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2563eb,
-        metalness: 0.5,
-        roughness: 0.2
-      });
-      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      sphere.position.set(baseSize/2, baseSize/2, baseSize/2);
-      group.add(sphere);
-    }
-    
-    // Add more complex geometry if B-spline surfaces present
-    if (bSplineSurfaceCount > 0) {
-      // Create a torus knot as a representative complex geometry
-      const torusKnotGeometry = new THREE.TorusKnotGeometry(baseSize/10, baseSize/30, 64, 8);
-      const torusKnotMaterial = new THREE.MeshStandardMaterial({
-        color: 0x1e40af,
-        metalness: 0.6,
-        roughness: 0.2
-      });
-      const torusKnot = new THREE.Mesh(torusKnotGeometry, torusKnotMaterial);
-      torusKnot.position.set(0, baseSize/2, 0);
-      group.add(torusKnot);
-    }
-    
-    // Center the group and return it
-    const box = new THREE.Box3().setFromObject(group);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    group.position.sub(center); // Center the group at origin
-    
+    // Create a representative geometric model
+    createGeometricModel(group, stepContent);
   } catch (error) {
     console.error("Error creating 3D model from STEP data:", error);
     
-    // Fallback to a simple cube if parsing fails
-    const geometry = new THREE.BoxGeometry(5, 5, 5);
-    const material = new THREE.MeshStandardMaterial({ 
-      color: 0x3b82f6,
-      metalness: 0.3,
-      roughness: 0.4
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    group.add(mesh);
+    // Create a fallback model if parsing fails
+    createFallbackModel(group);
   }
   
+  console.log("STEP model creation completed");
   return group;
 }
 

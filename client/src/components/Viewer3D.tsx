@@ -154,16 +154,24 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     }
   });
   
+  // Track when model is loaded to prevent duplicate loading
+  const [modelLoaded, setModelLoaded] = useState<boolean>(false);
+  const modelFileRef = useRef<Blob | null>(null);
+  
   // Load model when modelFile changes and scene is available
   useEffect(() => {
-    // Only proceed if we have both the scene and model file
-    if (!threeState.scene || !modelFile) {
-      console.log('Model loading dependencies check:', { 
-        sceneReady: !!threeState.scene, 
-        modelFileReady: !!modelFile
-      });
+    // Skip if we've already processed this file or don't have necessary components
+    if (!threeState.scene || !modelFile || modelLoaded) {
       return;
     }
+    
+    // Check if this is the same file we already processed
+    if (modelFileRef.current === modelFile) {
+      return;
+    }
+    
+    // Save reference to current file being processed
+    modelFileRef.current = modelFile;
     
     console.log('Starting to load model into scene');
     
@@ -177,6 +185,9 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       setThreeState(prev => ({ ...prev, model: null }));
     }
     
+    // Flag that we're starting to load a model
+    setModelLoaded(true);
+    
     // Create a function to load the model
     const loadModel = () => {
       try {
@@ -186,6 +197,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         reader.onload = (event) => {
           if (!event.target || !event.target.result) {
             console.error('FileReader event target or result is null');
+            setModelLoaded(false);
             return;
           }
           
@@ -196,6 +208,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
           try {
             if (!scene) {
               console.error('Scene not available when trying to add model');
+              setModelLoaded(false);
               return;
             }
             
@@ -223,6 +236,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         reader.onerror = () => {
           console.error('FileReader error:', reader.error);
           createFallbackModel();
+          setModelLoaded(false);
         };
         
         // Start reading the file as text
@@ -231,6 +245,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       } catch (error) {
         console.error("Error in model loading process:", error);
         createFallbackModel();
+        setModelLoaded(false);
       }
     };
     
@@ -265,7 +280,13 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     
     // Execute the model loading
     loadModel();
-  }, [modelFile, threeState]);
+  }, [modelFile, threeState, modelLoaded]);
+  
+  // Reset modelLoaded when modelId changes (new model selected)
+  useEffect(() => {
+    setModelLoaded(false);
+    modelFileRef.current = null;
+  }, [modelId]);
   
   // Viewer controls functions
   const handleRotate = () => {
