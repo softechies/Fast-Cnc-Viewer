@@ -3,6 +3,7 @@
 const translations = {
   // Common UI elements
   appTitle: "Przeglądarka CAD",
+  applicationName: "Przeglądarka CAD",
   home: "Strona główna",
   upload: "Prześlij",
   uploadModel: "Prześlij model",
@@ -19,11 +20,18 @@ const translations = {
   close: "Zamknij",
   confirm: "Potwierdź",
   
+  // Buttons
+  button: {
+    upload: "Prześlij",
+    cancel: "Anuluj"
+  },
+  
   // Home page
   welcome: "Witaj w Przeglądarce CAD",
   welcomeMessage: "Prześlij plik CAD, aby rozpocząć",
   recentModels: "Ostatnie modele",
   noModels: "Nie znaleziono modeli. Prześlij plik CAD, aby rozpocząć.",
+  noPreviousFiles: "Brak poprzednich plików",
   
   // Upload modal
   dropFileHere: "Upuść plik CAD tutaj",
@@ -37,10 +45,13 @@ const translations = {
   
   // Model viewer
   modelInfo: "Informacje o modelu",
+  modelInformation: "Informacje o modelu",
   modelTree: "Drzewo modelu",
   components: "Komponenty",
   part: "Część",
+  parts: "Części",
   assembly: "Zespół",
+  surfaces: "Powierzchnie",
   viewControls: "Kontrolki widoku",
   rotate: "Obróć",
   pan: "Przesuń",
@@ -82,6 +93,25 @@ const translations = {
   viewSharedModel: "Zobacz udostępniony model",
   modelSharedBy: "Model udostępniony przez",
   
+  // Messages
+  message: {
+    no: {
+      model: "Przeciągnij i upuść plik CAD tutaj lub kliknij, aby przeglądać"
+    },
+    loading: "Proszę czekać, trwa przetwarzanie pliku"
+  },
+  
+  // Labels
+  label: {
+    file: "Wybrany plik",
+    verification: "Weryfikacja w toku"
+  },
+  
+  // Layout
+  app: {
+    footer: "Przeglądarka CAD - © 2025 Wszelkie prawa zastrzeżone"
+  },
+
   // Error messages
   genericError: "Coś poszło nie tak",
   connectionError: "Błąd połączenia",
