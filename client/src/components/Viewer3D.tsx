@@ -13,151 +13,193 @@ interface Viewer3DProps {
 
 export default function Viewer3D({ modelId }: Viewer3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scene, setScene] = useState<THREE.Scene | null>(null);
-  const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null);
-  const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
-  const [controls, setControls] = useState<OrbitControls | null>(null);
-  const [model, setModel] = useState<THREE.Object3D | null>(null);
+  const [threeState, setThreeState] = useState<{
+    scene: THREE.Scene | null,
+    camera: THREE.PerspectiveCamera | null,
+    renderer: THREE.WebGLRenderer | null,
+    controls: OrbitControls | null,
+    model: THREE.Object3D | null,
+    isInitialized: boolean
+  }>({
+    scene: null,
+    camera: null,
+    renderer: null,
+    controls: null,
+    model: null,
+    isInitialized: false
+  });
   
-  const { data: modelFile, isLoading, error } = useQuery({
-    queryKey: [`/api/models/${modelId}/file`],
-    enabled: !!modelId,
-    queryFn: async ({ queryKey }) => {
-      const url = queryKey[0] as string;
-      const response = await fetch(url, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/step'
-        }
+  // Initialize Three.js scene first
+  useEffect(() => {
+    if (!containerRef.current || threeState.isInitialized) return;
+    
+    try {
+      console.log('Initializing Three.js scene');
+      const { scene, camera, renderer } = initScene(containerRef.current);
+      
+      // Add lights and grid
+      setupLights(scene);
+      const grid = createGridHelper();
+      scene.add(grid);
+      
+      // Setup orbit controls
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      
+      // Save all state at once
+      setThreeState({
+        scene,
+        camera,
+        renderer,
+        controls,
+        model: null,
+        isInitialized: true
       });
       
-      if (!response.ok) {
-        throw new Error(`Error fetching model: ${response.status} ${response.statusText}`);
-      }
+      console.log('Three.js scene initialized successfully');
       
-      return response.blob();
+      // Animation loop
+      const animate = () => {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      };
+      animate();
+      
+      // Handle window resize
+      const handleResize = () => {
+        if (!containerRef.current) return;
+        const width = containerRef.current.clientWidth;
+        const height = containerRef.current.clientHeight;
+        
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        renderer.dispose();
+        controls.dispose();
+        console.log('Three.js scene cleanup on unmount');
+      };
+    } catch (error) {
+      console.error('Error initializing Three.js:', error);
+    }
+  }, [containerRef, threeState.isInitialized]);
+  
+  // Fetch the model file only when scene is initialized and modelId is available
+  const { data: modelFile, isLoading, error } = useQuery({
+    queryKey: [`/api/models/${modelId}/file`],
+    enabled: !!modelId && threeState.isInitialized,
+    queryFn: async ({ queryKey }) => {
+      console.log('Fetching model file:', queryKey[0]);
+      const url = queryKey[0] as string;
+      try {
+        const response = await fetch(url, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/step'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error fetching model: ${response.status} ${response.statusText}`);
+        }
+        
+        const blob = await response.blob();
+        console.log('Model file fetched successfully:', {
+          size: blob.size,
+          type: blob.type
+        });
+        return blob;
+      } catch (error) {
+        console.error('Error fetching model file:', error);
+        throw error;
+      }
     }
   });
   
-  // Initialize Three.js scene
+  // Load model when modelFile changes and scene is available
   useEffect(() => {
-    if (!containerRef.current) return;
+    const { scene, camera, controls, model } = threeState;
     
-    const { scene, camera, renderer } = initScene(containerRef.current);
-    
-    // Add lights and grid
-    setupLights(scene);
-    const grid = createGridHelper();
-    scene.add(grid);
-    
-    // Setup orbit controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    
-    setScene(scene);
-    setCamera(camera);
-    setRenderer(renderer);
-    setControls(controls);
-    
-    // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    };
-    animate();
-    
-    // Handle window resize
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      renderer.dispose();
-      controls.dispose();
-    };
-  }, []);
-  
-  // Load model when modelFile changes
-  useEffect(() => {
+    // Only proceed if we have both the scene and model file
     if (!scene || !modelFile) {
-      console.log('No scene or model file available', { scene: !!scene, modelFile: !!modelFile });
+      console.log('Model loading dependencies check:', { 
+        sceneReady: !!scene, 
+        modelFileReady: !!modelFile
+      });
       return;
     }
     
-    console.log('Loading model file', { 
-      type: modelFile.type, 
-      size: modelFile.size
-    });
+    console.log('Starting to load model into scene');
     
     // Clear previous model
     if (model) {
+      console.log('Removing previous model from scene');
       scene.remove(model);
-      setModel(null);
+      setThreeState(prev => ({ ...prev, model: null }));
     }
     
-    try {
-      // Create a reader to parse the STEP file content
-      const reader = new FileReader();
-      
-      reader.onload = (event) => {
-        if (!event.target || !event.target.result) {
-          console.error('FileReader event target or result is null');
-          return;
-        }
+    // Create a function to load the model
+    const loadModel = () => {
+      try {
+        // Create a reader to parse the STEP file content
+        const reader = new FileReader();
         
-        // Parse the STEP file content
-        const stepContent = event.target.result as string;
-        console.log('Model content loaded, length:', stepContent.length);
-        
-        try {
-          // Create a 3D model from the STEP file using our parser
-          console.log('Creating 3D model from STEP file');
-          const stepModel = createModelFromSTEP(stepContent);
-          
-          // Add model to scene
-          scene.add(stepModel);
-          setModel(stepModel);
-          console.log('Model added to scene');
-          
-          // Reset camera and fit view to model
-          if (camera && controls) {
-            // Try to fit camera to model bounds
-            fitCameraToObject(camera, stepModel, 1.5, controls);
-            console.log('Camera position adjusted to model');
+        reader.onload = (event) => {
+          if (!event.target || !event.target.result) {
+            console.error('FileReader event target or result is null');
+            return;
           }
-        } catch (error) {
-          console.error('Error creating model from STEP content:', error);
+          
+          // Parse the STEP file content
+          const stepContent = event.target.result as string;
+          console.log('STEP file content loaded, length:', stepContent.length);
+          
+          try {
+            // Create a 3D model from the STEP file using our parser
+            console.log('Creating 3D model from STEP file content');
+            const stepModel = createModelFromSTEP(stepContent);
+            
+            // Add model to scene
+            scene.add(stepModel);
+            setThreeState(prev => ({ ...prev, model: stepModel }));
+            console.log('Model successfully added to scene');
+            
+            // Reset camera and fit view to model
+            if (camera && controls) {
+              // Try to fit camera to model bounds
+              fitCameraToObject(camera, stepModel, 1.5, controls);
+              console.log('Camera position adjusted to fit model');
+            }
+          } catch (error) {
+            console.error('Error creating model from STEP content:', error);
+            createFallbackModel();
+          }
+        };
+        
+        reader.onerror = () => {
+          console.error('FileReader error:', reader.error);
           createFallbackModel();
-        }
-      };
-      
-      reader.onerror = (event) => {
-        console.error('Error reading file:', reader.error);
+        };
+        
+        // Start reading the file as text
+        console.log('Reading STEP file as text');
+        reader.readAsText(modelFile);
+      } catch (error) {
+        console.error("Error in model loading process:", error);
         createFallbackModel();
-      };
-      
-      // Read the model file as text
-      reader.readAsText(modelFile as Blob);
-    } catch (error) {
-      console.error("Error in model loading process:", error);
-      createFallbackModel();
-    }
+      }
+    };
     
     // Helper function to create a fallback model if something goes wrong
-    function createFallbackModel() {
-      if (!scene) return;
-      
+    const createFallbackModel = () => {
+      console.log('Creating fallback model');
       // Fallback to simple box model if loading fails
       const geometry = new THREE.BoxGeometry(10, 10, 10);
       const material = new THREE.MeshStandardMaterial({ 
@@ -168,8 +210,8 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       const mesh = new THREE.Mesh(geometry, material);
       
       scene.add(mesh);
-      setModel(mesh);
-      console.log('Fallback cube model added');
+      setThreeState(prev => ({ ...prev, model: mesh }));
+      console.log('Fallback cube model added to scene');
       
       // Reset camera view
       if (camera && controls) {
@@ -177,11 +219,15 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         controls.target.set(0, 0, 0);
         controls.update();
       }
-    }
-  }, [scene, modelFile, camera, controls, model]);
+    };
+    
+    // Execute the model loading
+    loadModel();
+  }, [modelFile, threeState]);
   
   // Viewer controls functions
   const handleRotate = () => {
+    const { camera, controls } = threeState;
     if (!camera || !controls) return;
     
     // Rotate around the model
@@ -191,6 +237,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   };
   
   const handleZoomIn = () => {
+    const { camera, controls } = threeState;
     if (!camera || !controls) return;
     
     // Zoom in by moving camera closer
@@ -200,6 +247,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   };
   
   const handleZoomOut = () => {
+    const { camera, controls } = threeState;
     if (!camera || !controls) return;
     
     // Zoom out by moving camera away
@@ -209,6 +257,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   };
   
   const handlePan = () => {
+    const { controls } = threeState;
     if (!controls) return;
     
     // Toggle pan mode
@@ -216,6 +265,7 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   };
   
   const handleFitToView = () => {
+    const { camera, controls, model } = threeState;
     if (!camera || !controls || !model) return;
     
     // Fit camera to model bounds
