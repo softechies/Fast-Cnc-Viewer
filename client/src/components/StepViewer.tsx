@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
+import { isStandardPart } from '@/lib/standard-parts';
 
 // Interface for STL File Information
 interface StlFileInfo {
@@ -365,13 +366,29 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
+      // Sprawdź czy to standardowa część (śruba, nakrętka, itp.)
+      if (fileData && isStandardPart(fileData.name)) {
+        parsers.push(async () => {
+          setDebugInfo("Wykryto standardową część mechaniczną...");
+          const { createStandardPartFromFileName } = await import('../lib/standard-parts');
+          const partModel = createStandardPartFromFileName(fileData.name);
+          setDebugInfo(`Model standardowej części wczytany (${fileData.name})`);
+          return partModel;
+        });
+      }
+      
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
         setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
-        const { createApproximatedStepModel } = await import('../lib/step-approximation');
-        const approxModel = createApproximatedStepModel(stepContent);
-        setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
-        return approxModel;
+        try {
+          const { createApproximatedStepModel } = await import('../lib/step-approximation');
+          const approxModel = createApproximatedStepModel(stepContent);
+          setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
+          return approxModel;
+        } catch (error) {
+          console.error("Błąd przybliżonego parsera:", error);
+          throw error;
+        }
       });
       
       // Dodaj najprostszy parser jako ostateczny fallback
