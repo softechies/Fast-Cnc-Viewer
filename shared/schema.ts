@@ -28,6 +28,9 @@ export const models = pgTable("models", {
   shareEnabled: boolean("share_enabled").default(false), // Czy udostępnianie jest włączone
   sharePassword: text("share_password"), // Opcjonalne hasło do zabezpieczenia pliku (przechowywane jako hash)
   shareExpiryDate: text("share_expiry_date"), // Data wygaśnięcia udostępniania (opcjonalnie)
+  shareEmail: text("share_email"), // Email osoby, której udostępniono model
+  shareNotificationSent: boolean("share_notification_sent").default(false), // Czy powiadomienie zostało wysłane
+  shareLastAccessed: text("share_last_accessed"), // Ostatni dostęp do udostępnionego modelu
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({
@@ -59,6 +62,9 @@ export const modelInfoSchema = z.object({
   shareEnabled: z.boolean().optional(),
   shareId: z.string().optional(),
   hasPassword: z.boolean().optional(),
+  shareEmail: z.string().optional(),
+  shareExpiryDate: z.string().optional(),
+  shareLastAccessed: z.string().optional(),
 });
 
 // Define schema for share model request
@@ -67,6 +73,7 @@ export const shareModelSchema = z.object({
   enableSharing: z.boolean(),
   password: z.string().optional(),
   expiryDate: z.string().optional(),
+  email: z.string().email("Nieprawidłowy adres email").optional(),
 });
 
 // Define schema for accessing shared model with password

@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
-import { Clipboard, Calendar, Copy, Check, Link2 } from "lucide-react";
+import { Clipboard, Calendar, Copy, Check, Link2, Mail } from "lucide-react";
 
 interface ShareModelDialogProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const [enableSharing, setEnableSharing] = useState(modelInfo?.shareEnabled || false);
   const [password, setPassword] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [email, setEmail] = useState(modelInfo?.shareEmail || "");
   const [shareUrl, setShareUrl] = useState<string>("");
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -31,6 +32,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const handleClose = () => {
     setPassword("");
     setExpiryDate("");
+    setEmail("");
     setCopied(false);
     onClose();
   };
@@ -38,6 +40,16 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   // Obsługa udostępniania modelu
   const handleShare = async () => {
     if (!modelId) return;
+
+    // Sprawdź, czy adres email jest wymagany
+    if (enableSharing && email.trim() === "") {
+      toast({
+        title: "Wymagany email",
+        description: "Aby udostępnić model, należy podać adres email osoby, której udostępniasz plik.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       setIsSharing(true);
@@ -49,7 +61,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
           modelId,
           enableSharing,
           password: password.length > 0 ? password : undefined,
-          expiryDate: expiryDate.length > 0 ? expiryDate : undefined
+          expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
+          email: email.trim() !== "" ? email.trim() : undefined
         }),
         headers: {
           "Content-Type": "application/json"
@@ -79,7 +92,9 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       toast({
         title: enableSharing ? "Model udostępniony" : "Udostępnianie wyłączone",
         description: enableSharing 
-          ? "Model został udostępniony. Możesz skopiować link, aby się nim podzielić." 
+          ? (shareData.emailSent 
+            ? `Model został udostępniony. Powiadomienie zostało wysłane na adres ${email}.` 
+            : "Model został udostępniony. Możesz skopiować link, aby się nim podzielić.")
           : "Udostępnianie modelu zostało wyłączone.",
         variant: "default"
       });
@@ -160,6 +175,22 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                   className="col-span-3"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Adres email odbiorcy"
+                  className="col-span-3"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
 

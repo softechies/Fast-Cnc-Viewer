@@ -63,7 +63,10 @@ export class MemStorage implements IStorage {
       shareId: insertModel.shareId ?? null,
       shareEnabled: insertModel.shareEnabled ?? false,
       sharePassword: insertModel.sharePassword ?? null,
-      shareExpiryDate: insertModel.shareExpiryDate ?? null
+      shareExpiryDate: insertModel.shareExpiryDate ?? null,
+      shareEmail: insertModel.shareEmail ?? null,
+      shareNotificationSent: insertModel.shareNotificationSent ?? false,
+      shareLastAccessed: insertModel.shareLastAccessed ?? null
     };
     const model: Model = { ...modelData, id };
     this.models.set(id, model);
@@ -132,7 +135,10 @@ export class PostgresStorage implements IStorage {
       shareId: insertModel.shareId ?? null,
       shareEnabled: insertModel.shareEnabled ?? false,
       sharePassword: insertModel.sharePassword ?? null,
-      shareExpiryDate: insertModel.shareExpiryDate ?? null
+      shareExpiryDate: insertModel.shareExpiryDate ?? null,
+      shareEmail: insertModel.shareEmail ?? null,
+      shareNotificationSent: insertModel.shareNotificationSent ?? false,
+      shareLastAccessed: insertModel.shareLastAccessed ?? null
     };
     const result = await db.insert(models).values(modelData).returning();
     return result[0];

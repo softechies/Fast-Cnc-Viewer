@@ -1,8 +1,8 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, type Model } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import util from "util";
 import bcrypt from "bcryptjs";
+import { initializeEmailService, sendShareNotification, sendSharingRevokedNotification } from "./email";
 
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
@@ -354,6 +355,14 @@ function generateModelTree(filename: string, filePath?: string): any {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Inicjalizacja usługi e-mail
+  try {
+    await initializeEmailService();
+    console.log("Email service initialized");
+  } catch (error) {
+    console.error("Failed to initialize email service, sharing notifications will not work:", error);
+  }
+
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
@@ -825,6 +834,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generowanie unikalnego ID udostępniania
       let shareId = model.shareId;
       
+      // Sprawdź czy potrzebujemy wysłać powiadomienie o wycofaniu udostępnienia
+      const needsRevocationEmail = model.shareEnabled && 
+                                  !shareData.enableSharing && 
+                                  model.shareEmail;
+                                  
       // Jeśli włączamy udostępnianie i nie ma jeszcze shareId, generujemy nowy
       if (shareData.enableSharing && !shareId) {
         shareId = nanoid(10); // Generuj 10-znakowy identyfikator
@@ -836,13 +850,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sharePassword = await bcrypt.hash(shareData.password, 10);
       }
       
-      // Aktualizacja modelu
-      const updatedModel = await storage.updateModel(id, {
+      // Przygotuj aktualizację modelu
+      const updateData: Partial<Model> = {
         shareId: shareId,
         shareEnabled: shareData.enableSharing,
         sharePassword: sharePassword,
         shareExpiryDate: shareData.expiryDate
-      });
+      };
+      
+      // Jeśli podano adres email, zapisz go
+      if (shareData.email) {
+        updateData.shareEmail = shareData.email;
+        updateData.shareNotificationSent = false; // Reset statusu powiadomienia
+      }
+      
+      // Aktualizacja modelu
+      const updatedModel = await storage.updateModel(id, updateData);
+      
+      // Jeśli włączono udostępnianie i podano adres email, wyślij powiadomienie
+      if (shareData.enableSharing && shareData.email) {
+        try {
+          // Ustal baseUrl na podstawie żądania
+          const protocol = req.headers['x-forwarded-proto'] || 'http';
+          const host = req.headers['host'] || 'localhost:3000';
+          const baseUrl = `${protocol}://${host}`;
+          
+          // Wyślij e-mail z powiadomieniem
+          const emailSent = await sendShareNotification(
+            updatedModel!, 
+            shareData.email, 
+            baseUrl, 
+            shareData.password // Przekazujemy niezahashowane hasło
+          );
+          
+          if (emailSent) {
+            // Zaktualizuj status wysłania powiadomienia
+            await storage.updateModel(id, { shareNotificationSent: true });
+            console.log(`Share notification email sent to ${shareData.email}`);
+          } else {
+            console.error(`Failed to send share notification email to ${shareData.email}`);
+          }
+        } catch (emailError) {
+          console.error("Error sending share notification email:", emailError);
+          // Nie przerywamy procesu, jeśli e-mail nie został wysłany
+        }
+      } else if (needsRevocationEmail) {
+        // Wyślij powiadomienie o wycofaniu udostępnienia
+        try {
+          await sendSharingRevokedNotification(model, model.shareEmail!);
+          console.log(`Share revocation notification email sent to ${model.shareEmail}`);
+        } catch (emailError) {
+          console.error("Error sending share revocation email:", emailError);
+        }
+      }
       
       // Zwróć informacje o udostępnieniu
       res.json({
@@ -851,7 +911,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEnabled: updatedModel?.shareEnabled,
         hasPassword: !!sharePassword,
         shareUrl: shareData.enableSharing ? `/shared/${shareId}` : null,
-        expiryDate: updatedModel?.shareExpiryDate
+        expiryDate: updatedModel?.shareExpiryDate,
+        emailSent: shareData.enableSharing && shareData.email
       });
     } catch (error) {
       console.error("Error sharing model:", error);
