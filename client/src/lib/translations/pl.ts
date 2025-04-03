@@ -7,12 +7,12 @@ const translations = {
   home: "Strona główna",
   upload: "Prześlij",
   uploadModel: "Prześlij model",
-  view: "Zobacz",
+  view: "Podgląd",
   share: "Udostępnij",
   delete: "Usuń",
   cancel: "Anuluj",
   save: "Zapisz",
-  back: "Wróć",
+  back: "Powrót",
   loading: "Ładowanie...",
   refresh: "Odśwież",
   error: "Błąd",
@@ -23,7 +23,8 @@ const translations = {
   // Buttons
   button: {
     upload: "Prześlij",
-    cancel: "Anuluj"
+    cancel: "Anuluj",
+    share: "Udostępnij"
   },
   
   // Home page
@@ -31,7 +32,7 @@ const translations = {
   welcomeMessage: "Prześlij plik CAD, aby rozpocząć",
   recentModels: "Ostatnie modele",
   noModels: "Nie znaleziono modeli. Prześlij plik CAD, aby rozpocząć.",
-  noPreviousFiles: "Brak poprzednich plików",
+  noPreviousFiles: "Brak wcześniejszych plików",
   
   // Upload modal
   dropFileHere: "Upuść plik CAD tutaj",
@@ -50,28 +51,34 @@ const translations = {
   components: "Komponenty",
   part: "Część",
   parts: "Części",
-  assembly: "Zespół",
+  assembly: "Złożenie",
+  assemblies: "Złożenia",
   surfaces: "Powierzchnie",
+  solids: "Bryły",
   viewControls: "Kontrolki widoku",
-  rotate: "Obróć",
+  rotate: "Obracaj",
   pan: "Przesuń",
-  zoom: "Powiększ",
+  zoom: "Przybliż",
   fitToView: "Dopasuj do widoku",
   modelDetails: "Szczegóły modelu",
   format: "Format",
   fileSize: "Rozmiar pliku",
   created: "Utworzono",
+  createdDate: "Data utworzenia",
+  mode: "Tryb",
+  fileType: "Typ pliku",
+  modelEntities: "Elementy modelu",
   modelNotFound: "Nie znaleziono modelu",
-  errorLoadingModel: "Błąd ładowania modelu",
+  errorLoadingModel: "Błąd wczytywania modelu",
   
   // Sharing
   shareModel: "Udostępnij model",
   shareTitle: "Udostępnij ten model CAD",
-  shareDescription: "Udostępnij ten model innym przez e-mail",
+  shareDescription: "Udostępnij ten model innym osobom przez e-mail",
   recipientEmail: "E-mail odbiorcy",
   shareWithPassword: "Udostępnij z hasłem",
   sharePassword: "Hasło",
-  generatePassword: "Generuj hasło",
+  generatePassword: "Wygeneruj hasło",
   setExpiry: "Ustaw datę wygaśnięcia",
   expiryDate: "Data wygaśnięcia",
   shareLink: "Link do udostępnienia",
@@ -83,11 +90,11 @@ const translations = {
   sharingDisabled: "Udostępnianie wyłączone",
   sendEmail: "Wyślij powiadomienie e-mail",
   emailSent: "E-mail wysłany",
-  emailNotSent: "Nie można wysłać e-maila",
+  emailNotSent: "Nie udało się wysłać e-maila",
   
   // Shared model access
   sharedModel: "Udostępniony model",
-  enterPassword: "Wprowadź hasło, aby wyświetlić ten model",
+  enterPassword: "Wprowadź hasło, aby zobaczyć ten model",
   passwordProtected: "Chroniony hasłem",
   incorrectPassword: "Nieprawidłowe hasło",
   viewSharedModel: "Zobacz udostępniony model",
@@ -96,15 +103,21 @@ const translations = {
   // Messages
   message: {
     no: {
-      model: "Przeciągnij i upuść plik CAD tutaj lub kliknij, aby przeglądać"
+      model: "Upuść plik tutaj lub kliknij, aby przeglądać"
     },
-    loading: "Proszę czekać, trwa przetwarzanie pliku"
+    loading: "Proszę czekać, przetwarzamy Twój plik",
+    delete: {
+      warning: "Czy na pewno chcesz usunąć ten model? Tej operacji nie można cofnąć."
+    }
   },
   
   // Labels
   label: {
     file: "Wybrany plik",
-    verification: "Weryfikacja w toku"
+    verification: "Weryfikacja w toku",
+    shared: {
+      model: "udostępniony model"
+    }
   },
   
   // Layout

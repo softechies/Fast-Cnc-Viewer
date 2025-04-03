@@ -3,6 +3,7 @@
 const translations = {
   // Common UI elements
   appTitle: "Visualiseur CAD",
+  applicationName: "Visualiseur CAD",
   home: "Accueil",
   upload: "Télécharger",
   uploadModel: "Télécharger un modèle",
@@ -19,11 +20,19 @@ const translations = {
   close: "Fermer",
   confirm: "Confirmer",
   
+  // Buttons
+  button: {
+    upload: "Télécharger",
+    cancel: "Annuler",
+    share: "Partager"
+  },
+  
   // Home page
   welcome: "Bienvenue sur le Visualiseur CAD",
   welcomeMessage: "Téléchargez un fichier CAD pour commencer",
   recentModels: "Modèles récents",
   noModels: "Aucun modèle trouvé. Téléchargez un fichier CAD pour commencer.",
+  noPreviousFiles: "Aucun fichier précédent",
   
   // Upload modal
   dropFileHere: "Déposez votre fichier CAD ici",
@@ -37,10 +46,15 @@ const translations = {
   
   // Model viewer
   modelInfo: "Informations sur le modèle",
+  modelInformation: "Informations sur le modèle",
   modelTree: "Arborescence du modèle",
   components: "Composants",
   part: "Pièce",
+  parts: "Pièces",
   assembly: "Assemblage",
+  assemblies: "Assemblages",
+  surfaces: "Surfaces",
+  solids: "Solides",
   viewControls: "Contrôles de vue",
   rotate: "Rotation",
   pan: "Panoramique",
@@ -50,6 +64,10 @@ const translations = {
   format: "Format",
   fileSize: "Taille du fichier",
   created: "Créé",
+  createdDate: "Date de création",
+  mode: "Mode",
+  fileType: "Type de fichier",
+  modelEntities: "Entités du modèle",
   modelNotFound: "Modèle non trouvé",
   errorLoadingModel: "Erreur lors du chargement du modèle",
   
@@ -82,6 +100,31 @@ const translations = {
   viewSharedModel: "Voir le modèle partagé",
   modelSharedBy: "Modèle partagé par",
   
+  // Messages
+  message: {
+    no: {
+      model: "Déposez votre fichier ici ou cliquez pour parcourir"
+    },
+    loading: "Veuillez patienter, nous traitons votre fichier",
+    delete: {
+      warning: "Êtes-vous sûr de vouloir supprimer ce modèle? Cette action ne peut pas être annulée."
+    }
+  },
+  
+  // Labels
+  label: {
+    file: "Fichier sélectionné",
+    verification: "Vérification en cours",
+    shared: {
+      model: "modèle partagé"
+    }
+  },
+  
+  // Layout
+  app: {
+    footer: "Visualiseur CAD - © 2025 Tous droits réservés"
+  },
+
   // Error messages
   genericError: "Une erreur s'est produite",
   connectionError: "Erreur de connexion",

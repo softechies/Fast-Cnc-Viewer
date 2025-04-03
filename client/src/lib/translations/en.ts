@@ -23,7 +23,8 @@ const translations = {
   // Buttons
   button: {
     upload: "Upload",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    share: "Share"
   },
   
   // Home page
@@ -31,6 +32,7 @@ const translations = {
   welcomeMessage: "Upload a CAD file to get started",
   recentModels: "Recent Models",
   noModels: "No models found. Upload a CAD file to get started.",
+  noPreviousFiles: "No previous files",
   
   // Upload modal
   dropFileHere: "Drop your CAD file here",
@@ -43,14 +45,16 @@ const translations = {
   processingFile: "Processing file...",
   
   // Model viewer
-  modelInfo: "Model Information",
+  modelInfo: "Model Info",
   modelInformation: "Model Information",
   modelTree: "Model Tree",
   components: "Components",
   part: "Part",
   parts: "Parts",
   assembly: "Assembly",
+  assemblies: "Assemblies",
   surfaces: "Surfaces",
+  solids: "Solids",
   viewControls: "View Controls",
   rotate: "Rotate",
   pan: "Pan",
@@ -60,14 +64,17 @@ const translations = {
   format: "Format",
   fileSize: "File Size",
   created: "Created",
+  createdDate: "Creation Date",
+  mode: "Mode",
+  fileType: "File Type",
+  modelEntities: "Model Entities",
   modelNotFound: "Model not found",
   errorLoadingModel: "Error loading model",
-  noPreviousFiles: "No previous files",
   
   // Sharing
   shareModel: "Share Model",
   shareTitle: "Share this CAD model",
-  shareDescription: "Share this model with others by email",
+  shareDescription: "Share this model with others via email",
   recipientEmail: "Recipient Email",
   shareWithPassword: "Share with password",
   sharePassword: "Password",
@@ -77,8 +84,8 @@ const translations = {
   shareLink: "Share Link",
   copyLink: "Copy Link",
   linkCopied: "Link copied",
-  enableSharing: "Enable sharing",
-  disableSharing: "Disable sharing",
+  enableSharing: "Enable Sharing",
+  disableSharing: "Disable Sharing",
   sharingEnabled: "Sharing enabled",
   sharingDisabled: "Sharing disabled",
   sendEmail: "Send email notification",
@@ -88,30 +95,36 @@ const translations = {
   // Shared model access
   sharedModel: "Shared Model",
   enterPassword: "Enter password to view this model",
-  passwordProtected: "Password Protected",
+  passwordProtected: "Password protected",
   incorrectPassword: "Incorrect password",
-  viewSharedModel: "View Shared Model",
+  viewSharedModel: "View shared model",
   modelSharedBy: "Model shared by",
   
   // Messages
   message: {
     no: {
-      model: "Drag and drop your CAD file here, or click to browse"
+      model: "Drop file here or click to browse"
     },
-    loading: "Please wait while we process your file"
+    loading: "Please wait, processing your file",
+    delete: {
+      warning: "Are you sure you want to delete this model? This action cannot be undone."
+    }
   },
   
   // Labels
   label: {
     file: "Selected file",
-    verification: "Verification in progress"
+    verification: "Verification in progress",
+    shared: {
+      model: "shared model"
+    }
   },
   
   // Layout
   app: {
     footer: "CAD Viewer - © 2025 All rights reserved"
   },
-  
+
   // Error messages
   genericError: "Something went wrong",
   connectionError: "Connection error",

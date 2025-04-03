@@ -3,6 +3,7 @@
 const translations = {
   // Common UI elements
   appTitle: "CAD Prohlížeč",
+  applicationName: "CAD Prohlížeč",
   home: "Domů",
   upload: "Nahrát",
   uploadModel: "Nahrát model",
@@ -18,12 +19,20 @@ const translations = {
   success: "Úspěch",
   close: "Zavřít",
   confirm: "Potvrdit",
+
+  // Buttons
+  button: {
+    upload: "Nahrát",
+    cancel: "Zrušit",
+    share: "Sdílet"
+  },
   
   // Home page
   welcome: "Vítejte v CAD Prohlížeči",
   welcomeMessage: "Nahrajte CAD soubor pro začátek",
   recentModels: "Nedávné modely",
   noModels: "Žádné modely nenalezeny. Nahrajte CAD soubor pro začátek.",
+  noPreviousFiles: "Žádné předchozí soubory",
   
   // Upload modal
   dropFileHere: "Přetáhněte CAD soubor sem",
@@ -37,10 +46,15 @@ const translations = {
   
   // Model viewer
   modelInfo: "Informace o modelu",
+  modelInformation: "Informace o modelu",
   modelTree: "Strom modelu",
   components: "Komponenty",
   part: "Díl",
+  parts: "Díly",
   assembly: "Sestava",
+  assemblies: "Sestavy",
+  surfaces: "Povrchy",
+  solids: "Tělesa",
   viewControls: "Ovládání zobrazení",
   rotate: "Rotace",
   pan: "Posunutí",
@@ -50,6 +64,10 @@ const translations = {
   format: "Formát",
   fileSize: "Velikost souboru",
   created: "Vytvořeno",
+  createdDate: "Datum vytvoření",
+  mode: "Režim",
+  fileType: "Typ souboru",
+  modelEntities: "Entity modelu",
   modelNotFound: "Model nenalezen",
   errorLoadingModel: "Chyba při načítání modelu",
   
@@ -82,6 +100,31 @@ const translations = {
   viewSharedModel: "Zobrazit sdílený model",
   modelSharedBy: "Model sdílen uživatelem",
   
+  // Messages
+  message: {
+    no: {
+      model: "Přetáhněte soubor sem nebo klikněte pro procházení"
+    },
+    loading: "Prosím počkejte, zpracováváme váš soubor",
+    delete: {
+      warning: "Opravdu chcete smazat tento model? Tato akce nelze vrátit."
+    }
+  },
+  
+  // Labels
+  label: {
+    file: "Vybraný soubor",
+    verification: "Probíhá ověření",
+    shared: {
+      model: "sdílený model"
+    }
+  },
+  
+  // Layout
+  app: {
+    footer: "CAD Prohlížeč - © 2025 Všechna práva vyhrazena"
+  },
+
   // Error messages
   genericError: "Něco se pokazilo",
   connectionError: "Chyba připojení",
