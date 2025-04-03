@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import translations from './translations';
-import { Language } from './translations';
+import translations, { Language } from './translations';
 
 const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 

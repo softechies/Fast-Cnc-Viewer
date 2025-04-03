@@ -171,32 +171,25 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
+        setDebugInfo("Ładowanie pliku STEP...");
         
-        // Get model information first to check format
+        // Get STEP file
+        const response = await fetch(`/api/models/${modelId}/file`);
+        if (!response.ok) {
+          throw new Error(`Nie można pobrać pliku (${response.status})`);
+        }
+        
+        // Get model information
         const modelResponse = await fetch(`/api/models/${modelId}`);
         if (!modelResponse.ok) {
           throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status})`);
         }
         
         const modelInfo = await modelResponse.json();
-        const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
-        
-        if (isDirectStl) {
-          setDebugInfo("Model STL - pomijanie ładowania STEP");
-        } else {
-          setDebugInfo("Ładowanie pliku STEP...");
-        }
-        
-        // Get original file
-        const response = await fetch(`/api/models/${modelId}/file`);
-        if (!response.ok) {
-          throw new Error(`Nie można pobrać pliku (${response.status})`);
-        }
         
         const blob = await response.blob();
         const filename = modelInfo.filename || `model-${modelId}.step`;
-        const fileType = isDirectStl ? 'model/stl' : 'application/step';
-        const file = new File([blob], filename, { type: fileType });
+        const file = new File([blob], filename, { type: 'application/step' });
         
         setFileData(file);
         
@@ -207,56 +200,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           
           const stlResponse = await fetch(`/api/models/${modelId}/stl`);
           if (stlResponse.ok) {
-            // STL available 
+            // STL available
+            const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
             setStlFileInfo({ url: `/api/models/${modelId}/stl`, isDirectStl });
-            
-            if (isDirectStl) {
-              // Dla bezpośrednio wgranych plików STL, ładujemy model bezpośrednio
-              // i pomijamy renderowanie STEP, aby uniknąć szarej kostki
-              const modelGroup = new THREE.Group();
-              modelGroup.name = "StepModel";
-              
-              // Wczytanie modelu STL
-              if (sceneRef.current) {
-                const stlModel = await loadSTLModel(stlFileInfo.url, (event) => {
-                  if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    setDebugInfo(`Ładowanie STL: ${percent}%`);
-                  }
-                }) as unknown as THREE.Mesh;
-                
-                try {
-                  stlModel.material = new THREE.MeshBasicMaterial({
-                    color: 0x3b82f6,
-                    wireframe: false,
-                  });
-                } catch (materialError) {
-                  console.warn("Nie można ustawić materiału:", materialError);
-                }
-                
-                modelGroup.add(stlModel);
-                
-                // Dodaj informację o typie parsera
-                modelGroup.userData = { parserType: 'STL (bezpośredni upload)' };
-                
-                // Dodaj model do sceny
-                if (sceneRef.current) {
-                  // Usuń istniejący model jeśli istnieje
-                  const existingModel = sceneRef.current.getObjectByName("StepModel");
-                  if (existingModel) {
-                    sceneRef.current.remove(existingModel);
-                  }
-                  
-                  sceneRef.current.add(modelGroup);
-                  
-                  // Dopasuj kamerę do modelu
-                  if (cameraRef.current && controlsRef.current) {
-                    fitCameraToObject(modelGroup, cameraRef.current, controlsRef.current);
-                  }
-                }
-              }
-            }
-            
             setDebugInfo("Plik STL dostępny");
           } else {
             // No STL available
@@ -270,7 +216,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           setIsLoadingStlFile(false);
         }
       } catch (error) {
-        console.error("Error loading file:", error);
+        console.error("Error loading STEP file:", error);
         setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
         setFileData(null);
       } finally {
@@ -312,7 +258,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
       const useTryStlFirst = Boolean(stlFileInfo?.url);
       
-      // Z powodu ograniczeń konfiguracji Vite nie używamy OpenCascade.js
+      // Zawsze używamy uproszczonego trybu
       const useTryOpenCascade = false;
       
       // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
@@ -342,42 +288,20 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           const modelGroup = new THREE.Group();
           modelGroup.add(stlModel);
           
-          // Dodaj informację o typie parsera
-          modelGroup.userData = { parserType: 'STL' + (stlFileInfo.isDirectStl ? ' (bezpośredni upload)' : ' (konwertowany)') };
-          
           console.log("STL loaded successfully");
           setDebugInfo("Model STL wczytany pomyślnie");
           return modelGroup;
         });
       }
       
-      // W trybie zaawansowanym używamy OpenCascade.js do precyzyjnego renderowania
-      if (useTryOpenCascade && !useAlwaysApproximate) {
-        parsers.push(async () => {
-          setDebugInfo("Ładowanie OpenCascade.js...");
-          try {
-            const { parseSTEPFile } = await import('../lib/opencascade-parser');
-            setDebugInfo("Parsowanie modelu STEP z OpenCascade.js...");
-            const ocModel = await parseSTEPFile(stepContent);
-            // Dodaj informację o typie parsera
-            ocModel.userData = { parserType: 'STEP (OpenCascade.js)' };
-            setDebugInfo("Model STEP wczytany (OpenCascade.js)");
-            return ocModel;
-          } catch (ocError) {
-            console.error("Błąd parsera OpenCascade.js:", ocError);
-            setDebugInfo(`Błąd OpenCascade.js: ${ocError instanceof Error ? ocError.message : 'Nieznany błąd'}`);
-            throw ocError;
-          }
-        });
-      }
+      // W trybie prostym - nie używamy OpenCascade.js
+      // Ten blok kodu został celowo usunięty
       
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
         setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
         const { createApproximatedStepModel } = await import('../lib/step-approximation');
         const approxModel = createApproximatedStepModel(stepContent);
-        // Dodaj informację o typie parsera
-        approxModel.userData = { parserType: 'STEP (zaawansowane przybliżenie)' };
         setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
         return approxModel;
       });
@@ -388,8 +312,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         // Zawsze używamy uproszczonego modelu
         const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
         const simpleModel = createSimpleModelRepresentation(complexity);
-        // Dodaj informację o typie parsera
-        simpleModel.userData = { parserType: 'STEP (prosty model)' };
         setDebugInfo("Model STEP wczytany (prosty model)");
         return simpleModel;
       });
@@ -439,11 +361,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       }
       
       // Ustal format modelu dla informacji debugowej
-      let modelFormat = 'STEP (przybliżony)';
+      let modelFormat = 'STEP (uproszczony)';
       if (stlFileInfo) {
         modelFormat = 'STL';
-      } else if (model.userData && model.userData.parserType) {
-        modelFormat = model.userData.parserType;
       }
       
       setDebugInfo(`Model wczytany (format: ${modelFormat})`);
@@ -509,14 +429,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             const stepContent = event.target.result as string;
             stepContentRef.current = stepContent;
             
-            // Jeśli mamy plik STL i nie uruchamiamy bezpośrednio funkcji renderowania STEP
-            // wtedy nie renderujemy modelu STEP - zapobiega to podwójnemu renderowaniu
-            if (stlFileInfo?.url && stlFileInfo.isDirectStl) {
-              setDebugInfo("Używany tylko model STL, pomijanie parsowania STEP");
-            } else {
-              // Render the model using current render mode
-              renderModel(stepContent);
-            }
+            // Render the model using current render mode
+            renderModel(stepContent);
             
           } catch (error) {
             console.error("Błąd przetwarzania modelu:", error);
@@ -652,23 +566,16 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       {/* Mode info */}
       <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded flex flex-col gap-1">
-        <div className="flex items-center gap-2 mt-1">
-          Format: 
-          {stlFileInfo ? (
+        {stlFileInfo ? (
+          <div className="flex items-center gap-2 mt-1">
+            Format: 
             <Badge variant="outline" className="bg-green-900/50">
               STL (wysokiej jakości)
             </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-blue-900/50">
-              {(sceneRef.current && 
-               sceneRef.current.getObjectByName("StepModel")?.userData?.parserType) || 
-               'STEP (przybliżony)'}
-            </Badge>
-          )}
-        </div>
-        {!stlFileInfo && (
+          </div>
+        ) : (
           <div className="text-gray-300 text-xs italic">
-            Uwaga: Używany jest przybliżony model geometryczny.
+            Uwaga: Używany jest przybliżony model (STL niedostępny).
           </div>
         )}
       </div>
