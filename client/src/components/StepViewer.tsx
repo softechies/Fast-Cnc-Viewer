@@ -294,16 +294,24 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
-      // OpenCascade.js jest tymczasowo wyłączone z powodu ograniczeń WASM
-      // Zamiast tego używamy przybliżonego parsera
+      // Zmiana: Zawsze używamy przybliżonego parsera zamiast OpenCascade.js
+      // z powodu ograniczeń WebAssembly w obecnej konfiguracji
       
-      // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
+      // Dodaj parser przybliżony zaawansowany jako główne rozwiązanie
       parsers.push(async () => {
-        setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
-        const { createApproximatedStepModel } = await import('../lib/step-approximation');
-        const approxModel = createApproximatedStepModel(stepContent);
-        setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
-        return approxModel;
+        try {
+          setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
+          const { createApproximatedStepModel } = await import('../lib/step-approximation');
+          console.log("Zawartość STEP (pierwsze 100 znaków):", stepContent.substring(0, 100));
+          console.log("Długość STEP:", stepContent.length);
+          const approxModel = createApproximatedStepModel(stepContent);
+          console.log("Model przybliżony utworzony pomyślnie");
+          setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
+          return approxModel;
+        } catch (error) {
+          console.error("Błąd w przybliżonym parserze:", error);
+          throw error;
+        }
       });
       
       // Dodaj najprostszy parser jako ostateczny fallback
@@ -470,45 +478,71 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   function createSimpleModelRepresentation(complexity: number) {
     const group = new THREE.Group();
     
-    // Create base cube
-    const baseGeometry = new THREE.BoxGeometry(complexity, 0.5, complexity);
-    const baseMaterial = new THREE.MeshBasicMaterial({ color: 0x3366cc });
-    const base = new THREE.Mesh(baseGeometry, baseMaterial);
-    group.add(base);
+    // Stwórz bardziej złożony model
+    const size = 3; // Stała wielkość dla lepszej widoczności
     
-    // Add some detail based on complexity
-    for (let i = 0; i < complexity * 2; i++) {
-      // Random position
-      const x = (Math.random() - 0.5) * complexity;
-      const y = Math.random() * complexity + 0.5;
-      const z = (Math.random() - 0.5) * complexity;
-      
-      // Random size
-      const size = 0.3 + Math.random() * 0.7;
-      
-      // Alternate between cubes and cylinders
-      let detail;
-      if (i % 2 === 0) {
-        const geometry = new THREE.BoxGeometry(size, size, size);
-        const material = new THREE.MeshBasicMaterial({ color: 0x6699cc });
-        detail = new THREE.Mesh(geometry, material);
-      } else {
-        const geometry = new THREE.CylinderGeometry(size/2, size/2, size, 8);
-        const material = new THREE.MeshBasicMaterial({ color: 0x99ccff });
-        detail = new THREE.Mesh(geometry, material);
-      }
-      
-      detail.position.set(x, y, z);
-      group.add(detail);
-    }
+    // Dodaj główne pudełko
+    const mainBoxGeometry = new THREE.BoxGeometry(size, size, size);
+    const mainBoxMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x4488ee,
+      metalness: 0.3,
+      roughness: 0.7,
+      flatShading: true 
+    });
+    const mainBox = new THREE.Mesh(mainBoxGeometry, mainBoxMaterial);
     
-    // Add wireframe to make it more visible
-    const wireframe = new THREE.WireframeGeometry(baseGeometry);
-    const line = new THREE.LineSegments(
-      wireframe,
-      new THREE.LineBasicMaterial({ color: 0x000000 })
-    );
-    base.add(line);
+    // Dodaj wireframe do pudełka
+    const wireframeGeometry = new THREE.EdgesGeometry(mainBoxGeometry);
+    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+    const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+    mainBox.add(wireframe);
+    
+    group.add(mainBox);
+    
+    // Dodaj cylindry na narożnikach
+    const cylinderPositions = [
+      [-size/2, -size/2, -size/2],
+      [size/2, -size/2, -size/2],
+      [-size/2, size/2, -size/2],
+      [size/2, size/2, -size/2],
+      [-size/2, -size/2, size/2],
+      [size/2, -size/2, size/2],
+      [-size/2, size/2, size/2],
+      [size/2, size/2, size/2],
+    ];
+    
+    // Dodaj cylindry na narożnikach
+    cylinderPositions.forEach(position => {
+      const cylinderGeometry = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 16);
+      const cylinderMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x66aaff,
+        metalness: 0.5,
+        roughness: 0.5 
+      });
+      const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+      cylinder.position.set(position[0], position[1], position[2]);
+      group.add(cylinder);
+    });
+    
+    // Dodaj kulę w środku
+    const sphereGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+    const sphereMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x88ccff, 
+      metalness: 0.7,
+      roughness: 0.2,
+      envMapIntensity: 1.0
+    });
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    group.add(sphere);
+    
+    // Dodaj osie pomocnicze
+    const axesHelper = new THREE.AxesHelper(size);
+    group.add(axesHelper);
+    
+    // Dodaj siatkę podłoża
+    const gridHelper = new THREE.GridHelper(size * 2, 10);
+    gridHelper.position.y = -size/2 - 0.1; // Przesuń siatkę pod model
+    group.add(gridHelper);
     
     return group;
   }
@@ -574,8 +608,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             </Badge>
           </div>
         ) : (
-          <div className="text-gray-300 text-xs italic">
-            Uwaga: Używany jest przybliżony model (STL niedostępny).
+          <div className="flex flex-col gap-1">
+            <div className="text-gray-300 text-xs">
+              <Badge variant="outline" className="bg-amber-700/50">
+                STEP (Symulowany)
+              </Badge>
+            </div>
+            <div className="text-gray-300 text-xs italic">
+              Widoczny jest model zastępczy
+            </div>
           </div>
         )}
       </div>
