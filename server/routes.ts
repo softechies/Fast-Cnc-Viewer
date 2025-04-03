@@ -16,6 +16,7 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification } from "./email";
 import { sendShareNotification as sendSendgridNotification, sendSharingRevokedNotification as sendSendgridRevokedNotification } from "./sendgrid";
 import { initializeGmailService, sendShareNotificationGmail, sendSharingRevokedNotificationGmail } from "./gmail";
+import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
 
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
@@ -362,6 +363,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Inicjalizujemy podstawowy serwis Nodemailer (Ethereal) - tylko do testów
     await initializeEmailService();
     
+    // Sprawdzamy czy możemy zainicjalizować własny serwer SMTP
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+      const smtpInitialized = initializeCustomSmtpService({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+        from: process.env.SMTP_FROM
+      });
+      
+      if (smtpInitialized) {
+        console.log("Custom SMTP email service initialized successfully");
+      }
+    }
+    
     // Sprawdzamy czy możemy zainicjalizować Gmail
     if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
       const gmailInitialized = initializeGmailService({
@@ -373,8 +390,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (gmailInitialized) {
         console.log("Gmail email service initialized successfully");
       }
-    } else {
-      console.warn("Gmail credentials not provided, email notifications will use test service only");
+    } else if (!process.env.SMTP_HOST) {
+      console.warn("Neither custom SMTP nor Gmail credentials were provided, email notifications will use test service only");
     }
   } catch (error) {
     console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
@@ -892,11 +909,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const host = req.headers['host'] || 'localhost:3000';
           const baseUrl = `${protocol}://${host}`;
           
-          // Wyślij e-mail z powiadomieniem - próbuj Gmail, potem SendGrid, a na końcu Nodemailer jako fallback
+          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, potem Gmail, potem SendGrid, a na końcu Nodemailer jako fallback
           let emailSent = false;
           
-          // Najpierw spróbuj Gmail
-          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            emailSent = await sendShareNotificationSmtp(
+              updatedModel!, 
+              shareData.email, 
+              baseUrl,
+              shareData.password // Przekazujemy niezahashowane hasło
+            );
+            
+            if (emailSent) {
+              console.log(`Share notification email sent via custom SMTP to ${shareData.email}`);
+            } else {
+              console.warn("Custom SMTP email failed, trying Gmail");
+            }
+          }
+          
+          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
+          if (!emailSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
             emailSent = await sendShareNotificationGmail(
               updatedModel!, 
               shareData.email, 
@@ -927,7 +960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Jeśli ani Gmail ani SendGrid nie są skonfigurowane lub wystąpił błąd, użyj Nodemailer
+          // Jako ostatnią opcję, użyj Nodemailer z Ethereal
           if (!emailSent) {
             emailSent = await sendNodemailerNotification(
               updatedModel!, 
@@ -955,22 +988,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          // Próbuj wysłać przez Gmail, SendGrid, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
           let revocationSent = false;
           
-          // Najpierw spróbuj Gmail
-          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail!);
+          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationSmtp(model, model.shareEmail!);
             if (revocationSent) {
-              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+              console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail}`);
+            } else {
+              console.warn("Custom SMTP email failed, trying Gmail");
             }
           }
           
-          // Spróbuj SendGrid jako drugą opcję
+          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
+          if (!revocationSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail!);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+            } else {
+              console.warn("Gmail email failed, trying SendGrid");
+            }
+          }
+          
+          // Spróbuj SendGrid jako kolejną opcję
           if (!revocationSent && process.env.SENDGRID_API_KEY) {
             revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail!);
             if (revocationSent) {
               console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
+            } else {
+              console.warn("SendGrid email failed, trying Nodemailer");
             }
           }
           
@@ -1118,22 +1165,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
       if (model.shareEmail) {
         try {
-          // Próbuj wysłać przez Gmail, SendGrid, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
           let revocationSent = false;
           
-          // Najpierw spróbuj Gmail
-          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail);
+          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationSmtp(model, model.shareEmail);
             if (revocationSent) {
-              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+              console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail}`);
+            } else {
+              console.warn("Custom SMTP email failed, trying Gmail");
             }
           }
           
-          // Spróbuj SendGrid jako drugą opcję
+          // Jeśli własny SMTP nie zadziałał, spróbuj Gmail
+          if (!revocationSent && process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+            } else {
+              console.warn("Gmail email failed, trying SendGrid");
+            }
+          }
+          
+          // Spróbuj SendGrid jako kolejną opcję
           if (!revocationSent && process.env.SENDGRID_API_KEY) {
             revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail);
             if (revocationSent) {
               console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
+            } else {
+              console.warn("SendGrid email failed, trying Nodemailer");
             }
           }
           
