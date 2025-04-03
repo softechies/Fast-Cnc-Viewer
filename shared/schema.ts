@@ -23,9 +23,7 @@ export const models = pgTable("models", {
   format: text("format"),
   created: text("created").notNull(),
   sourceSystem: text("source_system"),
-  metadata: jsonb("metadata"),
-  stlFilepath: text("stl_filepath"),  // Ścieżka do wygenerowanego pliku STL
-  jsonFilepath: text("json_filepath"), // Ścieżka do metadanych modelu
+  metadata: jsonb("metadata"), // Zawiera wszystkie dodatkowe dane, w tym ścieżki do plików STL i JSON
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({
