@@ -122,6 +122,12 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     }
   }, [threeState.isInitialized]);
   
+  // State for debug info display
+  const [debugInfo, setDebugInfo] = useState<string>("Initializing...");
+  
+  // Track animation frames for cleanup
+  const animationFrameIdRef = useRef<number | null>(null);
+  
   // Fetch the model file only when scene is initialized and modelId is available
   const { data: modelFile, isLoading, error } = useQuery({
     queryKey: [`/api/models/${modelId}/file`],
@@ -129,6 +135,8 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     queryFn: async ({ queryKey }) => {
       console.log('Fetching model file:', queryKey[0]);
       const url = queryKey[0] as string;
+      setDebugInfo(`Fetching: ${url}`);
+      
       try {
         const response = await fetch(url, {
           credentials: 'include',
@@ -138,7 +146,9 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         });
         
         if (!response.ok) {
-          throw new Error(`Error fetching model: ${response.status} ${response.statusText}`);
+          const errorMsg = `Error fetching model: ${response.status} ${response.statusText}`;
+          setDebugInfo(errorMsg);
+          throw new Error(errorMsg);
         }
         
         const blob = await response.blob();
@@ -146,9 +156,11 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
           size: blob.size,
           type: blob.type
         });
+        setDebugInfo(`File loaded: ${blob.size} bytes`);
         return blob;
       } catch (error) {
         console.error('Error fetching model file:', error);
+        setDebugInfo(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
       }
     }
@@ -379,7 +391,20 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   }
   
   return (
-    <div className="relative w-full h-full" ref={containerRef}>
+    <div className="relative w-full h-full flex flex-col" style={{ minHeight: "500px" }}>
+      {/* Debug info panel */}
+      <div className="absolute top-0 left-0 z-50 bg-black/70 text-white text-xs p-1 m-1 rounded">
+        {debugInfo}
+      </div>
+      
+      {/* 3D viewer container */}
+      <div 
+        className="relative w-full h-full bg-gray-100" 
+        ref={containerRef}
+        style={{ minHeight: "400px", flex: 1 }}
+      />
+      
+      {/* Controls */}
       <ViewerControls 
         onRotate={handleRotate}
         onZoomIn={handleZoomIn}
