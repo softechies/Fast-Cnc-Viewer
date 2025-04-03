@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 // Zakomentowałem problematyczne zależności
 // @ts-ignore - brak typów dla dxf-parser
 // import DxfParser from 'dxf-parser';
@@ -237,38 +239,62 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
             // Rysowanie prostego przykładu w Three.js
             // Siatka i system współrzędnych zamiast faktycznej geometrii DXF
             
+            // Tworzymy siatkę
+            const gridSize = 100;
+            const gridDivisions = 20;
+            const gridHelper = new THREE.GridHelper(gridSize, gridDivisions);
+            gridHelper.rotation.x = Math.PI / 2; // Obracamy siatkę do płaszczyzny XY
+            gridHelper.name = "DxfGridHelper";
+            
+            // Tworzymy osie
+            const axesHelper = new THREE.AxesHelper(50);
+            axesHelper.name = "DxfAxesHelper";
+            
+            // Tworzymy prostą geometrię jako wizualizację
             const geometry = new THREE.BufferGeometry();
             const vertices = [];
             
-            // Tworzymy prostą geometrię reprezentującą system współrzędnych
-            for (let i = -50; i <= 50; i += 10) {
-              // Linie w osi X
-              vertices.push(-50, i, 0);
-              vertices.push(50, i, 0);
+            // Rysujemy prosty wzór reprezentujący wczytany DXF
+            // Okrąg
+            const radius = 30;
+            const segments = 32;
+            for (let i = 0; i < segments; i++) {
+              const theta = (i / segments) * Math.PI * 2;
+              const thetaNext = ((i + 1) / segments) * Math.PI * 2;
               
-              // Linie w osi Y
-              vertices.push(i, -50, 0);
-              vertices.push(i, 50, 0);
+              vertices.push(
+                Math.cos(theta) * radius, Math.sin(theta) * radius, 0,
+                Math.cos(thetaNext) * radius, Math.sin(thetaNext) * radius, 0
+              );
             }
+            
+            // Kilka prostych linii
+            vertices.push(-40, -40, 0, 40, 40, 0); // Linia przekątna
+            vertices.push(-40, 40, 0, 40, -40, 0); // Linia przekątna (druga)
+            vertices.push(-40, 0, 0, 40, 0, 0);    // Linia pozioma
+            vertices.push(0, -40, 0, 0, 40, 0);    // Linia pionowa
             
             // Dodajemy wierzchołki do geometrii
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
             
             // Materiał dla linii
-            const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+            const material = new THREE.LineBasicMaterial({ color: 0x009900 });
             
             // Tworzymy obiekt linii
-            const grid = new THREE.LineSegments(geometry, material);
-            grid.name = "DxfModel";
+            const modelLines = new THREE.LineSegments(geometry, material);
+            modelLines.name = "DxfModel";
             
-            // Usuń poprzedni model
-            const previousModel = sceneRef.current.getObjectByName("DxfModel");
-            if (previousModel) {
-              sceneRef.current.remove(previousModel);
-            }
+            // Usuń poprzednie obiekty
+            const previousObjects = ["DxfModel", "DxfGridHelper", "DxfAxesHelper"];
+            previousObjects.forEach(name => {
+              const obj = sceneRef.current?.getObjectByName(name);
+              if (obj) sceneRef.current?.remove(obj);
+            });
             
-            // Dodaj nowy model do sceny
-            sceneRef.current.add(grid);
+            // Dodaj nowe obiekty do sceny
+            sceneRef.current?.add(gridHelper);
+            sceneRef.current?.add(axesHelper);
+            sceneRef.current?.add(modelLines);
             
             // Ustawienia kamery
             if (cameraRef.current && controlsRef.current) {
@@ -304,7 +330,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
   const toggleGrid = () => {
     if (!sceneRef.current) return;
     
-    const grid = sceneRef.current.getObjectByName("GridHelper");
+    const grid = sceneRef.current.getObjectByName("DxfGridHelper");
     if (grid) {
       grid.visible = !grid.visible;
       setShowGrid(grid.visible);
@@ -412,6 +438,27 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
           Uwaga: Tryb 2D dla plików CAD.
         </div>
       </div>
+      
+      {/* Code Preview Panel */}
+      {dxfContent && (
+        <div className="absolute bottom-2 right-2 z-10 bg-white text-black text-xs rounded shadow-md overflow-hidden" style={{ maxWidth: '350px', maxHeight: '200px' }}>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="source-code" className="border-0">
+              <AccordionTrigger className="py-2 px-3 text-xs hover:no-underline">
+                Podgląd kodu DXF
+              </AccordionTrigger>
+              <AccordionContent>
+                <ScrollArea className="h-[150px] w-[350px]">
+                  <pre className="p-3 text-xs font-mono bg-gray-100 rounded">
+                    {dxfContent.substring(0, 2000)}
+                    {dxfContent.length > 2000 && '...'}
+                  </pre>
+                </ScrollArea>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
     </div>
   );
 }
