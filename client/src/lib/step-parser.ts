@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { modelTreeSchema, modelInfoSchema } from '@shared/schema';
 import * as THREE from 'three';
+// @ts-ignore
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 
 // Material definitions for models
 const createMaterials = () => ({
@@ -492,6 +494,77 @@ function extractSourceSystem(content: string): string | undefined {
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
+}
+
+/**
+ * Ładuje model STL z podanego URL i renderuje go w Three.js
+ * Ta funkcja wykorzystuje STLLoader z three.js/examples do poprawnego ładowania geometrii
+ */
+export function loadSTLModel(
+  url: string, 
+  onProgress?: (event: ProgressEvent) => void
+): Promise<THREE.Group> {
+  return new Promise((resolve, reject) => {
+    console.log("Loading STL model from:", url);
+    
+    const loader = new STLLoader();
+    const materials = createMaterials();
+    
+    // Create a group to hold the model
+    const group = new THREE.Group();
+    
+    // Add helper axes
+    const axesHelper = new THREE.AxesHelper(2);
+    group.add(axesHelper);
+    
+    // Load STL file
+    loader.load(
+      url,
+      (geometry) => {
+        console.log("STL loaded successfully");
+        
+        // Center the geometry
+        geometry.center();
+        
+        // Create a mesh from the STL geometry
+        const mesh = new THREE.Mesh(geometry, materials.main);
+        
+        // Add some rotation to orient the model properly
+        mesh.rotation.x = -Math.PI / 2;
+        
+        // Auto scale based on bounding box
+        const box = new THREE.Box3().setFromObject(mesh);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 10 / maxDim; // Scale to fit in a 10x10x10 space
+        mesh.scale.set(scale, scale, scale);
+        
+        // Enable shadows
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        // Add to the group
+        group.add(mesh);
+        
+        // Add wireframe for better visibility
+        const wireframe = new THREE.LineSegments(
+          new THREE.EdgesGeometry(geometry),
+          materials.edge
+        );
+        wireframe.rotation.x = -Math.PI / 2;
+        wireframe.scale.set(scale, scale, scale);
+        group.add(wireframe);
+        
+        resolve(group);
+      },
+      onProgress,
+      (err) => {
+        console.error("Error loading STL model:", err);
+        createFallbackModel(group);
+        resolve(group); // Return fallback instead of rejecting
+      }
+    );
+  });
 }
 
 // Types imported from the shared schema

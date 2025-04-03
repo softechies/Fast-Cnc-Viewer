@@ -12,7 +12,9 @@ export interface IStorage {
   createModel(model: InsertModel): Promise<Model>;
   getModel(id: number): Promise<Model | undefined>;
   getModelsByUserId(userId: number): Promise<Model[]>;
+  updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined>;
   deleteModel(id: number): Promise<boolean>;
+  getModels(): Promise<Model[]>; // Dodana metoda do pobierania wszystkich modeli
 }
 
 // In-memory storage implementation
@@ -54,7 +56,9 @@ export class MemStorage implements IStorage {
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
-      metadata: insertModel.metadata ?? null 
+      metadata: insertModel.metadata ?? null,
+      stlFilepath: insertModel.stlFilepath ?? null,
+      jsonFilepath: insertModel.jsonFilepath ?? null
     };
     const model: Model = { ...modelData, id };
     this.models.set(id, model);
@@ -73,6 +77,19 @@ export class MemStorage implements IStorage {
 
   async deleteModel(id: number): Promise<boolean> {
     return this.models.delete(id);
+  }
+  
+  async updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined> {
+    const model = this.models.get(id);
+    if (!model) return undefined;
+    
+    const updatedModel = { ...model, ...updates };
+    this.models.set(id, updatedModel);
+    return updatedModel;
+  }
+  
+  async getModels(): Promise<Model[]> {
+    return Array.from(this.models.values());
   }
 }
 
@@ -100,7 +117,9 @@ export class PostgresStorage implements IStorage {
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
-      metadata: insertModel.metadata ?? null 
+      metadata: insertModel.metadata ?? null,
+      stlFilepath: insertModel.stlFilepath ?? null,
+      jsonFilepath: insertModel.jsonFilepath ?? null
     };
     const result = await db.insert(models).values(modelData).returning();
     return result[0];
@@ -118,6 +137,20 @@ export class PostgresStorage implements IStorage {
   async deleteModel(id: number): Promise<boolean> {
     const result = await db.delete(models).where(eq(models.id, id)).returning({ id: models.id });
     return result.length > 0;
+  }
+  
+  async updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined> {
+    const result = await db
+      .update(models)
+      .set(updates)
+      .where(eq(models.id, id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async getModels(): Promise<Model[]> {
+    return await db.select().from(models);
   }
 }
 

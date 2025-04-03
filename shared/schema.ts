@@ -24,18 +24,20 @@ export const models = pgTable("models", {
   created: text("created").notNull(),
   sourceSystem: text("source_system"),
   metadata: jsonb("metadata"),
+  stlFilepath: text("stl_filepath"),  // Ścieżka do wygenerowanego pliku STL
+  jsonFilepath: text("json_filepath"), // Ścieżka do metadanych modelu
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({
   id: true
 });
 
-// Define the ModelTree type for the frontend
+// Define the ModelTree type for the frontend - usztywnione aby uniknąć problemów z rekurencją
 export const modelTreeSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.enum(["model", "assembly", "part", "feature"]),
-  children: z.lazy(() => z.array(modelTreeSchema)).optional(),
+  children: z.array(z.any()).optional(),
   selected: z.boolean().optional(),
 });
 

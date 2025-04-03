@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { createModelFromSTEP } from '@/lib/step-parser';
+import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
 
 interface StepViewerProps {
   modelId: number | null;
@@ -184,13 +184,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     }
   }, []);
   
-  // Fetch model file when modelId changes
+  // Fetch STEP model file when modelId changes
   const { data: fileData, isLoading: isLoadingFile } = useQuery({
     queryKey: [`/api/models/${modelId}/file`],
     enabled: !!modelId,
     queryFn: async ({ queryKey }) => {
       const url = queryKey[0] as string;
-      setDebugInfo(`Pobieranie pliku: ${url}`);
+      setDebugInfo(`Pobieranie pliku STEP: ${url}`);
       
       const response = await fetch(url);
       if (!response.ok) {
@@ -198,8 +198,33 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       }
       
       const blob = await response.blob();
-      setDebugInfo(`Plik pobrany: ${blob.size} bajtów`);
+      setDebugInfo(`Plik STEP pobrany: ${blob.size} bajtów`);
       return blob;
+    }
+  });
+  
+  // Fetch STL model file (converted) when modelId changes
+  const { data: stlFileUrl, isLoading: isLoadingStlFile } = useQuery({
+    queryKey: [`/api/models/${modelId}/stl`],
+    enabled: !!modelId,
+    queryFn: async ({ queryKey }) => {
+      const url = queryKey[0] as string;
+      setDebugInfo(`Sprawdzanie dostępności pliku STL...`);
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        
+        // Jeśli plik STL istnieje, zwróć jego URL
+        setDebugInfo(`Plik STL dostępny`);
+        return url;
+      } catch (error) {
+        console.error("STL file not available:", error);
+        setDebugInfo(`Plik STL niedostępny - użycie generowanego modelu`);
+        return null;
+      }
     }
   });
   
@@ -216,7 +241,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   }
   
   // Function to render model based on current render mode
-  function renderModel(stepContent: string) {
+  async function renderModel(stepContent: string) {
     if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
     
     try {
@@ -232,18 +257,45 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         sceneRef.current.remove(refCube);
       }
       
-      // Create model based on render mode
+      // Create model based on available format and render mode
       let model: THREE.Object3D;
       
-      if (renderMode === 'advanced') {
-        // Use advanced STEP parser
-        setDebugInfo("Użycie zaawansowanego parsera STEP...");
-        model = createModelFromSTEP(stepContent);
-      } else {
-        // Use simple visualization
-        setDebugInfo("Użycie uproszczonej reprezentacji...");
-        const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-        model = createSimpleModelRepresentation(complexity);
+      // Pierwsza próba: Wczytaj model STL, jeśli dostępny
+      if (stlFileUrl && renderMode === 'advanced') {
+        try {
+          setDebugInfo("Ładowanie modelu STL...");
+          model = await loadSTLModel(stlFileUrl, (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 100);
+              setDebugInfo(`Ładowanie STL: ${percent}%`);
+            }
+          });
+          setDebugInfo("Model STL wczytany");
+        } catch (stlError) {
+          console.error("Błąd wczytywania STL, przełączenie na parser STEP:", stlError);
+          setDebugInfo("Problem z modelem STL, użycie alternatywnego parsera...");
+          
+          // Fallback do parsera STEP
+          if (renderMode === 'advanced') {
+            model = createModelFromSTEP(stepContent);
+          } else {
+            const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+            model = createSimpleModelRepresentation(complexity);
+          }
+        }
+      } 
+      // Jeśli nie ma STL lub jest w trybie prostym
+      else {
+        if (renderMode === 'advanced') {
+          // Use advanced STEP parser
+          setDebugInfo("Użycie zaawansowanego parsera STEP...");
+          model = createModelFromSTEP(stepContent);
+        } else {
+          // Use simple visualization
+          setDebugInfo("Użycie uproszczonej reprezentacji...");
+          const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+          model = createSimpleModelRepresentation(complexity);
+        }
       }
       
       model.name = "StepModel";
@@ -254,7 +306,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         fitCameraToObject(model, cameraRef.current, controlsRef.current);
       }
       
-      setDebugInfo(`Model wczytany (tryb: ${renderMode})`);
+      setDebugInfo(`Model wczytany (tryb: ${renderMode}${stlFileUrl ? ', format: STL' : ''})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
@@ -319,7 +371,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Clear stored content
       stepContentRef.current = null;
     };
-  }, [fileData, renderMode]);
+  }, [fileData, renderMode, stlFileUrl]);
   
   // Helper function to create a simple model representation
   function createSimpleModelRepresentation(complexity: number) {
@@ -409,7 +461,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       </div>
       
       {/* Loading overlay */}
-      {isLoadingFile && (
+      {(isLoadingFile || isLoadingStlFile) && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20">
           <div className="bg-white p-4 rounded shadow-md">
             <Skeleton className="h-4 w-32 mb-2" />
@@ -431,12 +483,21 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         <div className="flex items-center gap-2">
           Tryb renderowania: 
           <Badge variant={renderMode === 'simple' ? 'default' : 'secondary'}>
-            {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (analiza STEP)'}
+            {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (pełna geometria)'}
           </Badge>
         </div>
-        <div className="text-gray-300 text-xs italic">
-          Uwaga: Rzeczywista geometria STEP wymaga specjalistycznych bibliotek.
-        </div>
+        {stlFileUrl ? (
+          <div className="flex items-center gap-2 mt-1">
+            Format: 
+            <Badge variant="outline" className="bg-green-900/50">
+              STL (wysokiej jakości)
+            </Badge>
+          </div>
+        ) : (
+          <div className="text-gray-300 text-xs italic">
+            Uwaga: Używany jest przybliżony model (STL niedostępny).
+          </div>
+        )}
       </div>
     </div>
   );

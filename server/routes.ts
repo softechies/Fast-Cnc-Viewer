@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
 import os from "os";
+import { exec } from "child_process";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -97,6 +98,57 @@ function extractStepMetadata(filePath: string): any {
       }
     };
   }
+}
+
+// Konwertuj plik STEP do formatu STL przy użyciu skryptu FreeCAD
+async function convertStepToStl(stepFilePath: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    try {
+      if (!fs.existsSync(stepFilePath)) {
+        console.error("STEP file does not exist:", stepFilePath);
+        return resolve(null);
+      }
+      
+      const baseDir = path.dirname(stepFilePath);
+      const baseName = path.basename(stepFilePath, path.extname(stepFilePath));
+      const stlFilePath = path.join(baseDir, `${baseName}.stl`);
+      
+      console.log(`Converting ${stepFilePath} to ${stlFilePath}...`);
+      
+      // Ścieżka do skryptu konwersji
+      const pythonScript = path.join(__dirname, 'freecad-converter.py');
+      
+      // Wywołanie skryptu Pythona z FreeCAD
+      const command = `python ${pythonScript} "${stepFilePath}" "${stlFilePath}"`;
+      console.log("Executing command:", command);
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error converting file: ${error.message}`);
+          console.error(`stderr: ${stderr}`);
+          return resolve(null);
+        }
+        
+        if (stderr) {
+          console.warn(`Warning during conversion: ${stderr}`);
+        }
+        
+        console.log(`Conversion output: ${stdout}`);
+        
+        // Sprawdź czy plik STL został utworzony
+        if (fs.existsSync(stlFilePath)) {
+          console.log(`STL file created successfully: ${stlFilePath}`);
+          return resolve(stlFilePath);
+        } else {
+          console.error("STL file was not created");
+          return resolve(null);
+        }
+      });
+    } catch (error) {
+      console.error("Error in convertStepToStl:", error);
+      resolve(null);
+    }
+  });
 }
 
 // Generate a model tree from STEP file
@@ -232,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract metadata from the STEP file
       const metadata = extractStepMetadata(file.path);
       
-      // Create model record
+      // Create initial model record
       const modelData = {
         userId: 1, // We now have a user with ID 1 in the database
         filename: file.originalname,
@@ -242,14 +294,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sourceSystem: metadata.sourceSystem,
         metadata: {
           ...metadata,
-          filePath: file.path // Store the file path for later processing
+          filePath: file.path, // Store the file path for later processing
+          conversionStatus: 'pending'
         }
       };
       
       const validatedData = insertModelSchema.parse(modelData);
       const model = await storage.createModel(validatedData);
       
-      // Return model data
+      // Return model data immediately
       res.status(201).json({
         id: model.id,
         filename: model.filename,
@@ -257,6 +310,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: model.format,
         created: model.created
       });
+      
+      // Konwersja STEP do STL w tle, bez blokowania odpowiedzi
+      (async () => {
+        try {
+          console.log(`Starting background conversion for model ID ${model.id}`);
+          
+          // Konwertuj plik STEP do STL
+          const stlFilePath = await convertStepToStl(file.path);
+          
+          // Zaktualizuj rekord modelu o ścieżkę do pliku STL i status konwersji
+          if (stlFilePath && fs.existsSync(stlFilePath)) {
+            const updatedMetadata = {
+              ...model.metadata as object,
+              stlFilePath,
+              conversionStatus: 'completed',
+              conversionTime: new Date().toISOString()
+            };
+            
+            await storage.updateModel(model.id, {
+              metadata: updatedMetadata
+            });
+            
+            console.log(`Conversion completed successfully for model ID ${model.id}`);
+          } else {
+            // Konwersja nie powiodła się
+            const updatedMetadata = {
+              ...model.metadata as object,
+              conversionStatus: 'failed',
+              conversionError: 'STL file was not created'
+            };
+            
+            await storage.updateModel(model.id, {
+              metadata: updatedMetadata
+            });
+            
+            console.error(`Conversion failed for model ID ${model.id}`);
+          }
+        } catch (error) {
+          console.error(`Error in background conversion for model ID ${model.id}:`, error);
+          
+          // Oznacz konwersję jako nieudaną
+          const updatedMetadata = {
+            ...model.metadata as object,
+            conversionStatus: 'failed',
+            conversionError: error instanceof Error ? error.message : 'Unknown error'
+          };
+          
+          await storage.updateModel(model.id, {
+            metadata: updatedMetadata
+          });
+        }
+      })();
     } catch (error) {
       console.error("Error uploading model:", error);
       res.status(500).json({ message: "Failed to upload model" });
@@ -342,6 +447,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to serve model file" });
     }
   });
+  
+  // Get STL file for 3D viewing (if converted)
+  app.get("/api/models/:id/stl", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const model = await storage.getModel(id);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      const metadata = model.metadata as any;
+      const stlFilePath = metadata?.stlFilePath;
+      
+      // Sprawdź czy istnieje plik STL
+      if (!stlFilePath || !fs.existsSync(stlFilePath)) {
+        return res.status(404).json({ message: "STL file not found" });
+      }
+      
+      // Ustaw nagłówki dla pliku STL
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(model.filename, path.extname(model.filename))}.stl"`);
+      
+      // Wyślij plik jako strumień
+      fs.createReadStream(stlFilePath).pipe(res);
+    } catch (error) {
+      console.error("Error serving STL file:", error);
+      res.status(500).json({ message: "Failed to serve STL file" });
+    }
+  });
 
   // Delete model
   app.delete("/api/models/:id", async (req: Request, res: Response) => {
@@ -353,12 +488,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Delete the file
+      // Delete the STEP file
       const metadata = model.metadata as any;
       const filePath = metadata?.filePath;
       
       if (filePath && fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
+        console.log(`Deleted STEP file: ${filePath}`);
+      }
+      
+      // Delete the STL file if it exists
+      const stlFilePath = metadata?.stlFilePath;
+      if (stlFilePath && fs.existsSync(stlFilePath)) {
+        fs.unlinkSync(stlFilePath);
+        console.log(`Deleted STL file: ${stlFilePath}`);
+      }
+      
+      // Delete any JSON info file that might have been created
+      const jsonFilePath = stlFilePath ? path.join(
+        path.dirname(stlFilePath),
+        `${path.basename(stlFilePath, '.stl')}.json`
+      ) : null;
+      
+      if (jsonFilePath && fs.existsSync(jsonFilePath)) {
+        fs.unlinkSync(jsonFilePath);
+        console.log(`Deleted JSON info file: ${jsonFilePath}`);
       }
       
       // Delete the model record
