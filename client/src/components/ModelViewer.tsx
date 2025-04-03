@@ -41,9 +41,9 @@ type ModelType = '3d' | '2d' | 'unknown';
 export default function ModelViewer({ modelId }: ModelViewerProps) {
   const [modelType, setModelType] = useState<ModelType>('unknown');
   const [modelInfo, setModelInfo] = useState<any>(null);
-  const [forceMode, setForceMode] = useState<ModelType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSwitchedMode, setHasSwitchedMode] = useState(false);
 
   // Pobierz informacje o modelu i określ jego typ
   useEffect(() => {
@@ -68,6 +68,8 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
         
         // Określ typ modelu na podstawie rozszerzenia pliku
         const filename = data.filename?.toLowerCase() || '';
+        
+        // Automatycznie wykryj typ pliku
         let detectedType: ModelType = 'unknown';
         
         if (filename.endsWith('.step') || filename.endsWith('.stp') || filename.endsWith('.stl')) {
@@ -76,8 +78,9 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
           detectedType = '2d';
         }
         
-        // Jeśli użytkownik wymusił tryb, użyj go zamiast wykrytego
-        setModelType(forceMode || detectedType);
+        setModelType(detectedType);
+        // Zawsze ustawiamy hasSwitchedMode na true, aby uniemożliwić przełączanie
+        setHasSwitchedMode(true);
       } catch (error) {
         console.error("Błąd pobierania informacji o modelu:", error);
         setError(error instanceof Error ? error.message : 'Nieznany błąd');
@@ -88,12 +91,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
     };
     
     fetchModelInfo();
-  }, [modelId, forceMode]);
-  
-  // Zmień tryb wyświetlania
-  const switchToMode = (mode: ModelType) => {
-    setForceMode(mode);
-  };
+  }, [modelId]);
   
   return (
     <div className="w-full h-full flex flex-col min-h-[400px]">
@@ -102,15 +100,11 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Tryb:</span>
           
-          <Badge variant={modelType === '3d' ? 'default' : 'outline'} 
-            className="cursor-pointer"
-            onClick={() => switchToMode('3d')}>
+          <Badge variant={modelType === '3d' ? 'default' : 'outline'}>
             3D
           </Badge>
           
-          <Badge variant={modelType === '2d' ? 'default' : 'outline'} 
-            className="cursor-pointer"
-            onClick={() => switchToMode('2d')}>
+          <Badge variant={modelType === '2d' ? 'default' : 'outline'}>
             2D
           </Badge>
           
@@ -120,16 +114,6 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
             </span>
           )}
         </div>
-        
-        {forceMode && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setForceMode(null)} 
-            className="text-xs">
-            Autodetect
-          </Button>
-        )}
       </div>
       
       {/* Obszar widoku modelu */}

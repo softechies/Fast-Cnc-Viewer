@@ -36,19 +36,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
   
-  // State for rendering mode
-  const [renderMode, setRenderMode] = useState<'simple' | 'advanced'>('simple');
-  
-  // Toggle between simple and advanced rendering modes
-  function toggleRenderMode() {
-    const newMode = renderMode === 'simple' ? 'advanced' : 'simple';
-    setRenderMode(newMode);
-    
-    // Re-render the model if content is available
-    if (stepContentRef.current) {
-      renderModel(stepContentRef.current);
-    }
-  }
+  // Używamy tylko jednego trybu renderowania
+  const renderMode = 'simple' as const;
   
   // Initialize Three.js scene
   useEffect(() => {
@@ -269,11 +258,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
       const useTryStlFirst = Boolean(stlFileInfo?.url);
       
-      // Ustawmy flagę, czy próbować załadować model OpenCascade w trybie zaawansowanym
-      const useTryOpenCascade = renderMode === 'advanced';
+      // Zawsze używamy uproszczonego trybu
+      const useTryOpenCascade = false;
       
       // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
-      const useAlwaysApproximate = false; // Testowa flaga - ustaw na true, aby zawsze używać przybliżenia
+      const useAlwaysApproximate = false; // Testowa flaga - ustaw na true, aby zawsze używać przybliżenie
       
       // Ustalenie kolejności parsowania w zależności od warunków
       
@@ -285,42 +274,14 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           // Zamieniamy na Mesh dla pewności typu
           const stlModel = await loadSTLModel(stlFileInfo.url, onProgress) as unknown as THREE.Mesh;
           
-          // Modyfikacja modelu w zależności od trybu
-          if (renderMode === 'advanced') {
-            // Tworzymy wireframe z geometry modelu
-            try {
-              if (stlModel.geometry) {
-                const wireframe = new THREE.LineSegments(
-                  new THREE.EdgesGeometry(stlModel.geometry as THREE.BufferGeometry),
-                  new THREE.LineBasicMaterial({ color: 0x000000 })
-                );
-                stlModel.add(wireframe);
-              }
-            } catch (wireframeError) {
-              console.warn("Nie można utworzyć wireframe:", wireframeError);
-            }
-            
-            // Ustawiamy materiał
-            try {
-              stlModel.material = new THREE.MeshStandardMaterial({
-                color: 0x3b82f6,
-                metalness: 0.5,
-                roughness: 0.3,
-                flatShading: false
-              });
-            } catch (materialError) {
-              console.warn("Nie można ustawić materiału:", materialError);
-            }
-          } else {
-            // Uproszczona wersja - bez wireframe
-            try {
-              stlModel.material = new THREE.MeshBasicMaterial({
-                color: 0x3b82f6,
-                wireframe: false,
-              });
-            } catch (materialError) {
-              console.warn("Nie można ustawić materiału:", materialError);
-            }
+          // Zawsze uproszczona wersja - bez wireframe
+          try {
+            stlModel.material = new THREE.MeshBasicMaterial({
+              color: 0x3b82f6,
+              wireframe: false,
+            });
+          } catch (materialError) {
+            console.warn("Nie można ustawić materiału:", materialError);
           }
           
           // Create a group to hold the model
@@ -328,42 +289,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           modelGroup.add(stlModel);
           
           console.log("STL loaded successfully");
-          setDebugInfo(`Model STL wczytany (tryb ${renderMode})`);
+          setDebugInfo("Model STL wczytany pomyślnie");
           return modelGroup;
         });
       }
       
-      // Dodaj parser OpenCascade.js jeśli jesteśmy w trybie zaawansowanym
-      if (renderMode === 'advanced') {
-        parsers.push(async () => {
-          try {
-            setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
-            // Dynamiczny import modułu OpenCascade
-            const { parseSTEPFile } = await import('../lib/opencascade-parser');
-            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
-            
-            // Ustawienie limitu czasu na wykonanie operacji
-            const timeoutPromise = new Promise<THREE.Group>((_, reject) => {
-              setTimeout(() => {
-                reject(new Error('Timeout podczas parsowania OpenCascade.js - przekroczony limit czasu'));
-              }, 15000); // 15 sekund limitu
-            });
-            
-            // Wykonaj parsowanie z limitem czasu
-            const ocModel = await Promise.race([
-              parseSTEPFile(stepContent),
-              timeoutPromise
-            ]);
-            
-            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
-            return ocModel;
-          } catch (error) {
-            setDebugInfo(`Błąd parsera OpenCascade.js: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
-            console.error("Szczegóły błędu OpenCascade:", error);
-            throw error;
-          }
-        });
-      }
+      // W trybie prostym - nie używamy OpenCascade.js
+      // Ten blok kodu został celowo usunięty
       
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
@@ -377,16 +309,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Dodaj najprostszy parser jako ostateczny fallback
       parsers.push(async () => {
         setDebugInfo("Używanie podstawowego parsera STEP...");
-        if (renderMode === 'advanced') {
-          const basicModel = createModelFromSTEP(stepContent);
-          setDebugInfo("Model STEP wczytany (podstawowe przybliżenie)");
-          return basicModel;
-        } else {
-          const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-          const simpleModel = createSimpleModelRepresentation(complexity);
-          setDebugInfo("Model STEP wczytany (prosty model)");
-          return simpleModel;
-        }
+        // Zawsze używamy uproszczonego modelu
+        const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+        const simpleModel = createSimpleModelRepresentation(complexity);
+        setDebugInfo("Model STEP wczytany (prosty model)");
+        return simpleModel;
       });
       
       // Próbuj kolejne parsery, aż któryś zadziała
@@ -437,11 +364,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       let modelFormat = 'STEP (uproszczony)';
       if (stlFileInfo) {
         modelFormat = 'STL';
-      } else if (renderMode === 'advanced') {
-        modelFormat = 'STEP (zaawansowany)';
       }
       
-      setDebugInfo(`Model wczytany (tryb: ${renderMode}, format: ${modelFormat})`);
+      setDebugInfo(`Model wczytany (format: ${modelFormat})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
@@ -618,14 +543,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       {/* Controls overlay */}
       <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
-        <Button 
-          onClick={toggleRenderMode}
-          variant="outline"
-          size="sm"
-          className="bg-white/80 hover:bg-white text-xs"
-        >
-          {renderMode === 'simple' ? 'Tryb zaawansowany' : 'Tryb prosty'}
-        </Button>
+        {/* Przyciski usunięte */}
       </div>
       
       {/* Loading overlay */}
@@ -648,12 +566,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       {/* Mode info */}
       <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          Tryb renderowania: 
-          <Badge variant={renderMode === 'simple' ? 'default' : 'secondary'}>
-            {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (pełna geometria)'}
-          </Badge>
-        </div>
         {stlFileInfo ? (
           <div className="flex items-center gap-2 mt-1">
             Format: 

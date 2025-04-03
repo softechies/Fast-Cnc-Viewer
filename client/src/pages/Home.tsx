@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import ModelViewer from "@/components/ModelViewer";
-import ModelTreeView from "@/components/ModelTreeView";
 import ModelInfo from "@/components/ModelInfo";
 import FooterBar from "@/components/FooterBar";
 import UploadModal from "@/components/UploadModal";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useModelUpload } from "@/lib/hooks";
 import { Box, InfoIcon } from "lucide-react";
-import { ModelInfo as ModelInfoType, ModelTree } from "@shared/schema";
+import { ModelInfo as ModelInfoType } from "@shared/schema";
 
 export default function Home() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("structure");
+  const [activeTab, setActiveTab] = useState<string>("info");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
   const { isUploading, uploadProgress, upload } = useModelUpload({
     onSuccess: (data) => {
@@ -38,12 +36,6 @@ export default function Home() {
   // Query for model info if we have an active model
   const { data: modelInfo, isLoading: isLoadingInfo } = useQuery<ModelInfoType>({
     queryKey: ['/api/models', activeModelId, 'info'],
-    enabled: !!activeModelId,
-  });
-
-  // Query for model tree if we have an active model
-  const { data: modelTree, isLoading: isLoadingTree } = useQuery<ModelTree>({
-    queryKey: ['/api/models', activeModelId, 'tree'],
     enabled: !!activeModelId,
   });
 
@@ -76,41 +68,19 @@ export default function Home() {
         </section>
         
         <aside className={`w-full lg:w-1/3 bg-white border-l border-gray-200 ${!hasModel ? 'hidden lg:flex' : 'flex'} flex-col`}>
-          <Tabs defaultValue="structure" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="border-b border-gray-200 w-full rounded-none">
-              <TabsTrigger value="structure" className="flex items-center">
-                <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 9V5c0-1.1.9-2 2-2h4"/>
-                  <path d="M9 2h6c1.1 0 2 .9 2 2v4"/>
-                  <path d="M15 22h4c1.1 0 2-.9 2-2v-4"/>
-                  <path d="M22 9v6c0 1.1-.9 2-2 2h-4"/>
-                  <path d="M9 22H5c-1.1 0-2-.9-2-2v-4"/>
-                  <path d="M2 9v6c0 1.1.9 2 2 2h4"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <span>Struktura modelu</span>
-              </TabsTrigger>
-              <TabsTrigger value="info" className="flex items-center">
-                <InfoIcon className="w-4 h-4 mr-2" />
-                <span>Informacje</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="structure" className="flex-grow p-0 border-0">
-              <ModelTreeView 
-                isLoading={isLoadingTree} 
-                modelTree={modelTree as ModelTree} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="info" className="flex-grow p-0 border-0">
-              <ModelInfo 
-                isLoading={isLoadingInfo} 
-                modelInfo={modelInfo as ModelInfoType}
-                modelId={activeModelId}
-              />
-            </TabsContent>
-          </Tabs>
+          <div className="w-full h-10 bg-slate-100 border-b border-gray-200 flex items-center px-3">
+            <div className="flex items-center gap-2">
+              <InfoIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Informacje o modelu</span>
+            </div>
+          </div>
+          <div className="flex-grow">
+            <ModelInfo 
+              isLoading={isLoadingInfo} 
+              modelInfo={modelInfo as ModelInfoType}
+              modelId={activeModelId}
+            />
+          </div>
         </aside>
       </main>
       
