@@ -111,5 +111,12 @@ export default {
   "label.verification": "Verification",
   "message.loading": "Loading...",
   "button.share": "Share",
-  "message.delete.warning": "This action cannot be undone."
+  "message.delete.warning": "This action cannot be undone.",
+  "label.password": "Password",
+  "label.password.share.placeholder": "Enter password for shared model",
+  "label.expiry": "Expiration date",
+  "label.email": "Email",
+  "label.email.placeholder": "Enter recipient email",
+  "message.share.success": "Sharing successful",
+  "message.revocation.sent": "Revocation notification sent"
 };

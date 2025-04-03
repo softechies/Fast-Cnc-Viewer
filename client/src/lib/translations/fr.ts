@@ -95,5 +95,28 @@ export default {
   polish: "Polonais",
   czech: "Tchèque",
   german: "Allemand",
-  french: "Français"
+  french: "Français",
+  
+  // Legacy keys
+  "app.footer": "© 2025 CAD Viewer. Tous droits réservés.",
+  "noPreviousFiles": "Aucun fichier précédemment téléchargé",
+  "supportedFormats": "Formats pris en charge: STEP, STL, DXF, DWG",
+  "applicationName": "CAD Viewer",
+  "button.upload": "Télécharger",
+  "message.no.model": "Aucun modèle sélectionné",
+  "button.cancel": "Annuler",
+  "label.file": "Fichier",
+  "label.verification": "Vérification",
+  "message.loading": "Chargement...",
+  "button.share": "Partager",
+  "message.delete.warning": "Cette action ne peut pas être annulée.",
+  "label.password": "Mot de passe",
+  "label.password.share.placeholder": "Entrez le mot de passe pour le modèle partagé",
+  "label.expiry": "Date d'expiration",
+  "label.email": "E-mail",
+  "label.email.placeholder": "Entrez l'e-mail du destinataire",
+  "message.share.success": "Partage réussi",
+  "message.revocation.sent": "Notification de révocation envoyée",
+  "mode": "Mode",
+  "modelLoaded": "Modèle chargé (format: {format})"
 };
