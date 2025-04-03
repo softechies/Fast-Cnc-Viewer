@@ -111,24 +111,22 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                     height: "900px",
                     maxWidth: "900px",
                     maxHeight: "900px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "5px",
-                    border: "1px solid #eaeaea",
-                    borderRadius: "4px",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                    borderRadius: "8px",
                     background: "#fff",
+                    position: "relative",
                     overflow: "hidden"
                   }}
                 >
+                  {/* Wrapper na SVG - zajmuje całą powierzchnię kontenera */}
                   <div 
                     className="svg-wrapper" 
                     style={{ 
+                      position: "absolute", 
+                      top: 0,
+                      left: 0,
                       width: "100%", 
                       height: "100%", 
-                      display: "flex", 
-                      alignItems: "center", 
-                      justifyContent: "center" 
                     }}
                     dangerouslySetInnerHTML={{ __html: svgContent }}
                   />
