@@ -104,5 +104,19 @@ export default {
   "applicationName": "CAD Viewer",
   "button.upload": "Wyślij",
   "message.no.model": "Nie wybrano modelu",
-  "button.cancel": "Anuluj"
+  "button.cancel": "Anuluj",
+  "label.file": "Plik",
+  "label.verification": "Weryfikacja",
+  "message.loading": "Ładowanie...",
+  "button.share": "Udostępnij",
+  "message.delete.warning": "Tej operacji nie można cofnąć.",
+  "label.password": "Hasło",
+  "label.password.share.placeholder": "Wprowadź hasło dla udostępnionego modelu",
+  "label.expiry": "Data wygaśnięcia",
+  "label.email": "E-mail",
+  "label.email.placeholder": "Wprowadź adres e-mail odbiorcy",
+  "message.share.success": "Udostępnianie zakończone powodzeniem",
+  "message.revocation.sent": "Wysłano powiadomienie o cofnięciu dostępu",
+  "mode": "Tryb",
+  "modelLoaded": "Model wczytany (format: {format})"
 };

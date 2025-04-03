@@ -49,7 +49,8 @@ export async function sendShareNotificationSmtp(
   model: Model, 
   recipient: string, 
   baseUrl: string,
-  password?: string
+  password?: string,
+  language: string = 'en'
 ): Promise<boolean> {
   if (!customSmtpTransporter) {
     console.error('Custom SMTP email service not initialized');
@@ -109,7 +110,8 @@ export async function sendShareNotificationSmtp(
  */
 export async function sendSharingRevokedNotificationSmtp(
   model: Model,
-  recipient: string
+  recipient: string,
+  language: string = 'en'
 ): Promise<boolean> {
   if (!customSmtpTransporter) {
     console.error('Custom SMTP email service not initialized');

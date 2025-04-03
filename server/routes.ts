@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import util from "util";
 import bcrypt from "bcryptjs";
-import { initializeEmailService, sendShareNotification, sendSharingRevokedNotification, detectLanguage, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification } from "./email";
+import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import { sendShareNotification as sendSendgridNotification, sendSharingRevokedNotification as sendSendgridRevokedNotification } from "./sendgrid";
 import { initializeGmailService, sendShareNotificationGmail, sendSharingRevokedNotificationGmail } from "./gmail";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
@@ -918,7 +918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-            emailSent = await sendShareNotification(
+            emailSent = await sendShareNotificationSmtp(
               updatedModel!, 
               shareData.email, 
               baseUrl,
@@ -1004,7 +1004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotification(
+            revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail!,
               userLanguage // Przekazujemy wykryty język użytkownika
@@ -1190,7 +1190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-            revocationSent = await sendSharingRevokedNotification(
+            revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail,
               userLanguage // Przekazujemy wykryty język użytkownika
