@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
-import Viewer3D from "@/components/Viewer3D";
+import StepViewer from "@/components/StepViewer";
 import ModelTreeView from "@/components/ModelTreeView";
 import ModelInfo from "@/components/ModelInfo";
 import FooterBar from "@/components/FooterBar";
@@ -71,7 +71,7 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <Viewer3D modelId={activeModelId} />
+            <StepViewer modelId={activeModelId} />
           )}
         </section>
         
