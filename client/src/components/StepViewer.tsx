@@ -4,11 +4,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { createModelFromSTEP } from '@/lib/step-parser';
 
 interface StepViewerProps {
   modelId: number | null;
 }
+
+type RenderMode = 'simple' | 'advanced';
 
 export default function StepViewer({ modelId }: StepViewerProps) {
   // Container reference for Three.js scene
@@ -24,7 +27,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   
   // State for UI updates
   const [debugInfo, setDebugInfo] = useState<string>("Inicjalizacja...");
-  const [renderMode, setRenderMode] = useState<'simple' | 'advanced'>('simple');
+  const [renderMode, setRenderMode] = useState<RenderMode>('advanced');
   
   // Initialize Three.js scene only once
   useEffect(() => {
@@ -411,6 +414,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           <div className="bg-white p-4 rounded shadow-md">
             <Skeleton className="h-4 w-32 mb-2" />
             <Skeleton className="h-4 w-48" />
+            <div className="text-sm mt-2">Wczytywanie modelu...</div>
           </div>
         </div>
       )}
@@ -423,8 +427,16 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       />
       
       {/* Mode info */}
-      <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-1 rounded">
-        Tryb renderowania: {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (może być niestabilny)'}
+      <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          Tryb renderowania: 
+          <Badge variant={renderMode === 'simple' ? 'default' : 'secondary'}>
+            {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (analiza STEP)'}
+          </Badge>
+        </div>
+        <div className="text-gray-300 text-xs italic">
+          Uwaga: Rzeczywista geometria STEP wymaga specjalistycznych bibliotek.
+        </div>
       </div>
     </div>
   );
