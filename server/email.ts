@@ -26,7 +26,7 @@ const defaultConfig: EmailConfig = {
 };
 
 // Identyfikatory tłumaczeń dla e-maili
-const EMAIL_TRANSLATIONS = {
+export const EMAIL_TRANSLATIONS = {
   en: {
     subject: 'CAD Model Link: {filename}',
     shareTitle: 'CAD Model was shared with you',

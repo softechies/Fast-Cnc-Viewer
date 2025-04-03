@@ -59,40 +59,64 @@ export async function sendShareNotificationSmtp(
   
   // Pobierz adres email z konfiguracji lub zmiennych środowiskowych
   const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || '"CAD Viewer App" <no-reply@cadviewer.app>';
-  
+
   try {
+    // Import funkcji i stałych z email.ts
+    const emailModule = await import('./email');
+    
     const shareUrl = `${baseUrl}/shared/${model.shareId}`;
+    
+    // Konwersja stringa language do typu Language
+    const emailLanguage = language as 'en' | 'pl' | 'de' | 'fr' | 'cs';
+    
+    // Pobierz tłumaczenia dla danego języka
+    const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;
+    
+    // Przygotuj zmienne do szablonu
+    const expiryInfo = model.shareExpiryDate 
+      ? translations.expiryDate.replace('{date}', new Date(model.shareExpiryDate).toLocaleDateString(emailLanguage))
+      : translations.expiryNone;
+      
+    // Używamy funkcji z email.ts zamiast definiować lokalnie
+    const replaceTemplateVariables = (template: string, variables: Record<string, string>): string => {
+      let result = template;
+      for (const [key, value] of Object.entries(variables)) {
+        result = result.replace(`{${key}}`, value);
+      }
+      return result;
+    };
     
     const mailOptions = {
       from: fromEmail,
       to: recipient,
-      subject: `Link do modelu CAD: ${model.filename}`,
+      subject: replaceTemplateVariables(translations.subject, { filename: model.filename }),
       html: `
-        <h2>Udostępniono Ci model CAD</h2>
-        <p>Ktoś udostępnił Ci model CAD <strong>${model.filename}</strong> do wyświetlenia.</p>
-        <p>Możesz go zobaczyć klikając poniższy link:</p>
+        <h2>${translations.shareTitle}</h2>
+        <p>${replaceTemplateVariables(translations.shareText, { filename: model.filename })}</p>
+        <p>${translations.viewInstructions}</p>
         <p><a href="${shareUrl}" style="padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">
-          Wyświetl model
+          ${translations.shareAction}
         </a></p>
-        ${password ? `<p><strong>Aby uzyskać dostęp, użyj hasła:</strong> ${password}</p>` : ''}
-        <p>Link będzie aktywny ${model.shareExpiryDate ? `do ${new Date(model.shareExpiryDate).toLocaleDateString()}` : 'do momentu anulowania udostępniania przez właściciela pliku'}.</p>
+        ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }) : ''}
+        <p>${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}</p>
         <hr />
         <p style="color: #666; font-size: 12px;">
-          Ta wiadomość została wygenerowana automatycznie. Prosimy nie odpowiadać na ten adres e-mail.
+          ${translations.autoMessage}
         </p>
       `,
       text: `
-        Udostępniono Ci model CAD
+        ${translations.shareTitle}
         
-        Ktoś udostępnił Ci model CAD "${model.filename}" do wyświetlenia.
+        ${replaceTemplateVariables(translations.shareText, { filename: model.filename })}
         
-        Możesz go zobaczyć pod adresem: ${shareUrl}
+        ${translations.viewInstructions}
+        ${shareUrl}
         
-        ${password ? `Aby uzyskać dostęp, użyj hasła: ${password}` : ''}
+        ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }) : ''}
         
-        Link będzie aktywny ${model.shareExpiryDate ? `do ${new Date(model.shareExpiryDate).toLocaleDateString()}` : 'do momentu anulowania udostępniania przez właściciela pliku'}.
+        ${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}
         
-        Ta wiadomość została wygenerowana automatycznie. Prosimy nie odpowiadać na ten adres e-mail.
+        ${translations.autoMessage}
       `
     };
     
@@ -122,27 +146,45 @@ export async function sendSharingRevokedNotificationSmtp(
   const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || '"CAD Viewer App" <no-reply@cadviewer.app>';
   
   try {
+    // Import funkcji i stałych z email.ts
+    const emailModule = await import('./email');
+    
+    // Konwersja stringa language do typu Language
+    const emailLanguage = language as 'en' | 'pl' | 'de' | 'fr' | 'cs';
+    
+    // Pobierz tłumaczenia dla danego języka
+    const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;
+    
+    // Używamy funkcji strzałkowej zamiast zwykłej deklaracji funkcji
+    const replaceTemplateVariables = (template: string, variables: Record<string, string>): string => {
+      let result = template;
+      for (const [key, value] of Object.entries(variables)) {
+        result = result.replace(`{${key}}`, value);
+      }
+      return result;
+    };
+    
     const mailOptions = {
       from: fromEmail,
       to: recipient,
-      subject: `Udostępnianie modelu CAD zostało anulowane: ${model.filename}`,
+      subject: replaceTemplateVariables(translations.revokeSubject, { filename: model.filename }),
       html: `
-        <h2>Udostępnianie modelu CAD zostało anulowane</h2>
-        <p>Udostępnianie modelu CAD <strong>${model.filename}</strong> zostało anulowane przez właściciela.</p>
-        <p>Link, który wcześniej otrzymałeś, nie będzie już działał.</p>
+        <h2>${translations.revokeTitle}</h2>
+        <p>${replaceTemplateVariables(translations.revokeText, { filename: model.filename })}</p>
+        <p>${translations.revokeInfo}</p>
         <hr />
         <p style="color: #666; font-size: 12px;">
-          Ta wiadomość została wygenerowana automatycznie. Prosimy nie odpowiadać na ten adres e-mail.
+          ${translations.autoMessage}
         </p>
       `,
       text: `
-        Udostępnianie modelu CAD zostało anulowane
+        ${translations.revokeTitle}
         
-        Udostępnianie modelu CAD "${model.filename}" zostało anulowane przez właściciela.
+        ${replaceTemplateVariables(translations.revokeText, { filename: model.filename })}
         
-        Link, który wcześniej otrzymałeś, nie będzie już działał.
+        ${translations.revokeInfo}
         
-        Ta wiadomość została wygenerowana automatycznie. Prosimy nie odpowiadać na ten adres e-mail.
+        ${translations.autoMessage}
       `
     };
     
