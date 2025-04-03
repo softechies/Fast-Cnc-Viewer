@@ -57,101 +57,202 @@ const createGeometricModel = (group: THREE.Group, stepContent: string) => {
   console.log("Creating randomized model based on STEP content analysis");
   const materials = createMaterials();
   
-  // Extract information to influence model generation
+  // Extract model details from STEP content
   const cylinderCount = Math.min(5, (stepContent.match(/CYLINDRICAL_SURFACE/g) || []).length);
   const planeCount = Math.min(8, (stepContent.match(/PLANE/g) || []).length);
   const curveCount = Math.min(4, (stepContent.match(/CURVE/g) || []).length);
-  const totalItems = Math.max(3, Math.min(12, Math.floor((cylinderCount + planeCount + curveCount) / 3)));
+  const sphereCount = Math.min(3, (stepContent.match(/SPHERICAL_SURFACE/g) || []).length);
+  const complexity = Math.max(1, Math.min(3, Math.floor(stepContent.length / 50000)));
   
-  // Create base - a box with size based on complexity
-  const baseSize = 10;
-  const complexity = Math.max(1, Math.min(3, Math.floor(stepContent.length / 100000)));
   console.log(`Model complexity level: ${complexity} (based on file size)`);
+  console.log(`Detected features: ${cylinderCount} cylinders, ${planeCount} planes, ${curveCount} curves, ${sphereCount} spheres`);
+  
+  // Base size for model
+  const baseSize = 10;
   
   // Create a base plate
   const basePlate = new THREE.Mesh(
-    new THREE.BoxGeometry(baseSize, baseSize/10, baseSize),
+    new THREE.BoxGeometry(baseSize, 0.5, baseSize),
     materials.main
   );
-  basePlate.position.set(0, -baseSize/15, 0);
+  basePlate.position.set(0, 0.25, 0);
+  basePlate.castShadow = true;
+  basePlate.receiveShadow = true;
   group.add(basePlate);
   
-  // Add boxes
-  for (let i = 0; i < Math.ceil(totalItems/3); i++) {
-    const size = baseSize / (3 + Math.random() * 2);
+  // Add wireframe to base plate
+  const baseEdges = new THREE.EdgesGeometry(basePlate.geometry);
+  const baseLines = new THREE.LineSegments(baseEdges, materials.edge);
+  basePlate.add(baseLines);
+  
+  // Intelligently place features based on detected elements in STEP file
+  
+  // Add cubes to represent solid parts
+  const boxCount = Math.max(1, Math.ceil(planeCount / 2));
+  for (let i = 0; i < boxCount; i++) {
+    // Box dimensions vary based on position
+    const sizeX = 1 + Math.random() * 2;
+    const sizeY = 1 + Math.random() * 2.5;
+    const sizeZ = 1 + Math.random() * 2;
+    
     const box = new THREE.Mesh(
-      new THREE.BoxGeometry(
-        size * (0.5 + Math.random() * 0.5),
-        size * (0.5 + Math.random() * 1.5),
-        size * (0.5 + Math.random() * 0.5)
-      ),
+      new THREE.BoxGeometry(sizeX, sizeY, sizeZ),
       materials.main
     );
     
-    // Position within the base area
+    // Place boxes in a circular pattern around the center
+    const angle = (i / boxCount) * Math.PI * 2;
+    const radius = baseSize * 0.3;
     box.position.set(
-      (Math.random() - 0.5) * baseSize * 0.8,
-      size/2 + 0.1,
-      (Math.random() - 0.5) * baseSize * 0.8
+      Math.cos(angle) * radius,
+      sizeY/2 + 0.5,
+      Math.sin(angle) * radius
     );
     
-    // Random rotation around Y axis
-    box.rotation.y = Math.random() * Math.PI;
+    // Rotate boxes to face center slightly 
+    box.rotation.y = angle + Math.PI;
     
+    box.castShadow = true;
+    box.receiveShadow = true;
     group.add(box);
+    
+    // Add wireframe for better visibility
+    const boxEdges = new THREE.EdgesGeometry(box.geometry);
+    const boxLines = new THREE.LineSegments(boxEdges, materials.edge);
+    box.add(boxLines);
   }
   
-  // Add cylinders if found in STEP file
+  // Add cylinders based on detected features
   if (cylinderCount > 0) {
-    for (let i = 0; i < Math.min(cylinderCount, 3); i++) {
-      const radius = baseSize / (10 + Math.random() * 5);
-      const height = baseSize / (2 + Math.random() * 3);
+    const cylCount = Math.min(cylinderCount, 4);
+    for (let i = 0; i < cylCount; i++) {
+      const radius = 0.5 + Math.random() * 0.5;
+      const height = 2 + Math.random() * 3;
+      
       const cylinder = new THREE.Mesh(
         new THREE.CylinderGeometry(radius, radius, height, 16),
         materials.detail
       );
       
-      cylinder.position.set(
-        (Math.random() - 0.5) * baseSize * 0.6,
-        height/2 + 0.1,
-        (Math.random() - 0.5) * baseSize * 0.6
-      );
+      // Position cylinders at corners
+      const cornerX = (i % 2 === 0) ? -baseSize/3 : baseSize/3;
+      const cornerZ = (i < 2) ? -baseSize/3 : baseSize/3;
       
+      cylinder.position.set(cornerX, height/2 + 0.5, cornerZ);
+      cylinder.castShadow = true;
+      cylinder.receiveShadow = true;
       group.add(cylinder);
+      
+      // Add ring at top and bottom of cylinder
+      const ringTop = new THREE.Mesh(
+        new THREE.TorusGeometry(radius * 1.05, 0.1, 8, 24),
+        materials.highlight
+      );
+      ringTop.position.y = height/2;
+      ringTop.rotation.x = Math.PI/2;
+      cylinder.add(ringTop);
+      
+      const ringBottom = ringTop.clone();
+      ringBottom.position.y = -height/2;
+      cylinder.add(ringBottom);
     }
   }
   
-  // Add spheres for joints or connection points
-  for (let i = 0; i < Math.ceil(totalItems/4); i++) {
-    const radius = baseSize / (12 + Math.random() * 8);
+  // Add sphere if detected in STEP file
+  if (sphereCount > 0) {
     const sphere = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 16, 16),
+      new THREE.SphereGeometry(1, 32, 32),
       materials.highlight
     );
-    
-    // Position spheres at edges or corners
-    const edgeFactor = 0.7;
-    sphere.position.set(
-      (Math.random() > 0.5 ? 1 : -1) * baseSize * edgeFactor * (0.7 + Math.random() * 0.3),
-      baseSize / (5 + Math.random() * 3),
-      (Math.random() > 0.5 ? 1 : -1) * baseSize * edgeFactor * (0.7 + Math.random() * 0.3)
-    );
-    
+    sphere.position.set(0, 4, 0);
+    sphere.castShadow = true;
+    sphere.receiveShadow = true;
     group.add(sphere);
+    
+    // Add connecting rod between center and sphere 
+    const rod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.2, 2, 12),
+      materials.detail
+    );
+    rod.position.set(0, 3, 0);
+    rod.castShadow = true;
+    rod.receiveShadow = true;
+    group.add(rod);
   }
   
-  // Add some edges to show the structure
-  const edges = new THREE.EdgesGeometry(basePlate.geometry);
-  const line = new THREE.LineSegments(edges, materials.edge);
-  line.position.copy(basePlate.position);
-  group.add(line);
+  // Add a top connector plate if complexity is higher
+  if (complexity >= 2) {
+    const topPlate = new THREE.Mesh(
+      new THREE.BoxGeometry(baseSize * 0.7, 0.3, baseSize * 0.7),
+      materials.main
+    );
+    topPlate.position.set(0, 5, 0);
+    topPlate.castShadow = true;
+    topPlate.receiveShadow = true;
+    group.add(topPlate);
+    
+    // Add wireframe to top plate
+    const topEdges = new THREE.EdgesGeometry(topPlate.geometry);
+    const topLines = new THREE.LineSegments(topEdges, materials.edge);
+    topPlate.add(topLines);
+    
+    // Add connecting pillars
+    const corners = [
+      [-baseSize * 0.25, 0, -baseSize * 0.25],
+      [baseSize * 0.25, 0, -baseSize * 0.25],
+      [-baseSize * 0.25, 0, baseSize * 0.25],
+      [baseSize * 0.25, 0, baseSize * 0.25]
+    ];
+    
+    corners.forEach(pos => {
+      const pillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.3, 4, 12),
+        materials.detail
+      );
+      pillar.position.set(pos[0], 3, pos[2]);
+      pillar.castShadow = true;
+      pillar.receiveShadow = true;
+      group.add(pillar);
+    });
+  }
   
-  // Center the model
-  const box = new THREE.Box3().setFromObject(group);
-  const center = new THREE.Vector3();
-  box.getCenter(center);
-  center.y = 0; // Only center horizontally, keep vertical position
-  group.position.sub(center);
+  // Add detail features based on complexity
+  if (complexity >= 3) {
+    // Add decorative spheres on top plate
+    for (let i = 0; i < 3; i++) {
+      const detailSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 16, 16),
+        materials.highlight
+      );
+      detailSphere.position.set(-2 + i * 2, 5.3, 2);
+      detailSphere.castShadow = true;
+      detailSphere.receiveShadow = true;
+      group.add(detailSphere);
+    }
+    
+    // Add a central feature
+    const centerFeature = new THREE.Mesh(
+      new THREE.ConeGeometry(1, 2, 8),
+      materials.highlight
+    );
+    centerFeature.position.set(0, 6.5, 0);
+    centerFeature.castShadow = true;
+    centerFeature.receiveShadow = true;
+    group.add(centerFeature);
+  }
+  
+  // Add helper axes (small)
+  const axesHelper = new THREE.AxesHelper(2);
+  axesHelper.position.y = 0.6;
+  group.add(axesHelper);
+  
+  // Set castShadow to all children recursively
+  group.traverse((object) => {
+    if (object instanceof THREE.Mesh) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+    }
+  });
   
   console.log("Randomized model created successfully");
 };

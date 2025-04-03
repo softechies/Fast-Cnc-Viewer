@@ -29,29 +29,34 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     isInitialized: false
   });
   
-  // Initialize Three.js scene first
+  // State for debug info display
+  const [debugInfo, setDebugInfo] = useState<string>("Initializing...");
+  
+  // Track animation frames for cleanup
+  const animationFrameIdRef = useRef<number | null>(null);
+  
+  // Initialize Three.js scene
   useEffect(() => {
-    // Reference to animation frame for cleanup
-    let animationFrameId: number;
-    
     // Skip if container doesn't exist or scene is already initialized
     if (!containerRef.current || threeState.isInitialized) return;
     
     try {
       console.log('Initializing Three.js scene');
+      setDebugInfo("Inicjalizacja sceny Three.js...");
       
-      // Create scene, camera, renderer, controls
+      // Create scene, camera, renderer (this also adds a test cube now)
       const { scene, camera, renderer } = initScene(containerRef.current);
       
-      // Add lights and grid
+      // Add lights and grid (grid is now added in initScene)
       setupLights(scene);
-      const grid = createGridHelper();
-      scene.add(grid);
       
       // Setup orbit controls
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      controls.enableRotate = true;
       
       // Save all state at once
       setThreeState({
@@ -64,42 +69,73 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       });
       
       console.log('Three.js scene initialized successfully');
+      setDebugInfo("Scena zainicjalizowana, można przesłać model");
+      
+      // Extract reference to test cube for animation
+      const testCube = scene.getObjectByName("ReferenceBox");
       
       // Animation loop with proper reference for cleanup
       const animate = () => {
-        animationFrameId = requestAnimationFrame(animate);
+        // Rotate test cube if it exists
+        if (testCube) {
+          testCube.rotation.y += 0.01;
+        }
+        
+        // Update controls for smooth damping effect
         controls.update();
+        
+        // Render scene
         renderer.render(scene, camera);
+        
+        // Store reference for cleanup
+        animationFrameIdRef.current = requestAnimationFrame(animate);
       };
+      
+      // Start animation loop
       animate();
       
       // Handle window resize
       const handleResize = () => {
         if (!containerRef.current) return;
-        const width = containerRef.current.clientWidth;
-        const height = containerRef.current.clientHeight;
         
+        const width = Math.max(containerRef.current.clientWidth, 400);
+        const height = Math.max(containerRef.current.clientHeight, 400);
+        
+        // Skip resize if dimensions are invalid
+        if (width === 0 || height === 0) return;
+        
+        // Update camera and renderer
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
       };
       
+      // Register resize handler
       window.addEventListener('resize', handleResize);
       
       // Cleanup function runs when component unmounts
       return () => {
         console.log('Cleaning up Three.js resources');
+        setDebugInfo("Czyszczenie zasobów...");
         
         // Cancel animation loop
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
+        if (animationFrameIdRef.current !== null) {
+          cancelAnimationFrame(animationFrameIdRef.current);
+          animationFrameIdRef.current = null;
         }
         
         // Remove event listeners
         window.removeEventListener('resize', handleResize);
         
-        // Dispose resources
-        if (controls) controls.dispose();
+        // Dispose controls
+        if (controls) {
+          controls.dispose();
+        }
+        
+        // Clear scene (removes objects from memory)
+        if (scene) {
+          scene.clear();
+        }
         
         // Remove canvas from DOM if it exists
         if (renderer && renderer.domElement && containerRef.current) {
@@ -113,20 +149,18 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         }
         
         // Dispose renderer
-        if (renderer) renderer.dispose();
+        if (renderer) {
+          renderer.dispose();
+        }
         
+        setDebugInfo("Zasoby wyczyszczone");
         console.log('Three.js resources cleaned up successfully');
       };
     } catch (error) {
       console.error('Error initializing Three.js:', error);
+      setDebugInfo(`Błąd inicjalizacji: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
     }
   }, [threeState.isInitialized]);
-  
-  // State for debug info display
-  const [debugInfo, setDebugInfo] = useState<string>("Initializing...");
-  
-  // Track animation frames for cleanup
-  const animationFrameIdRef = useRef<number | null>(null);
   
   // Fetch the model file only when scene is initialized and modelId is available
   const { data: modelFile, isLoading, error } = useQuery({
@@ -224,14 +258,32 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
               return;
             }
             
+            // Remove test cube if it exists
+            const testCube = scene.getObjectByName("ReferenceBox");
+            if (testCube) {
+              scene.remove(testCube);
+              console.log('Removed test cube');
+            }
+            
             // Create a 3D model from the STEP file using our parser
             console.log('Creating 3D model from STEP file content');
             const stepModel = createModelFromSTEP(stepContent);
+            
+            // Ensure model has shadows enabled
+            stepModel.traverse((object) => {
+              if (object instanceof THREE.Mesh) {
+                object.castShadow = true;
+                object.receiveShadow = true;
+              }
+            });
             
             // Add model to scene
             scene.add(stepModel);
             setThreeState(prev => ({ ...prev, model: stepModel }));
             console.log('Model successfully added to scene');
+            
+            // Update debug info
+            setDebugInfo(`Model wczytany: ${stepContent.length} bajtów`);
             
             // Reset camera and fit view to model
             if (camera && controls) {
@@ -397,11 +449,17 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
         {debugInfo}
       </div>
       
-      {/* 3D viewer container */}
+      {/* 3D viewer container - explicit dimensions and styling based on working test */}
       <div 
-        className="relative w-full h-full bg-gray-100" 
+        className="relative w-full h-full bg-gray-100 border border-gray-200" 
         ref={containerRef}
-        style={{ minHeight: "400px", flex: 1 }}
+        style={{ 
+          minHeight: "400px", 
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          display: "block"
+        }}
       />
       
       {/* Controls */}

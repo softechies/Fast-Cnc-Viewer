@@ -1,73 +1,100 @@
 import * as THREE from 'three';
 
 export function initScene(container: HTMLElement) {
+  // Force container to have explicit dimensions & styling to ensure it's visible
+  container.style.width = "100%";
+  container.style.height = "400px";
+  container.style.minHeight = "400px";
+  container.style.position = "relative";
+  container.style.backgroundColor = "#f0f0f0";
+  container.style.display = "block";
+  
   // Print container dimensions to debug
   console.log("Container dimensions:", {
     width: container.clientWidth,
     height: container.clientHeight,
     offsetWidth: container.offsetWidth,
-    offsetHeight: container.offsetHeight
+    offsetHeight: container.offsetHeight,
+    style: {
+      width: container.style.width,
+      height: container.style.height
+    }
   });
   
-  // Check for zero dimensions
-  if (container.clientWidth <= 0 || container.clientHeight <= 0) {
-    console.error("Container has zero dimensions, using default values");
+  // Ensure container is empty before adding renderer
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
   }
   
-  // Set up scene
+  // Set up scene with lighter background
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf8f9fa);
+  scene.background = new THREE.Color(0xf0f0f0);
   
-  // Set up camera
+  // Use fixed sensible dimensions rather than relying on container
+  // This prevents bugs with zero dimensions
+  const width = Math.max(container.clientWidth, 400);
+  const height = Math.max(container.clientHeight, 400);
+  
+  // Set up camera with fixed aspect ratio
   const camera = new THREE.PerspectiveCamera(
-    45, 
-    // Use sensible defaults if container dimensions are zero
-    (container.clientWidth || 800) / (container.clientHeight || 600), 
+    65, // Increased FOV for better visibility
+    width / height, 
     0.1, 
     2000
   );
   camera.position.set(20, 20, 20);
   camera.lookAt(0, 0, 0);
   
-  // Ensure container is ready to receive a canvas
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-  
-  // Set up renderer with optimal settings
+  // Set up renderer with the most compatible settings
   const renderer = new THREE.WebGLRenderer({ 
     antialias: true,
     alpha: true,
     preserveDrawingBuffer: true
   });
   
-  // Use default reasonable dimensions if container sizes are invalid
-  renderer.setSize(
-    container.clientWidth > 0 ? container.clientWidth : 800,
-    container.clientHeight > 0 ? container.clientHeight : 600
-  );
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.enabled = true;
+  // Use explicit dimensions
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1); // Better for HiDPI but limit for performance
   
-  // Make the canvas visible with a background color
-  renderer.domElement.style.background = "#f0f0f0";
-  renderer.domElement.style.display = "block";
-  renderer.domElement.style.width = "100%";
-  renderer.domElement.style.height = "100%";
+  // Enable shadows with better quality
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  
+  // Set better rendering quality
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  
+  // Make the canvas element explicitly visible with styling
+  const canvas = renderer.domElement;
+  canvas.style.display = "block";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.background = "#f0f0f0";
+  canvas.style.borderRadius = "4px";
   
   // Add renderer to container
-  container.appendChild(renderer.domElement);
+  container.appendChild(canvas);
   
-  // Create reference cube to verify scene is working
-  const testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(5, 5, 5),
-    new THREE.MeshStandardMaterial({ color: 0xff0000 })
-  );
+  // Create test object - a simple red box - to verify rendering works
+  const testGeometry = new THREE.BoxGeometry(5, 5, 5);
+  const testMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+  const testCube = new THREE.Mesh(testGeometry, testMaterial);
   testCube.position.set(0, 2.5, 0);
   testCube.name = "ReferenceBox";
   scene.add(testCube);
   
-  // Axes helper for orientation
+  // Add wireframe to the test cube
+  const wireframe = new THREE.LineSegments(
+    new THREE.EdgesGeometry(testGeometry),
+    new THREE.LineBasicMaterial({ color: 0xffffff })
+  );
+  testCube.add(wireframe);
+  
+  // Add grid and axes
+  const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xcccccc);
+  gridHelper.position.y = -0.01; // Slight offset to avoid z-fighting
+  scene.add(gridHelper);
+  
   const axesHelper = new THREE.AxesHelper(10);
   scene.add(axesHelper);
   
@@ -85,28 +112,52 @@ export function initScene(container: HTMLElement) {
 }
 
 export function setupLights(scene: THREE.Scene) {
-  // Add ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  // Add ambient light for base illumination
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
   
-  // Add directional lights with shadows
-  const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-  dirLight1.position.set(5, 10, 7.5);
-  dirLight1.castShadow = true;
-  dirLight1.shadow.mapSize.width = 1024;
-  dirLight1.shadow.mapSize.height = 1024;
-  scene.add(dirLight1);
+  // Key light (main directional light)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  keyLight.position.set(5, 10, 7.5);
+  keyLight.castShadow = true;
   
-  const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-  dirLight2.position.set(-5, -10, -7.5);
-  scene.add(dirLight2);
+  // Improve shadow quality
+  keyLight.shadow.mapSize.width = 2048;
+  keyLight.shadow.mapSize.height = 2048;
+  keyLight.shadow.camera.near = 0.5;
+  keyLight.shadow.camera.far = 50;
+  keyLight.shadow.bias = -0.0001;
   
-  // Add a point light near the origin for more illumination
-  const pointLight = new THREE.PointLight(0xffffff, 0.3);
-  pointLight.position.set(0, 5, 0);
-  scene.add(pointLight);
+  // Set shadow camera frustum to cover scene better
+  const shadowSize = 15;
+  keyLight.shadow.camera.left = -shadowSize;
+  keyLight.shadow.camera.right = shadowSize;
+  keyLight.shadow.camera.top = shadowSize;
+  keyLight.shadow.camera.bottom = -shadowSize;
   
-  return { ambientLight, dirLight1, dirLight2, pointLight };
+  scene.add(keyLight);
+  
+  // Fill light (softer, from another direction)
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  fillLight.position.set(-10, 5, -5);
+  fillLight.castShadow = false; // Only use shadows from key light for performance
+  scene.add(fillLight);
+  
+  // Back light to highlight edges
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  backLight.position.set(0, 8, -12);
+  scene.add(backLight);
+  
+  // Small point light near center for highlighting
+  const centerLight = new THREE.PointLight(0xffffff, 0.3, 10);
+  centerLight.position.set(0, 5, 0);
+  scene.add(centerLight);
+  
+  // Create a helper to visualize light direction
+  // const helper = new THREE.DirectionalLightHelper(keyLight, 5);
+  // scene.add(helper);
+  
+  return { ambientLight, keyLight, fillLight, backLight, centerLight };
 }
 
 export function createGridHelper() {
