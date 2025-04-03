@@ -204,21 +204,22 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         # Stwórz SVG
         lines = []
         
-        # Obliczamy współczynnik skalowania, aby zmieścić rysunek w widoku 300x300
-        max_size = 300
-        scale_x = max_size / width if width > 0 else 1
-        scale_y = max_size / height_flipped if height_flipped > 0 else 1
-        scale = min(scale_x, scale_y) * 0.9  # Zmniejszamy o 10% dla dodatkowego marginesu
+        # Używamy stałego rozmiaru SVG 100%
+        svg_width = "100%"
+        svg_height = "100%"
         
-        # Obliczamy przesunięcie dla wycentrowania
-        cx = min_x + width / 2
-        cy = min_y_flipped + height_flipped / 2
+        # Używamy adekwatnego viewBox, aby objąć cały rysunek
+        # oraz dodajemy preserveAspectRatio dla zachowania proporcji i wycentrowania
+        lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
+          viewBox="{min_x} {min_y_flipped} {width} {height_flipped}"
+          width="{svg_width}" height="{svg_height}"
+          preserveAspectRatio="xMidYMid meet">''')
         
-        # Używamy odwróconej osi Y i dodajemy transformację do SVG
-        lines.append(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{min_x} {min_y_flipped} {width} {height_flipped}" width="100%" height="100%">')
+        # Dodajemy tło do lepszej wizualizacji
+        lines.append(f'<rect x="{min_x}" y="{min_y_flipped}" width="{width}" height="{height_flipped}" fill="#ffffff" />')
         
-        # Dodajemy grupę z transformacją dla skalowania
-        lines.append(f'<g transform="scale({scale})">')
+        # Dodajemy grupę dla wszystkich elementów
+        lines.append('<g>')
         
         # Dodaj grid
         grid_size = min(width, height) / 20
@@ -354,14 +355,12 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             f.write(traceback.format_exc() + "\n")
         
         # Stwórz SVG z informacją o błędzie
-        error_svg = f'''
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+        error_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <rect width="300" height="300" fill="#f8f8f8" />
             <text x="20" y="80" font-family="Arial" font-size="16" fill="red">Error converting DXF to SVG:</text>
             <text x="20" y="110" font-family="Arial" font-size="12">{str(e)[:50]}</text>
             <text x="20" y="130" font-family="Arial" font-size="12">{str(e)[50:100] if len(str(e)) > 50 else ""}</text>
-        </svg>
-        '''
+        </svg>'''
         
         if svg_path:
             with open(svg_path, 'w') as f:

@@ -114,13 +114,25 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "10px",
+                    padding: "5px",
                     border: "1px solid #eaeaea",
                     borderRadius: "4px",
-                    background: "#fff"
+                    background: "#fff",
+                    overflow: "hidden"
                   }}
-                  dangerouslySetInnerHTML={{ __html: svgContent }}
-                />
+                >
+                  <div 
+                    className="svg-wrapper" 
+                    style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center" 
+                    }}
+                    dangerouslySetInnerHTML={{ __html: svgContent }}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

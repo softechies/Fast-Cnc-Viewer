@@ -13,25 +13,24 @@
 }
 
 /* Style dla wizualizacji DXF */
-.svg-container svg {
-  max-width: 280px;
-  max-height: 280px;
-  width: 280px !important;
-  height: 280px !important;
+.svg-wrapper svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   display: block;
   margin: 0 auto;
   transform-box: fill-box;
   transform-origin: center;
-  overflow: visible;
 }
 
 /* Poprawne wyświetlanie elementów rysunku */
-.svg-container svg line,
-.svg-container svg polyline,
-.svg-container svg path,
-.svg-container svg circle,
-.svg-container svg polygon {
+.svg-wrapper svg line,
+.svg-wrapper svg polyline,
+.svg-wrapper svg path,
+.svg-wrapper svg circle,
+.svg-wrapper svg polygon {
   vector-effect: non-scaling-stroke;
   stroke-width: 0.5px;
 }
@@ -40,4 +39,12 @@
 .svg-container {
   overflow: hidden;
   position: relative;
+}
+
+.svg-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
