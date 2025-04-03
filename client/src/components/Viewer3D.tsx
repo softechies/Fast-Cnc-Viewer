@@ -31,10 +31,16 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   
   // Initialize Three.js scene first
   useEffect(() => {
+    // Reference to animation frame for cleanup
+    let animationFrameId: number;
+    
+    // Skip if container doesn't exist or scene is already initialized
     if (!containerRef.current || threeState.isInitialized) return;
     
     try {
       console.log('Initializing Three.js scene');
+      
+      // Create scene, camera, renderer, controls
       const { scene, camera, renderer } = initScene(containerRef.current);
       
       // Add lights and grid
@@ -59,9 +65,9 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       
       console.log('Three.js scene initialized successfully');
       
-      // Animation loop
+      // Animation loop with proper reference for cleanup
       const animate = () => {
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);
       };
@@ -80,16 +86,41 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       
       window.addEventListener('resize', handleResize);
       
+      // Cleanup function runs when component unmounts
       return () => {
+        console.log('Cleaning up Three.js resources');
+        
+        // Cancel animation loop
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        
+        // Remove event listeners
         window.removeEventListener('resize', handleResize);
-        renderer.dispose();
-        controls.dispose();
-        console.log('Three.js scene cleanup on unmount');
+        
+        // Dispose resources
+        if (controls) controls.dispose();
+        
+        // Remove canvas from DOM if it exists
+        if (renderer && renderer.domElement && containerRef.current) {
+          try {
+            if (containerRef.current.contains(renderer.domElement)) {
+              containerRef.current.removeChild(renderer.domElement);
+            }
+          } catch (error) {
+            console.error('Error removing renderer from DOM:', error);
+          }
+        }
+        
+        // Dispose renderer
+        if (renderer) renderer.dispose();
+        
+        console.log('Three.js resources cleaned up successfully');
       };
     } catch (error) {
       console.error('Error initializing Three.js:', error);
     }
-  }, [containerRef, threeState.isInitialized]);
+  }, [threeState.isInitialized]);
   
   // Fetch the model file only when scene is initialized and modelId is available
   const { data: modelFile, isLoading, error } = useQuery({
@@ -125,12 +156,10 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   
   // Load model when modelFile changes and scene is available
   useEffect(() => {
-    const { scene, camera, controls, model } = threeState;
-    
     // Only proceed if we have both the scene and model file
-    if (!scene || !modelFile) {
+    if (!threeState.scene || !modelFile) {
       console.log('Model loading dependencies check:', { 
-        sceneReady: !!scene, 
+        sceneReady: !!threeState.scene, 
         modelFileReady: !!modelFile
       });
       return;
@@ -138,10 +167,13 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     
     console.log('Starting to load model into scene');
     
-    // Clear previous model
-    if (model) {
+    // Cache references to avoid closure issues
+    const { scene, camera, controls } = threeState;
+    
+    // Clear previous model if it exists
+    if (threeState.model) {
       console.log('Removing previous model from scene');
-      scene.remove(model);
+      scene.remove(threeState.model);
       setThreeState(prev => ({ ...prev, model: null }));
     }
     
@@ -162,6 +194,11 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
           console.log('STEP file content loaded, length:', stepContent.length);
           
           try {
+            if (!scene) {
+              console.error('Scene not available when trying to add model');
+              return;
+            }
+            
             // Create a 3D model from the STEP file using our parser
             console.log('Creating 3D model from STEP file content');
             const stepModel = createModelFromSTEP(stepContent);
@@ -199,6 +236,11 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
     
     // Helper function to create a fallback model if something goes wrong
     const createFallbackModel = () => {
+      if (!scene) {
+        console.error('Scene not available for fallback model');
+        return;
+      }
+      
       console.log('Creating fallback model');
       // Fallback to simple box model if loading fails
       const geometry = new THREE.BoxGeometry(10, 10, 10);
@@ -227,49 +269,63 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   
   // Viewer controls functions
   const handleRotate = () => {
-    const { camera, controls } = threeState;
-    if (!camera || !controls) return;
+    if (!threeState.camera || !threeState.controls) {
+      console.log('Cannot rotate, camera or controls not initialized');
+      return;
+    }
     
     // Rotate around the model
-    const currentPos = new THREE.Vector3().copy(camera.position);
-    camera.position.set(currentPos.z, currentPos.y, -currentPos.x);
-    controls.update();
+    const currentPos = new THREE.Vector3().copy(threeState.camera.position);
+    threeState.camera.position.set(currentPos.z, currentPos.y, -currentPos.x);
+    threeState.controls.update();
   };
   
   const handleZoomIn = () => {
-    const { camera, controls } = threeState;
-    if (!camera || !controls) return;
+    if (!threeState.camera || !threeState.controls) {
+      console.log('Cannot zoom in, camera or controls not initialized');
+      return;
+    }
     
     // Zoom in by moving camera closer
-    const direction = new THREE.Vector3().subVectors(controls.target, camera.position).normalize();
-    camera.position.addScaledVector(direction, 5);
-    controls.update();
+    const direction = new THREE.Vector3()
+      .subVectors(threeState.controls.target, threeState.camera.position)
+      .normalize();
+    threeState.camera.position.addScaledVector(direction, 5);
+    threeState.controls.update();
   };
   
   const handleZoomOut = () => {
-    const { camera, controls } = threeState;
-    if (!camera || !controls) return;
+    if (!threeState.camera || !threeState.controls) {
+      console.log('Cannot zoom out, camera or controls not initialized');
+      return;
+    }
     
     // Zoom out by moving camera away
-    const direction = new THREE.Vector3().subVectors(controls.target, camera.position).normalize();
-    camera.position.addScaledVector(direction, -5);
-    controls.update();
+    const direction = new THREE.Vector3()
+      .subVectors(threeState.controls.target, threeState.camera.position)
+      .normalize();
+    threeState.camera.position.addScaledVector(direction, -5);
+    threeState.controls.update();
   };
   
   const handlePan = () => {
-    const { controls } = threeState;
-    if (!controls) return;
+    if (!threeState.controls) {
+      console.log('Cannot pan, controls not initialized');
+      return;
+    }
     
     // Toggle pan mode
-    controls.enablePan = !controls.enablePan;
+    threeState.controls.enablePan = !threeState.controls.enablePan;
   };
   
   const handleFitToView = () => {
-    const { camera, controls, model } = threeState;
-    if (!camera || !controls || !model) return;
+    if (!threeState.camera || !threeState.controls || !threeState.model) {
+      console.log('Cannot fit to view, camera, controls or model not initialized');
+      return;
+    }
     
     // Fit camera to model bounds
-    fitCameraToObject(camera, model, 1.5, controls);
+    fitCameraToObject(threeState.camera, threeState.model, 1.5, threeState.controls);
   };
   
   if (isLoading) {

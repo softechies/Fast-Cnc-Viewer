@@ -23,10 +23,7 @@ export function initScene(container: HTMLElement) {
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   
-  // Clear container and append renderer
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
+  // Bezpiecznie dodaj renderer do kontenera, bez usuwania istniejących elementów
   container.appendChild(renderer.domElement);
   
   return { scene, camera, renderer };
