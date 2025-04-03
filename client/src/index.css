@@ -11,3 +11,24 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* Style dla wizualizacji DXF */
+.svg-container svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Poprawne wyświetlanie elementów rysunku */
+.svg-container svg line,
+.svg-container svg polyline,
+.svg-container svg path,
+.svg-container svg circle,
+.svg-container svg polygon {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 0.5px;
+}

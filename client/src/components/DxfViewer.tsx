@@ -96,11 +96,28 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
         
         <TabsContent value="preview" className="flex-1 m-0">
           <Card className="flex-1 h-full">
-            <CardContent className="p-1 h-full bg-white overflow-auto">
+            <CardContent className="p-1 h-full bg-white overflow-auto relative">
               <div 
-                className="h-full w-full"
-                dangerouslySetInnerHTML={{ __html: svgContent }}
-              />
+                className="h-full w-full flex items-center justify-center"
+                style={{ 
+                  minHeight: "400px",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                <div 
+                  className="svg-container"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "20px"
+                  }}
+                  dangerouslySetInnerHTML={{ __html: svgContent }}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
