@@ -1,23 +1,27 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+// @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { useQuery } from '@tanstack/react-query';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
 
+// Interface for STL File Information
+interface StlFileInfo {
+  url: string;
+  isDirectStl?: boolean;
+}
+
+// Props for the StepViewer component
 interface StepViewerProps {
   modelId: number | null;
 }
 
-type RenderMode = 'simple' | 'advanced';
-
+// Component for viewing STEP and STL models
 export default function StepViewer({ modelId }: StepViewerProps) {
-  // Container reference for Three.js scene
+  // Refs for Three.js elements
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Refs to maintain Three.js objects references
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -25,235 +29,216 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const animationFrameRef = useRef<number | null>(null);
   const stepContentRef = useRef<string | null>(null);
   
-  // State for UI updates
-  const [debugInfo, setDebugInfo] = useState<string>("Inicjalizacja...");
-  const [renderMode, setRenderMode] = useState<RenderMode>('advanced');
+  // State for file data and loading status
+  const [fileData, setFileData] = useState<File | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [stlFileInfo, setStlFileInfo] = useState<StlFileInfo | null>(null);
+  const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
   
-  // Initialize Three.js scene only once
-  useEffect(() => {
-    // Skip if container doesn't exist
-    if (!containerRef.current) return;
-    
-    try {
-      // Log initialization
-      console.log("Inicjalizacja sceny Three.js");
-      setDebugInfo("Inicjalizacja sceny...");
-      
-      // Clear container
-      while (containerRef.current.firstChild) {
-        containerRef.current.removeChild(containerRef.current.firstChild);
-      }
-      
-      // Get dimensions
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight || 500; // Fallback height
-      
-      // Create basic scene
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xf7f7f7);
-      sceneRef.current = scene;
-      
-      // Create camera
-      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-      camera.position.set(10, 10, 10);
-      camera.lookAt(0, 0, 0);
-      cameraRef.current = camera;
-      
-      // Create renderer (basic)
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(width, height);
-      containerRef.current.appendChild(renderer.domElement);
-      rendererRef.current = renderer;
-      
-      // Create controls
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controlsRef.current = controls;
-      
-      // Basic lighting (simpler)
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-      scene.add(ambientLight);
-      
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
-      directionalLight.position.set(10, 10, 10);
-      scene.add(directionalLight);
-      
-      // Add grid and axes for reference
-      const grid = new THREE.GridHelper(20, 20);
-      scene.add(grid);
-      
-      const axes = new THREE.AxesHelper(5);
-      scene.add(axes);
-      
-      // Add simple reference cube
-      const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
-      const cubeMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0xff0000,
-        wireframe: true
-      });
-      const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-      cube.name = "ReferenceBox";
-      scene.add(cube);
-      
-      // Simple animation loop
-      const animate = () => {
-        if (controlsRef.current) {
-          controlsRef.current.update();
-        }
-        
-        // Rotate reference cube (if it exists)
-        const refCube = sceneRef.current?.getObjectByName("ReferenceBox");
-        if (refCube) {
-          refCube.rotation.y += 0.01;
-        }
-        
-        // Render
-        if (rendererRef.current && cameraRef.current && sceneRef.current) {
-          rendererRef.current.render(sceneRef.current, cameraRef.current);
-        }
-        
-        // Continue animation
-        animationFrameRef.current = requestAnimationFrame(animate);
-      };
-      
-      // Start animation
-      animate();
-      
-      // Handle resize
-      const handleResize = () => {
-        if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
-        
-        const newWidth = containerRef.current.clientWidth;
-        const newHeight = containerRef.current.clientHeight || 500;
-        
-        // Update camera aspect ratio
-        cameraRef.current.aspect = newWidth / newHeight;
-        cameraRef.current.updateProjectionMatrix();
-        
-        // Update renderer size
-        rendererRef.current.setSize(newWidth, newHeight);
-      };
-      
-      window.addEventListener('resize', handleResize);
-      
-      // Update debug info
-      setDebugInfo("Scena gotowa");
-      
-      // Cleanup function
-      return () => {
-        console.log("Sprzątanie zasobów Three.js");
-        
-        // Stop animation
-        if (animationFrameRef.current !== null) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-        
-        // Remove event listeners
-        window.removeEventListener('resize', handleResize);
-        
-        // Dispose controls
-        if (controlsRef.current) {
-          controlsRef.current.dispose();
-        }
-        
-        // Remove renderer from DOM
-        if (rendererRef.current && containerRef.current) {
-          try {
-            if (containerRef.current.contains(rendererRef.current.domElement)) {
-              containerRef.current.removeChild(rendererRef.current.domElement);
-            }
-          } catch (error) {
-            console.error("Error removing renderer from DOM:", error);
-          }
-        }
-        
-        // Dispose renderer
-        if (rendererRef.current) {
-          rendererRef.current.dispose();
-        }
-        
-        // Clear references
-        sceneRef.current = null;
-        cameraRef.current = null;
-        rendererRef.current = null;
-        controlsRef.current = null;
-      };
-    } catch (error) {
-      console.error("Błąd inicjalizacji Three.js:", error);
-      setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
-    }
-  }, []);
+  // State for rendering mode
+  const [renderMode, setRenderMode] = useState<'simple' | 'advanced'>('simple');
   
-  // Fetch STEP model file when modelId changes
-  const { data: fileData, isLoading: isLoadingFile } = useQuery({
-    queryKey: [`/api/models/${modelId}/file`],
-    enabled: !!modelId,
-    queryFn: async ({ queryKey }) => {
-      const url = queryKey[0] as string;
-      setDebugInfo(`Pobieranie pliku STEP: ${url}`);
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      setDebugInfo(`Plik STEP pobrany: ${blob.size} bajtów`);
-      return blob;
-    }
-  });
-  
-  // Fetch STL model file (converted) when modelId changes
-  const { data: stlFileInfo, isLoading: isLoadingStlFile } = useQuery({
-    queryKey: [`/api/models/${modelId}/stl`],
-    enabled: !!modelId,
-    queryFn: async ({ queryKey }) => {
-      const url = queryKey[0] as string;
-      setDebugInfo(`Sprawdzanie dostępności pliku STL...`);
-      
-      try {
-        // Najpierw sprawdź, czy to jest bezpośrednio załadowany plik STL
-        const infoResponse = await fetch(`/api/models/${modelId}`);
-        let isDirectStl = false;
-        
-        if (infoResponse.ok) {
-          const modelData = await infoResponse.json();
-          isDirectStl = modelData.format === 'STL' || !!modelData.metadata?.isDirectStl;
-          if (isDirectStl) {
-            setDebugInfo(`Wykryto bezpośredni model STL`);
-          }
-        }
-        
-        // Pobierz plik STL
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        
-        // Jeśli plik STL istnieje, zwróć jego URL i informację czy to bezpośredni STL
-        setDebugInfo(`Plik STL dostępny ${isDirectStl ? '(bezpośredni upload)' : ''}`);
-        return { url, isDirectStl };
-      } catch (error) {
-        console.error("STL file not available:", error);
-        setDebugInfo(`Plik STL niedostępny - użycie generowanego modelu`);
-        return null;
-      }
-    }
-  });
-  
-  // Handle render mode change
+  // Toggle between simple and advanced rendering modes
   function toggleRenderMode() {
-    // Toggle between simple and advanced
     const newMode = renderMode === 'simple' ? 'advanced' : 'simple';
     setRenderMode(newMode);
     
-    // Re-render current model if we have content
-    if (stepContentRef.current && sceneRef.current) {
+    // Re-render the model if content is available
+    if (stepContentRef.current) {
       renderModel(stepContentRef.current);
     }
   }
   
-  // Function to render model based on current render mode
+  // Initialize Three.js scene
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    // Create scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf0f0f0);
+    sceneRef.current = scene;
+    
+    // Create camera
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      containerRef.current.clientWidth / containerRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(5, 5, 5);
+    cameraRef.current = camera;
+    
+    // Create renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    containerRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+    
+    // Create controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.1;
+    controlsRef.current = controls;
+    
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
+    scene.add(directionalLight);
+    
+    // Add grid helper
+    const gridHelper = new THREE.GridHelper(20, 20);
+    scene.add(gridHelper);
+    
+    // Create animation loop
+    const animate = () => {
+      if (controlsRef.current) controlsRef.current.update();
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    console.log("Inicjalizacja sceny Three.js");
+    setDebugInfo("Scena gotowa");
+    
+    // Add a reference box to visualize scale
+    const refBox = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.2 })
+    );
+    refBox.name = "ReferenceBox";
+    refBox.visible = false;
+    scene.add(refBox);
+    
+    // Handle window resize
+    const handleResize = () => {
+      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
+      
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      
+      // Update camera
+      cameraRef.current.aspect = width / height;
+      cameraRef.current.updateProjectionMatrix();
+      
+      // Update renderer
+      rendererRef.current.setSize(width, height);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      if (rendererRef.current && containerRef.current) {
+        containerRef.current.removeChild(rendererRef.current.domElement);
+      }
+      
+      // Dispose of Three.js resources
+      if (sceneRef.current) {
+        sceneRef.current.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) object.geometry.dispose();
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach(material => material.dispose());
+              } else {
+                object.material.dispose();
+              }
+            }
+          }
+        });
+      }
+      
+      rendererRef.current?.dispose();
+    };
+  }, []);
+  
+  // Load model file when modelId changes
+  useEffect(() => {
+    if (!modelId) {
+      setFileData(null);
+      setStlFileInfo(null);
+      setDebugInfo("Brak wybranego modelu");
+      return;
+    }
+    
+    const loadFile = async () => {
+      try {
+        setIsLoadingFile(true);
+        setDebugInfo("Ładowanie pliku STEP...");
+        
+        // Get STEP file
+        const response = await fetch(`/api/models/${modelId}/file`);
+        if (!response.ok) {
+          throw new Error(`Nie można pobrać pliku (${response.status})`);
+        }
+        
+        // Get model information
+        const modelResponse = await fetch(`/api/models/${modelId}`);
+        if (!modelResponse.ok) {
+          throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status})`);
+        }
+        
+        const modelInfo = await modelResponse.json();
+        
+        const blob = await response.blob();
+        const filename = modelInfo.filename || `model-${modelId}.step`;
+        const file = new File([blob], filename, { type: 'application/step' });
+        
+        setFileData(file);
+        
+        // Try to get STL file if available
+        try {
+          setIsLoadingStlFile(true);
+          setDebugInfo("Sprawdzanie dostępności pliku STL...");
+          
+          const stlResponse = await fetch(`/api/models/${modelId}/stl`);
+          if (stlResponse.ok) {
+            // STL available
+            const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
+            setStlFileInfo({ url: `/api/models/${modelId}/stl`, isDirectStl });
+            setDebugInfo("Plik STL dostępny");
+          } else {
+            // No STL available
+            setStlFileInfo(null);
+            console.error("STL file not available:", await stlResponse.json());
+          }
+        } catch (stlError) {
+          setStlFileInfo(null);
+          console.error("Error checking STL availability:", stlError);
+        } finally {
+          setIsLoadingStlFile(false);
+        }
+      } catch (error) {
+        console.error("Error loading STEP file:", error);
+        setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+        setFileData(null);
+      } finally {
+        setIsLoadingFile(false);
+      }
+    };
+    
+    loadFile();
+  }, [modelId]);
+  
+  // Render model using Three.js
   async function renderModel(stepContent: string) {
     if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
     
@@ -286,23 +271,48 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           setDebugInfo("Model STL wczytany");
         } catch (stlError) {
           console.error("Błąd wczytywania STL, przełączenie na parser STEP:", stlError);
-          setDebugInfo("Problem z modelem STL, użycie alternatywnego parsera...");
+          setDebugInfo("Problem z modelem STL, użycie parsera OpenCascade...");
           
-          // Fallback do parsera STEP
-          if (renderMode === 'advanced') {
-            model = createModelFromSTEP(stepContent);
-          } else {
-            const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-            model = createSimpleModelRepresentation(complexity);
+          // Próba użycia OpenCascade
+          try {
+            setDebugInfo("Inicjalizacja OpenCascade.js...");
+            // Dynamiczny import modułu OpenCascade
+            const { parseSTEPFile } = await import('../lib/opencascade-parser');
+            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
+            model = await parseSTEPFile(stepContent);
+            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
+          } catch (ocError) {
+            console.error("Błąd parsera OpenCascade, przełączenie na alternatywny parser:", ocError);
+            setDebugInfo("Problem z OpenCascade, użycie alternatywnego parsera...");
+            
+            // Fallback do prostego parsera STEP
+            if (renderMode === 'advanced') {
+              model = createModelFromSTEP(stepContent);
+            } else {
+              const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+              model = createSimpleModelRepresentation(complexity);
+            }
           }
         }
       } 
       // Jeśli nie ma STL lub jest w trybie prostym
       else {
         if (renderMode === 'advanced') {
-          // Use advanced STEP parser
-          setDebugInfo("Użycie zaawansowanego parsera STEP...");
-          model = createModelFromSTEP(stepContent);
+          // First try OpenCascade parser for STEP 
+          try {
+            setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
+            // Dynamiczny import modułu OpenCascade
+            const { parseSTEPFile } = await import('../lib/opencascade-parser');
+            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
+            model = await parseSTEPFile(stepContent);
+            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
+          } catch (ocError) {
+            console.error("Błąd parsera OpenCascade, przełączenie na alternatywny parser:", ocError);
+            setDebugInfo("Problem z OpenCascade, użycie alternatywnego parsera...");
+            
+            // Fallback to original simple parser
+            model = createModelFromSTEP(stepContent);
+          }
         } else {
           // Use simple visualization
           setDebugInfo("Użycie uproszczonej reprezentacji...");
@@ -319,7 +329,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         fitCameraToObject(model, cameraRef.current, controlsRef.current);
       }
       
-      setDebugInfo(`Model wczytany (tryb: ${renderMode}${stlFileInfo ? ', format: STL' : ''})`);
+      const modelFormat = stlFileInfo ? 'STL' : (renderMode === 'advanced' ? 'STEP (OpenCascade)' : 'STEP (uproszczony)');
+      setDebugInfo(`Model wczytany (tryb: ${renderMode}, format: ${modelFormat})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
