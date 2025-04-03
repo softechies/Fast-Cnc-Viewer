@@ -3,6 +3,7 @@
 const translations = {
   // Common UI elements
   appTitle: "CAD Viewer",
+  applicationName: "CAD Viewer",
   home: "Home",
   upload: "Upload",
   uploadModel: "Upload Model",
@@ -18,6 +19,12 @@ const translations = {
   success: "Success",
   close: "Close",
   confirm: "Confirm",
+  
+  // Buttons
+  button: {
+    upload: "Upload",
+    cancel: "Cancel"
+  },
   
   // Home page
   welcome: "Welcome to CAD Viewer",
@@ -37,10 +44,13 @@ const translations = {
   
   // Model viewer
   modelInfo: "Model Information",
+  modelInformation: "Model Information",
   modelTree: "Model Tree",
   components: "Components",
   part: "Part",
+  parts: "Parts",
   assembly: "Assembly",
+  surfaces: "Surfaces",
   viewControls: "View Controls",
   rotate: "Rotate",
   pan: "Pan",
@@ -52,6 +62,7 @@ const translations = {
   created: "Created",
   modelNotFound: "Model not found",
   errorLoadingModel: "Error loading model",
+  noPreviousFiles: "No previous files",
   
   // Sharing
   shareModel: "Share Model",
@@ -81,6 +92,25 @@ const translations = {
   incorrectPassword: "Incorrect password",
   viewSharedModel: "View Shared Model",
   modelSharedBy: "Model shared by",
+  
+  // Messages
+  message: {
+    no: {
+      model: "Drag and drop your CAD file here, or click to browse"
+    },
+    loading: "Please wait while we process your file"
+  },
+  
+  // Labels
+  label: {
+    file: "Selected file",
+    verification: "Verification in progress"
+  },
+  
+  // Layout
+  app: {
+    footer: "CAD Viewer - © 2025 All rights reserved"
+  },
   
   // Error messages
   genericError: "Something went wrong",
