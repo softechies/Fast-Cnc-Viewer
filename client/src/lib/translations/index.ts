@@ -73,6 +73,11 @@ export function getTranslation(language: Language, key: string): string {
   return translation || key;
 }
 
+// Get all translations for a language
+export function getLanguageTranslations(language: Language) {
+  return translations[language] || translations.en;
+}
+
 // Get list of available languages with their native names
 export const languageOptions = [
   { value: 'en', label: 'English' },

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Language, getTranslation, getInitialLanguage, LANGUAGE_STORAGE_KEY } from './translations';
+import { Language, getLanguageTranslations, getInitialLanguage, LANGUAGE_STORAGE_KEY } from './translations';
 
 interface LanguageContextType {
   language: Language;
@@ -17,13 +17,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (!params) return translation;
     
     return Object.entries(params).reduce((result, [key, value]) => {
-      return result.replace(new RegExp(`{${key}}`, 'g'), value);
+      return result.replace(new RegExp(`{{${key}}}`, 'g'), value);
     }, translation);
   };
 
   // Get translation for a key
   const t = (key: string, params?: Record<string, string>): string => {
-    const translation = getTranslation(language, key);
+    const translations = getLanguageTranslations(language);
+    
+    if (translations[key] === undefined) {
+      console.warn(`Translation key not found: ${key}`);
+      return key;
+    }
+    
+    const translation = translations[key];
+    if (typeof translation !== 'string') {
+      console.warn(`Translation key is not a string: ${key}`);
+      return key;
+    }
+    
     return formatTranslation(translation, params);
   };
 

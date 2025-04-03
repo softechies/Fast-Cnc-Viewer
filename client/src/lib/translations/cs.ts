@@ -1,73 +1,76 @@
+// Czech translations
 export const cs = {
-  // General
-  'app.name': 'CAD Viewer',
-  'app.tagline': 'Aplikace pro prohlížení CAD souborů',
-  'app.footer': '© 2024 CAD Viewer | Aplikace pro prohlížení CAD souborů',
+  // Common elements
+  upload: 'Nahrát',
+  download: 'Stáhnout',
+  share: 'Sdílet',
+  delete: 'Smazat',
+  cancel: 'Zrušit',
+  close: 'Zavřít',
+  save: 'Uložit',
+  loading: 'Načítání...',
+  error: 'Chyba',
+  success: 'Úspěch',
   
-  // Buttons
-  'button.upload': 'Nahrát CAD soubor',
-  'button.access': 'Získat přístup',
-  'button.back': 'Zpět na hlavní stránku',
-  'button.delete': 'Smazat',
-  'button.cancel': 'Zrušit',
-  'button.share': 'Sdílet',
-  'button.copy': 'Kopírovat',
-  'button.goto.app': 'Přejít do aplikace',
-  'button.remove.sharing': 'Odstranit sdílení',
+  // Navigation and header
+  fileMenu: 'Soubor',
+  viewMenu: 'Zobrazení',
+  helpMenu: 'Nápověda',
+  language: 'Jazyk',
+  settings: 'Nastavení',
   
-  // Headers
-  'header.protected.model': 'Chráněný model',
-  'header.no.model': 'Žádný model k zobrazení',
-  'header.error': 'Chyba',
-  'header.shared.model': 'Sdílený model',
-  'header.model.info': 'Informace o modelu',
+  // Home page
+  noPreviousFiles: 'Zatím nebyly nahrány žádné soubory',
+  supportedFormats: 'Nahrajte CAD soubory ve formátech STEP, STL, DXF nebo DWG pro jejich vizualizaci',
+  modelInformation: 'Informace o modelu',
   
-  // Messages
-  'message.upload.success': 'Soubor {filename} byl úspěšně nahrán.',
-  'message.upload.error': 'Chyba při nahrávání souboru.',
-  'message.no.model': 'Nahrajte CAD soubor (STEP, STL, DXF, DWG) pro zahájení prohlížení',
-  'message.loading': 'Načítání sdíleného modelu...',
-  'message.cannot.display': 'Nelze zobrazit model',
-  'message.password.required': 'Tento model je chráněn heslem.',
-  'message.delete.confirm': 'Opravdu chcete odstranit sdílení?',
-  'message.delete.warning': 'Tato operace je nevratná. Odkaz na model přestane fungovat a pokud byla zadána e-mailová adresa, bude odeslána notifikace o zrušení přístupu.',
-  'message.delete.success': 'Sdílení bylo zrušeno',
-  'message.share.success': 'Model byl sdílen',
-  'message.share.copied': 'Odkaz zkopírován do schránky',
-  'message.revocation.sent': 'Odeslána notifikace o zrušení',
+  // Upload
+  uploadFailed: 'Nahrávání selhalo',
+  uploadProgress: 'Průběh nahrávání: {{percent}}%',
+  dropFilesHere: 'Přetáhněte soubory sem nebo klikněte pro procházení',
+  selectFile: 'Vyberte soubor',
+  processing: 'Zpracování souboru...',
+  fileError: 'Při zpracování souboru došlo k problému',
   
-  // Labels
-  'label.password': 'Heslo',
-  'label.password.placeholder': 'Zadejte heslo modelu',
-  'label.file': 'Soubor',
-  'label.shared.model': '(Sdílený model)',
-  'label.email': 'Email',
-  'label.email.placeholder': 'Zadejte e-mail příjemce (volitelné)',
-  'label.password.share': 'Chránit heslem',
-  'label.password.share.placeholder': 'Zadejte heslo pro ochranu modelu',
-  'label.expiry': 'Datum vypršení',
-  'label.verification': 'Ověřování...',
-  'label.deleting': 'Mazání...',
+  // Model viewer
+  pan: 'Posunout',
+  rotate: 'Rotovat',
+  zoomIn: 'Přiblížit',
+  zoomOut: 'Oddálit',
+  fitToView: 'Přizpůsobit pohledu',
+  wireframe: 'Drátový model',
+  solid: 'Plný model',
   
-  // Model properties
-  'model.parts': 'Díly',
-  'model.surfaces': 'Povrchy',
-  'model.solids': 'Tělesa',
-  'model.entities': 'Entity',
-  'model.format': 'Formát',
-  'model.size': 'Velikost',
-  'model.created': 'Vytvořeno',
-  'model.no.active': 'Žádný aktivní model',
+  // Model info
+  parts: 'Díly',
+  surfaces: 'Plochy',
+  edges: 'Hrany',
+  vertices: 'Vrcholy',
+  fileType: 'Typ souboru',
+  fileSize: 'Velikost souboru',
+  uploadDate: 'Datum nahrání',
+  
+  // Sharing
+  shareModel: 'Sdílet model',
+  shareViaEmail: 'Sdílet e-mailem',
+  recipientEmail: 'E-mail příjemce',
+  shareDescription: 'Přidat popis',
+  shareLinkCopied: 'Odkaz ke sdílení zkopírován do schránky',
+  shareSuccess: 'Model byl úspěšně sdílen',
+  shareFailed: 'Sdílení modelu se nezdařilo',
+  accessShared: 'Přístup ke sdílenému modelu',
+  enterPassword: 'Zadejte heslo',
+  
+  // Notifications
+  fileDeleted: 'Soubor byl úspěšně smazán',
+  fileDeleteFailed: 'Smazání souboru se nezdařilo',
   
   // Errors
-  'error.file.load': 'Nepodařilo se načíst soubor STEP.',
-  'error.password': 'Neplatné heslo',
-  'error.access': 'Nepodařilo se získat přístup ke sdílenému modelu',
-  'error.delete': 'Nepodařilo se zrušit sdílení modelu',
-  'error.share': 'Nepodařilo se sdílet model',
-  'error.expired': 'Tento odkaz pro sdílení vypršel',
-  'error.not.found': 'Sdílený model nenalezen',
+  notFound: 'Nenalezeno',
+  fileNotFound: 'Soubor nenalezen',
+  unsupportedFormat: 'Nepodporovaný formát souboru',
   
-  // Language selector
-  'language.select': 'Jazyk',
+  // Email templates
+  emailSubject: 'CAD model sdílený s vámi',
+  emailRevoked: 'Sdílení CAD modelu bylo zrušeno'
 };

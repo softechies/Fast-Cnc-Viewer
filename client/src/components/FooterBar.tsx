@@ -19,11 +19,11 @@ export default function FooterBar({ modelName, partCount, entityCount }: FooterB
         <div className="mt-2 sm:mt-0 flex items-center space-x-4">
           <span>
             <Box className="inline h-4 w-4 mr-1" />
-            <span>{partCount}</span> {t('model.parts')}
+            <span>{partCount}</span> {t('parts')}
           </span>
           <span>
             <Layers className="inline h-4 w-4 mr-1" />
-            <span>{entityCount}</span> {t('model.entities')}
+            <span>{entityCount}</span> {t('surfaces')}
           </span>
         </div>
       </div>

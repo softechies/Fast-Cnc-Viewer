@@ -22,7 +22,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
             <line x1="12" y1="22.08" x2="12" y2="12"></line>
           </svg>
-          <h1 className="text-xl font-semibold text-gray-800">{t('app.name')}</h1>
+          <h1 className="text-xl font-semibold text-gray-800">{t('applicationName')}</h1>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -33,7 +33,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
             className="bg-primary hover:bg-blue-700 text-white"
           >
             <Upload className="mr-2 h-4 w-4" />
-            <span>{t('button.upload')}</span>
+            <span>{t('upload')}</span>
           </Button>
         </div>
       </div>

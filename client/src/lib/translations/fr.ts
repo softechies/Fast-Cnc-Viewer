@@ -1,73 +1,76 @@
+// French translations
 export const fr = {
-  // General
-  'app.name': 'CAD Viewer',
-  'app.tagline': 'Application pour visualiser les fichiers CAO',
-  'app.footer': '© 2024 CAD Viewer | Application pour visualiser les fichiers CAO',
+  // Common elements
+  upload: 'Télécharger',
+  download: 'Télécharger',
+  share: 'Partager',
+  delete: 'Supprimer',
+  cancel: 'Annuler',
+  close: 'Fermer',
+  save: 'Enregistrer',
+  loading: 'Chargement...',
+  error: 'Erreur',
+  success: 'Succès',
   
-  // Buttons
-  'button.upload': 'Télécharger fichier CAO',
-  'button.access': 'Obtenir accès',
-  'button.back': 'Retour à l\'accueil',
-  'button.delete': 'Supprimer',
-  'button.cancel': 'Annuler',
-  'button.share': 'Partager',
-  'button.copy': 'Copier',
-  'button.goto.app': 'Aller à l\'application',
-  'button.remove.sharing': 'Supprimer le partage',
+  // Navigation and header
+  fileMenu: 'Fichier',
+  viewMenu: 'Affichage',
+  helpMenu: 'Aide',
+  language: 'Langue',
+  settings: 'Paramètres',
   
-  // Headers
-  'header.protected.model': 'Modèle protégé',
-  'header.no.model': 'Aucun modèle à afficher',
-  'header.error': 'Erreur',
-  'header.shared.model': 'Modèle partagé',
-  'header.model.info': 'Informations sur le modèle',
+  // Home page
+  noPreviousFiles: 'Aucun fichier téléchargé',
+  supportedFormats: 'Téléchargez des fichiers CAO aux formats STEP, STL, DXF ou DWG pour les visualiser',
+  modelInformation: 'Informations sur le modèle',
   
-  // Messages
-  'message.upload.success': 'Le fichier {filename} a été téléchargé avec succès.',
-  'message.upload.error': 'Erreur de téléchargement du fichier.',
-  'message.no.model': 'Téléchargez un fichier CAO (STEP, STL, DXF, DWG) pour commencer à visualiser',
-  'message.loading': 'Chargement du modèle partagé...',
-  'message.cannot.display': 'Impossible d\'afficher le modèle',
-  'message.password.required': 'Ce modèle est protégé par mot de passe.',
-  'message.delete.confirm': 'Êtes-vous sûr de vouloir supprimer le partage?',
-  'message.delete.warning': 'Cette opération est irréversible. Le lien vers le modèle cessera de fonctionner et, si un e-mail a été fourni, une notification d\'annulation d\'accès sera envoyée.',
-  'message.delete.success': 'Le partage a été annulé',
-  'message.share.success': 'Le modèle a été partagé',
-  'message.share.copied': 'Lien copié dans le presse-papiers',
-  'message.revocation.sent': 'Notification de révocation envoyée',
+  // Upload
+  uploadFailed: 'Échec du téléchargement',
+  uploadProgress: 'Progression du téléchargement: {{percent}}%',
+  dropFilesHere: 'Déposez les fichiers ici ou cliquez pour parcourir',
+  selectFile: 'Sélectionner un fichier',
+  processing: 'Traitement du fichier...',
+  fileError: 'Un problème est survenu lors du traitement du fichier',
   
-  // Labels
-  'label.password': 'Mot de passe',
-  'label.password.placeholder': 'Entrez le mot de passe du modèle',
-  'label.file': 'Fichier',
-  'label.shared.model': '(Modèle partagé)',
-  'label.email': 'Email',
-  'label.email.placeholder': 'Entrez l\'email du destinataire (optionnel)',
-  'label.password.share': 'Protéger par mot de passe',
-  'label.password.share.placeholder': 'Entrez un mot de passe pour protéger le modèle',
-  'label.expiry': 'Date d\'expiration',
-  'label.verification': 'Vérification...',
-  'label.deleting': 'Suppression...',
+  // Model viewer
+  pan: 'Déplacer',
+  rotate: 'Pivoter',
+  zoomIn: 'Zoomer',
+  zoomOut: 'Dézoomer',
+  fitToView: 'Ajuster à la vue',
+  wireframe: 'Filaire',
+  solid: 'Solide',
   
-  // Model properties
-  'model.parts': 'Pièces',
-  'model.surfaces': 'Surfaces',
-  'model.solids': 'Solides',
-  'model.entities': 'Entités',
-  'model.format': 'Format',
-  'model.size': 'Taille',
-  'model.created': 'Créé',
-  'model.no.active': 'Aucun modèle actif',
+  // Model info
+  parts: 'Pièces',
+  surfaces: 'Surfaces',
+  edges: 'Arêtes',
+  vertices: 'Sommets',
+  fileType: 'Type de fichier',
+  fileSize: 'Taille du fichier',
+  uploadDate: 'Date de téléchargement',
+  
+  // Sharing
+  shareModel: 'Partager le modèle',
+  shareViaEmail: 'Partager par e-mail',
+  recipientEmail: 'E-mail du destinataire',
+  shareDescription: 'Ajouter une description',
+  shareLinkCopied: 'Lien de partage copié dans le presse-papiers',
+  shareSuccess: 'Modèle partagé avec succès',
+  shareFailed: 'Échec du partage du modèle',
+  accessShared: 'Accéder au modèle partagé',
+  enterPassword: 'Entrez le mot de passe',
+  
+  // Notifications
+  fileDeleted: 'Fichier supprimé avec succès',
+  fileDeleteFailed: 'Échec de la suppression du fichier',
   
   // Errors
-  'error.file.load': 'Impossible de charger le fichier STEP.',
-  'error.password': 'Mot de passe invalide',
-  'error.access': 'Échec d\'accès au modèle partagé',
-  'error.delete': 'Échec de révocation du modèle partagé',
-  'error.share': 'Échec du partage du modèle',
-  'error.expired': 'Ce lien de partage a expiré',
-  'error.not.found': 'Modèle partagé non trouvé',
+  notFound: 'Non trouvé',
+  fileNotFound: 'Fichier non trouvé',
+  unsupportedFormat: 'Format de fichier non pris en charge',
   
-  // Language selector
-  'language.select': 'Langue',
+  // Email templates
+  emailSubject: 'Modèle CAO partagé avec vous',
+  emailRevoked: 'Partage du modèle CAO révoqué'
 };

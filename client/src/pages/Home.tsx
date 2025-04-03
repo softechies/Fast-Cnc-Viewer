@@ -22,15 +22,15 @@ export default function Home() {
       setActiveModelId(data.id);
       setIsUploadModalOpen(false);
       toast({
-        title: t('message.upload.success', { filename: data.filename }),
-        description: t('message.upload.success', { filename: data.filename }),
+        title: t('uploadProgress', { percent: '100' }),
+        description: data.filename,
         duration: 3000,
       });
     },
     onError: (error) => {
       toast({
-        title: t('message.upload.error'),
-        description: error.message || t('error.file.load'),
+        title: t('uploadFailed'),
+        description: error.message || t('fileError'),
         variant: "destructive",
       });
     },
@@ -55,14 +55,14 @@ export default function Home() {
           {!hasModel ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
               <Box className="w-16 h-16 mb-4 text-gray-300" />
-              <h2 className="text-xl font-medium mb-2">{t('header.no.model')}</h2>
-              <p className="text-center max-w-md mb-6">{t('message.no.model')}</p>
+              <h2 className="text-xl font-medium mb-2">{t('noPreviousFiles')}</h2>
+              <p className="text-center max-w-md mb-6">{t('supportedFormats')}</p>
               <Button 
                 onClick={() => setIsUploadModalOpen(true)} 
                 className="bg-primary hover:bg-blue-700 text-white"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                <span>{t('button.upload')}</span>
+                <span>{t('upload')}</span>
               </Button>
             </div>
           ) : (
@@ -74,7 +74,7 @@ export default function Home() {
           <div className="w-full h-10 bg-slate-100 border-b border-gray-200 flex items-center px-3">
             <div className="flex items-center gap-2">
               <InfoIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('header.model.info')}</span>
+              <span className="text-sm font-medium">{t('modelInformation')}</span>
             </div>
           </div>
           <div className="flex-grow">
@@ -88,7 +88,7 @@ export default function Home() {
       </main>
       
       <FooterBar 
-        modelName={modelInfo?.filename || t('model.no.active')} 
+        modelName={modelInfo?.filename || t('loading')} 
         partCount={modelInfo?.parts || 0} 
         entityCount={(modelInfo?.surfaces || 0) + (modelInfo?.solids || 0)}
       />
