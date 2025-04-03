@@ -1,124 +1,98 @@
-export default {
-  // General
-  appName: "CAD Viewer",
-  welcome: "Welcome to CAD Viewer",
-  loading: "Loading...",
-  viewMode: "Mode",
-  
-  // Header
-  uploadModel: "Upload model",
-  signIn: "Sign in",
-  signUp: "Sign up",
-  signOut: "Sign out",
-  profile: "Profile",
-  settings: "Settings",
-  
-  // Navigation
+// English translations
+
+const translations = {
+  // Common UI elements
+  appTitle: "CAD Viewer",
   home: "Home",
-  models: "Models",
-  shared: "Shared",
-  
-  // Actions
   upload: "Upload",
-  download: "Download",
+  uploadModel: "Upload Model",
+  view: "View",
+  share: "Share",
+  delete: "Delete",
   cancel: "Cancel",
   save: "Save",
-  delete: "Delete",
-  share: "Share",
-  view: "View",
-  edit: "Edit",
-  add: "Add",
-  remove: "Remove",
-  copy: "Copy",
+  back: "Back",
+  loading: "Loading...",
+  refresh: "Refresh",
+  error: "Error",
+  success: "Success",
+  close: "Close",
+  confirm: "Confirm",
   
-  // Model Info
-  modelInformation: "Model Information",
-  fileName: "File name",
-  fileType: "File type",
-  fileSize: "File size",
-  createdDate: "Created date",
-  modifiedDate: "Modified date",
-  sharedModel: "Shared model",
-  modelEntities: "Model entities",
-  parts: "Parts",
-  assemblies: "Assemblies",
-  surfaces: "Surfaces",
-  solids: "Solids",
-  additionalInfo: "Additional information",
+  // Home page
+  welcome: "Welcome to CAD Viewer",
+  welcomeMessage: "Upload a CAD file to get started",
+  recentModels: "Recent Models",
+  noModels: "No models found. Upload a CAD file to get started.",
+  
+  // Upload modal
+  dropFileHere: "Drop your CAD file here",
+  dragAndDrop: "Drag and drop your file here, or click to browse",
+  selectFile: "Select File",
+  uploadingModel: "Uploading model...",
+  uploadComplete: "Upload complete",
+  uploadFailed: "Upload failed",
+  supportedFormats: "Supported formats: STEP, IGES, STL, DXF, DWG",
+  processingFile: "Processing file...",
+  
+  // Model viewer
+  modelInfo: "Model Information",
+  modelTree: "Model Tree",
+  components: "Components",
+  part: "Part",
+  assembly: "Assembly",
+  viewControls: "View Controls",
+  rotate: "Rotate",
+  pan: "Pan",
+  zoom: "Zoom",
+  fitToView: "Fit to View",
+  modelDetails: "Model Details",
+  format: "Format",
+  fileSize: "File Size",
+  created: "Created",
+  modelNotFound: "Model not found",
+  errorLoadingModel: "Error loading model",
   
   // Sharing
-  shareModel: "Share model",
-  shareLink: "Share link",
-  shareSuccess: "Model shared successfully",
-  shareCopied: "Link copied to clipboard",
+  shareModel: "Share Model",
+  shareTitle: "Share this CAD model",
+  shareDescription: "Share this model with others by email",
+  recipientEmail: "Recipient Email",
   shareWithPassword: "Share with password",
-  passwordProtected: "Password protected",
-  shareViaEmail: "Share via email",
-  emailRecipient: "Email recipient",
-  setPassword: "Set password",
-  setExpiry: "Set expiration date",
-  passwordPlaceholder: "Enter password for the shared link",
-  shareExpiry: "Share expiration",
+  sharePassword: "Password",
+  generatePassword: "Generate Password",
+  setExpiry: "Set expiry date",
+  expiryDate: "Expiry Date",
+  shareLink: "Share Link",
+  copyLink: "Copy Link",
+  linkCopied: "Link copied",
+  enableSharing: "Enable sharing",
+  disableSharing: "Disable sharing",
+  sharingEnabled: "Sharing enabled",
+  sharingDisabled: "Sharing disabled",
+  sendEmail: "Send email notification",
+  emailSent: "Email sent",
+  emailNotSent: "Email could not be sent",
   
-  // Upload
-  uploadTitle: "Upload CAD model",
-  uploadDescription: "Supported formats: STEP, STL, DXF, DWG",
-  dragAndDrop: "Drag and drop files here or click to browse",
-  selectFiles: "Select files",
-  uploadProgress: "Upload progress",
+  // Shared model access
+  sharedModel: "Shared Model",
+  enterPassword: "Enter password to view this model",
+  passwordProtected: "Password Protected",
+  incorrectPassword: "Incorrect password",
+  viewSharedModel: "View Shared Model",
+  modelSharedBy: "Model shared by",
   
-  // Messages
-  confirmDelete: "Are you sure you want to delete this model?",
-  deleteWarning: "This action cannot be undone.",
-  uploadSuccess: "Model uploaded successfully",
-  uploadError: "Failed to upload model",
-  shareEmailSent: "Share link sent via email",
-  shareRevoked: "Sharing has been revoked",
-  errorOccurred: "An error occurred",
-  "message.share.copied": "Link copied to clipboard",
-  modelLoaded: "Model loaded (format: {format})",
+  // Error messages
+  genericError: "Something went wrong",
+  connectionError: "Connection error",
+  fileNotSupported: "File format not supported",
+  fileTooLarge: "File is too large",
+  invalidPassword: "Invalid password",
+  invalidEmail: "Invalid email address",
   
-  // Footer
-  copyright: "© 2025 CAD Viewer. All rights reserved.",
-  termsOfService: "Terms of Service",
-  privacyPolicy: "Privacy Policy",
-  
-  // Empty States
-  noModels: "No models to display",
-  noSharedModels: "No shared models to display",
-  
-  // Validation
-  requiredField: "This field is required",
-  invalidEmail: "Please enter a valid email address",
-  invalidPassword: "Password must be at least 6 characters long",
-  
-  // Languages
-  language: "Language",
-  english: "English",
-  polish: "Polish",
-  czech: "Czech",
-  german: "German",
-  french: "French",
-
-  // Legacy keys
-  "app.footer": "© 2025 CAD Viewer. All rights reserved.",
-  "noPreviousFiles": "No previously uploaded files",
-  "supportedFormats": "Supported formats: STEP, STL, DXF, DWG",
-  "applicationName": "CAD Viewer",
-  "button.upload": "Upload",
-  "message.no.model": "No model selected",
-  "button.cancel": "Cancel",
-  "button.copy": "Copy",
-  "label.file": "File",
-  "label.verification": "Verification",
-  "message.loading": "Loading...",
-  "button.share": "Share",
-  "message.delete.warning": "This action cannot be undone.",
-  "label.password": "Password",
-  "label.password.share.placeholder": "Enter password for shared model",
-  "label.expiry": "Expiration date",
-  "label.email": "Email",
-  "label.email.placeholder": "Enter recipient email",
-  "message.share.success": "Sharing successful",
-  "message.revocation.sent": "Revocation notification sent"
+  // Success messages
+  sharingSaved: "Sharing settings saved",
+  sharingRemoved: "Sharing has been disabled"
 };
+
+export default translations;

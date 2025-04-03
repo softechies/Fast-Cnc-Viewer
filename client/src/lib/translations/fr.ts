@@ -1,122 +1,98 @@
-export default {
-  // General
-  appName: "CAD Viewer",
-  welcome: "Bienvenue sur CAD Viewer",
-  loading: "Chargement...",
-  
-  // Header
-  uploadModel: "Télécharger un modèle",
-  signIn: "Se connecter",
-  signUp: "S'inscrire",
-  signOut: "Se déconnecter",
-  profile: "Profil",
-  settings: "Paramètres",
-  
-  // Navigation
+// French translations
+
+const translations = {
+  // Common UI elements
+  appTitle: "Visualiseur CAD",
   home: "Accueil",
-  models: "Modèles",
-  shared: "Partagés",
-  
-  // Actions
   upload: "Télécharger",
-  download: "Télécharger",
+  uploadModel: "Télécharger un modèle",
+  view: "Voir",
+  share: "Partager",
+  delete: "Supprimer",
   cancel: "Annuler",
   save: "Enregistrer",
-  delete: "Supprimer",
-  share: "Partager",
-  view: "Voir",
-  edit: "Modifier",
-  add: "Ajouter",
-  remove: "Supprimer",
-  copy: "Copier",
+  back: "Retour",
+  loading: "Chargement...",
+  refresh: "Actualiser",
+  error: "Erreur",
+  success: "Succès",
+  close: "Fermer",
+  confirm: "Confirmer",
   
-  // Model Info
-  modelInformation: "Informations sur le modèle",
-  fileName: "Nom du fichier",
-  fileType: "Type de fichier",
+  // Home page
+  welcome: "Bienvenue sur le Visualiseur CAD",
+  welcomeMessage: "Téléchargez un fichier CAD pour commencer",
+  recentModels: "Modèles récents",
+  noModels: "Aucun modèle trouvé. Téléchargez un fichier CAD pour commencer.",
+  
+  // Upload modal
+  dropFileHere: "Déposez votre fichier CAD ici",
+  dragAndDrop: "Glissez et déposez votre fichier ici, ou cliquez pour parcourir",
+  selectFile: "Sélectionner un fichier",
+  uploadingModel: "Téléchargement du modèle...",
+  uploadComplete: "Téléchargement terminé",
+  uploadFailed: "Échec du téléchargement",
+  supportedFormats: "Formats pris en charge: STEP, IGES, STL, DXF, DWG",
+  processingFile: "Traitement du fichier...",
+  
+  // Model viewer
+  modelInfo: "Informations sur le modèle",
+  modelTree: "Arborescence du modèle",
+  components: "Composants",
+  part: "Pièce",
+  assembly: "Assemblage",
+  viewControls: "Contrôles de vue",
+  rotate: "Rotation",
+  pan: "Panoramique",
+  zoom: "Zoom",
+  fitToView: "Ajuster à la vue",
+  modelDetails: "Détails du modèle",
+  format: "Format",
   fileSize: "Taille du fichier",
-  createdDate: "Date de création",
-  modifiedDate: "Date de modification",
-  sharedModel: "Modèle partagé",
-  modelEntities: "Entités du modèle",
-  parts: "Pièces",
-  assemblies: "Assemblages",
-  surfaces: "Surfaces",
-  solids: "Solides",
-  additionalInfo: "Informations supplémentaires",
+  created: "Créé",
+  modelNotFound: "Modèle non trouvé",
+  errorLoadingModel: "Erreur lors du chargement du modèle",
   
   // Sharing
   shareModel: "Partager le modèle",
-  shareLink: "Lien de partage",
-  shareSuccess: "Modèle partagé avec succès",
-  shareCopied: "Lien copié dans le presse-papiers",
-  shareWithPassword: "Partager avec un mot de passe",
-  passwordProtected: "Protégé par mot de passe",
-  shareViaEmail: "Partager par e-mail",
-  emailRecipient: "E-mail du destinataire",
-  setPassword: "Définir un mot de passe",
+  shareTitle: "Partager ce modèle CAD",
+  shareDescription: "Partagez ce modèle avec d'autres par e-mail",
+  recipientEmail: "E-mail du destinataire",
+  shareWithPassword: "Partager avec mot de passe",
+  sharePassword: "Mot de passe",
+  generatePassword: "Générer un mot de passe",
   setExpiry: "Définir une date d'expiration",
-  passwordPlaceholder: "Entrez le mot de passe pour le lien partagé",
-  shareExpiry: "Expiration du partage",
+  expiryDate: "Date d'expiration",
+  shareLink: "Lien de partage",
+  copyLink: "Copier le lien",
+  linkCopied: "Lien copié",
+  enableSharing: "Activer le partage",
+  disableSharing: "Désactiver le partage",
+  sharingEnabled: "Partage activé",
+  sharingDisabled: "Partage désactivé",
+  sendEmail: "Envoyer une notification par e-mail",
+  emailSent: "E-mail envoyé",
+  emailNotSent: "L'e-mail n'a pas pu être envoyé",
   
-  // Upload
-  uploadTitle: "Télécharger un modèle CAD",
-  uploadDescription: "Formats pris en charge: STEP, STL, DXF, DWG",
-  dragAndDrop: "Glissez-déposez les fichiers ici ou cliquez pour parcourir",
-  selectFiles: "Sélectionner des fichiers",
-  uploadProgress: "Progression du téléchargement",
+  // Shared model access
+  sharedModel: "Modèle partagé",
+  enterPassword: "Entrez le mot de passe pour voir ce modèle",
+  passwordProtected: "Protégé par mot de passe",
+  incorrectPassword: "Mot de passe incorrect",
+  viewSharedModel: "Voir le modèle partagé",
+  modelSharedBy: "Modèle partagé par",
   
-  // Messages
-  confirmDelete: "Êtes-vous sûr de vouloir supprimer ce modèle?",
-  deleteWarning: "Cette action ne peut pas être annulée.",
-  uploadSuccess: "Modèle téléchargé avec succès",
-  uploadError: "Échec du téléchargement du modèle",
-  shareEmailSent: "Lien de partage envoyé par e-mail",
-  shareRevoked: "Le partage a été révoqué",
-  errorOccurred: "Une erreur s'est produite",
+  // Error messages
+  genericError: "Une erreur s'est produite",
+  connectionError: "Erreur de connexion",
+  fileNotSupported: "Format de fichier non pris en charge",
+  fileTooLarge: "Le fichier est trop volumineux",
+  invalidPassword: "Mot de passe invalide",
+  invalidEmail: "Adresse e-mail invalide",
   
-  // Footer
-  copyright: "© 2025 CAD Viewer. Tous droits réservés.",
-  termsOfService: "Conditions d'utilisation",
-  privacyPolicy: "Politique de confidentialité",
-  
-  // Empty States
-  noModels: "Aucun modèle à afficher",
-  noSharedModels: "Aucun modèle partagé à afficher",
-  
-  // Validation
-  requiredField: "Ce champ est obligatoire",
-  invalidEmail: "Veuillez entrer une adresse e-mail valide",
-  invalidPassword: "Le mot de passe doit comporter au moins 6 caractères",
-  
-  // Languages
-  language: "Langue",
-  english: "Anglais",
-  polish: "Polonais",
-  czech: "Tchèque",
-  german: "Allemand",
-  french: "Français",
-  
-  // Legacy keys
-  "app.footer": "© 2025 CAD Viewer. Tous droits réservés.",
-  "noPreviousFiles": "Aucun fichier précédemment téléchargé",
-  "supportedFormats": "Formats pris en charge: STEP, STL, DXF, DWG",
-  "applicationName": "CAD Viewer",
-  "button.upload": "Télécharger",
-  "message.no.model": "Aucun modèle sélectionné",
-  "button.cancel": "Annuler",
-  "label.file": "Fichier",
-  "label.verification": "Vérification",
-  "message.loading": "Chargement...",
-  "button.share": "Partager",
-  "message.delete.warning": "Cette action ne peut pas être annulée.",
-  "label.password": "Mot de passe",
-  "label.password.share.placeholder": "Entrez le mot de passe pour le modèle partagé",
-  "label.expiry": "Date d'expiration",
-  "label.email": "E-mail",
-  "label.email.placeholder": "Entrez l'e-mail du destinataire",
-  "message.share.success": "Partage réussi",
-  "message.revocation.sent": "Notification de révocation envoyée",
-  "mode": "Mode",
-  "modelLoaded": "Modèle chargé (format: {format})"
+  // Success messages
+  sharingSaved: "Paramètres de partage enregistrés",
+  sharingRemoved: "Le partage a été désactivé"
 };
+
+export default translations;

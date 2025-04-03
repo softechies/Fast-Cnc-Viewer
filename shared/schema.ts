@@ -74,6 +74,7 @@ export const shareModelSchema = z.object({
   password: z.string().optional(),
   expiryDate: z.string().optional(),
   email: z.string().email("Nieprawidłowy adres email").optional(),
+  language: z.string().optional(), // Język używany do wiadomości e-mail
 });
 
 // Define schema for accessing shared model with password

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
-import { languageOptions, Language } from '@/lib/translations';
+import { languages, languageNames, Language } from '@/lib/translations';
 import { Check, ChevronDown, Globe } from 'lucide-react';
 import {
   DropdownMenu,
@@ -19,8 +19,8 @@ export default function LanguageSelector() {
     setOpen(false);
   };
 
-  // Find current language label
-  const currentLanguageLabel = languageOptions.find(option => option.value === language)?.label;
+  // Get current language label
+  const currentLanguageLabel = languageNames[language];
 
   return (
     <div className="relative inline-block">
@@ -33,14 +33,14 @@ export default function LanguageSelector() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          {languageOptions.map((option) => (
+          {languages.map((langCode) => (
             <DropdownMenuItem
-              key={option.value}
-              onClick={() => handleLanguageChange(option.value as Language)}
+              key={langCode}
+              onClick={() => handleLanguageChange(langCode)}
               className="flex items-center justify-between cursor-pointer"
             >
-              {option.label}
-              {language === option.value && (
+              {languageNames[langCode]}
+              {language === langCode && (
                 <Check className="h-4 w-4 ml-2" />
               )}
             </DropdownMenuItem>

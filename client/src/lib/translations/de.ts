@@ -1,108 +1,98 @@
-export default {
-  // General
-  appName: "CAD Viewer",
-  welcome: "Willkommen bei CAD Viewer",
-  loading: "Wird geladen...",
-  
-  // Header
-  uploadModel: "Modell hochladen",
-  signIn: "Anmelden",
-  signUp: "Registrieren",
-  signOut: "Abmelden",
-  profile: "Profil",
-  settings: "Einstellungen",
-  
-  // Navigation
+// German translations
+
+const translations = {
+  // Common UI elements
+  appTitle: "CAD Viewer",
   home: "Startseite",
-  models: "Modelle",
-  shared: "Geteilt",
-  
-  // Actions
   upload: "Hochladen",
-  download: "Herunterladen",
+  uploadModel: "Modell hochladen",
+  view: "Ansehen",
+  share: "Teilen",
+  delete: "Löschen",
   cancel: "Abbrechen",
   save: "Speichern",
-  delete: "Löschen",
-  share: "Teilen",
-  view: "Ansehen",
-  edit: "Bearbeiten",
-  add: "Hinzufügen",
-  remove: "Entfernen",
-  copy: "Kopieren",
+  back: "Zurück",
+  loading: "Wird geladen...",
+  refresh: "Aktualisieren",
+  error: "Fehler",
+  success: "Erfolg",
+  close: "Schließen",
+  confirm: "Bestätigen",
   
-  // Model Info
-  modelInformation: "Modellinformationen",
-  fileName: "Dateiname",
-  fileType: "Dateityp",
+  // Home page
+  welcome: "Willkommen beim CAD Viewer",
+  welcomeMessage: "Laden Sie eine CAD-Datei hoch, um zu beginnen",
+  recentModels: "Aktuelle Modelle",
+  noModels: "Keine Modelle gefunden. Laden Sie eine CAD-Datei hoch, um zu beginnen.",
+  
+  // Upload modal
+  dropFileHere: "CAD-Datei hier ablegen",
+  dragAndDrop: "Ziehen und ablegen Sie Ihre Datei hier oder klicken Sie zum Durchsuchen",
+  selectFile: "Datei auswählen",
+  uploadingModel: "Modell wird hochgeladen...",
+  uploadComplete: "Upload abgeschlossen",
+  uploadFailed: "Upload fehlgeschlagen",
+  supportedFormats: "Unterstützte Formate: STEP, IGES, STL, DXF, DWG",
+  processingFile: "Datei wird verarbeitet...",
+  
+  // Model viewer
+  modelInfo: "Modellinformationen",
+  modelTree: "Modellbaum",
+  components: "Komponenten",
+  part: "Teil",
+  assembly: "Baugruppe",
+  viewControls: "Ansichtssteuerung",
+  rotate: "Drehen",
+  pan: "Verschieben",
+  zoom: "Zoomen",
+  fitToView: "An Ansicht anpassen",
+  modelDetails: "Modelldetails",
+  format: "Format",
   fileSize: "Dateigröße",
-  createdDate: "Erstellungsdatum",
-  modifiedDate: "Änderungsdatum",
-  sharedModel: "Geteiltes Modell",
-  modelEntities: "Modellentitäten",
-  parts: "Teile",
-  assemblies: "Baugruppen",
-  surfaces: "Flächen",
-  solids: "Körper",
-  additionalInfo: "Zusätzliche Informationen",
+  created: "Erstellt",
+  modelNotFound: "Modell nicht gefunden",
+  errorLoadingModel: "Fehler beim Laden des Modells",
   
   // Sharing
   shareModel: "Modell teilen",
-  shareLink: "Link zum Teilen",
-  shareSuccess: "Modell erfolgreich geteilt",
-  shareCopied: "Link in die Zwischenablage kopiert",
+  shareTitle: "Dieses CAD-Modell teilen",
+  shareDescription: "Teilen Sie dieses Modell mit anderen per E-Mail",
+  recipientEmail: "E-Mail des Empfängers",
   shareWithPassword: "Mit Passwort teilen",
-  passwordProtected: "Passwortgeschützt",
-  shareViaEmail: "Per E-Mail teilen",
-  emailRecipient: "E-Mail-Empfänger",
-  setPassword: "Passwort festlegen",
+  sharePassword: "Passwort",
+  generatePassword: "Passwort generieren",
   setExpiry: "Ablaufdatum festlegen",
-  passwordPlaceholder: "Passwort für den geteilten Link eingeben",
-  shareExpiry: "Ablauf der Freigabe",
+  expiryDate: "Ablaufdatum",
+  shareLink: "Freigabelink",
+  copyLink: "Link kopieren",
+  linkCopied: "Link kopiert",
+  enableSharing: "Freigabe aktivieren",
+  disableSharing: "Freigabe deaktivieren",
+  sharingEnabled: "Freigabe aktiviert",
+  sharingDisabled: "Freigabe deaktiviert",
+  sendEmail: "E-Mail-Benachrichtigung senden",
+  emailSent: "E-Mail gesendet",
+  emailNotSent: "E-Mail konnte nicht gesendet werden",
   
-  // Upload
-  uploadTitle: "CAD-Modell hochladen",
-  uploadDescription: "Unterstützte Formate: STEP, STL, DXF, DWG",
-  dragAndDrop: "Dateien hierher ziehen oder klicken zum Durchsuchen",
-  selectFiles: "Dateien auswählen",
-  uploadProgress: "Fortschritt beim Hochladen",
+  // Shared model access
+  sharedModel: "Geteiltes Modell",
+  enterPassword: "Passwort eingeben, um dieses Modell anzuzeigen",
+  passwordProtected: "Passwortgeschützt",
+  incorrectPassword: "Falsches Passwort",
+  viewSharedModel: "Geteiltes Modell anzeigen",
+  modelSharedBy: "Modell geteilt von",
   
-  // Messages
-  confirmDelete: "Sind Sie sicher, dass Sie dieses Modell löschen möchten?",
-  deleteWarning: "Diese Aktion kann nicht rückgängig gemacht werden.",
-  uploadSuccess: "Modell erfolgreich hochgeladen",
-  uploadError: "Modell konnte nicht hochgeladen werden",
-  shareEmailSent: "Link zum Teilen per E-Mail gesendet",
-  shareRevoked: "Freigabe wurde widerrufen",
-  errorOccurred: "Ein Fehler ist aufgetreten",
+  // Error messages
+  genericError: "Etwas ist schief gelaufen",
+  connectionError: "Verbindungsfehler",
+  fileNotSupported: "Dateiformat wird nicht unterstützt",
+  fileTooLarge: "Datei ist zu groß",
+  invalidPassword: "Ungültiges Passwort",
+  invalidEmail: "Ungültige E-Mail-Adresse",
   
-  // Footer
-  copyright: "© 2025 CAD Viewer. Alle Rechte vorbehalten.",
-  termsOfService: "Nutzungsbedingungen",
-  privacyPolicy: "Datenschutzrichtlinie",
-  
-  // Empty States
-  noModels: "Keine Modelle zum Anzeigen",
-  noSharedModels: "Keine geteilten Modelle zum Anzeigen",
-  
-  // Validation
-  requiredField: "Dieses Feld ist erforderlich",
-  invalidEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
-  invalidPassword: "Das Passwort muss mindestens 6 Zeichen lang sein",
-  
-  // Languages
-  language: "Sprache",
-  english: "Englisch",
-  polish: "Polnisch",
-  czech: "Tschechisch",
-  german: "Deutsch",
-  french: "Französisch",
-
-  // Legacy keys
-  "app.footer": "© 2025 CAD Viewer. Alle Rechte vorbehalten.",
-  "noPreviousFiles": "Keine zuvor hochgeladenen Dateien",
-  "supportedFormats": "Unterstützte Formate: STEP, STL, DXF, DWG",
-  "applicationName": "CAD Viewer",
-  "button.upload": "Hochladen",
-  "message.no.model": "Kein Modell ausgewählt",
-  "button.cancel": "Abbrechen"
+  // Success messages
+  sharingSaved: "Freigabeeinstellungen gespeichert",
+  sharingRemoved: "Freigabe wurde deaktiviert"
 };
+
+export default translations;

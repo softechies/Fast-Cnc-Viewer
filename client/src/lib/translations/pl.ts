@@ -1,124 +1,98 @@
-export default {
-  // General
-  appName: "CAD Viewer",
-  welcome: "Witaj w CAD Viewer",
-  loading: "Ładowanie...",
-  
-  // Header
-  uploadModel: "Wyślij model",
-  signIn: "Zaloguj się",
-  signUp: "Zarejestruj się",
-  signOut: "Wyloguj",
-  profile: "Profil",
-  settings: "Ustawienia",
-  
-  // Navigation
+// Polish translations
+
+const translations = {
+  // Common UI elements
+  appTitle: "Przeglądarka CAD",
   home: "Strona główna",
-  models: "Modele",
-  shared: "Udostępnione",
-  
-  // Actions
-  upload: "Wyślij",
-  download: "Pobierz",
+  upload: "Prześlij",
+  uploadModel: "Prześlij model",
+  view: "Zobacz",
+  share: "Udostępnij",
+  delete: "Usuń",
   cancel: "Anuluj",
   save: "Zapisz",
-  delete: "Usuń",
-  share: "Udostępnij",
-  view: "Wyświetl",
-  edit: "Edytuj",
-  add: "Dodaj",
-  remove: "Usuń",
-  copy: "Kopiuj",
-  "button.copy": "Kopiuj",
+  back: "Wróć",
+  loading: "Ładowanie...",
+  refresh: "Odśwież",
+  error: "Błąd",
+  success: "Sukces",
+  close: "Zamknij",
+  confirm: "Potwierdź",
   
-  // Model Info
-  modelInformation: "Informacje o modelu",
-  fileName: "Nazwa pliku",
-  fileType: "Typ pliku",
+  // Home page
+  welcome: "Witaj w Przeglądarce CAD",
+  welcomeMessage: "Prześlij plik CAD, aby rozpocząć",
+  recentModels: "Ostatnie modele",
+  noModels: "Nie znaleziono modeli. Prześlij plik CAD, aby rozpocząć.",
+  
+  // Upload modal
+  dropFileHere: "Upuść plik CAD tutaj",
+  dragAndDrop: "Przeciągnij i upuść plik tutaj lub kliknij, aby przeglądać",
+  selectFile: "Wybierz plik",
+  uploadingModel: "Przesyłanie modelu...",
+  uploadComplete: "Przesyłanie zakończone",
+  uploadFailed: "Przesyłanie nie powiodło się",
+  supportedFormats: "Obsługiwane formaty: STEP, IGES, STL, DXF, DWG",
+  processingFile: "Przetwarzanie pliku...",
+  
+  // Model viewer
+  modelInfo: "Informacje o modelu",
+  modelTree: "Drzewo modelu",
+  components: "Komponenty",
+  part: "Część",
+  assembly: "Zespół",
+  viewControls: "Kontrolki widoku",
+  rotate: "Obróć",
+  pan: "Przesuń",
+  zoom: "Powiększ",
+  fitToView: "Dopasuj do widoku",
+  modelDetails: "Szczegóły modelu",
+  format: "Format",
   fileSize: "Rozmiar pliku",
-  createdDate: "Data utworzenia",
-  modifiedDate: "Data modyfikacji",
-  sharedModel: "Model udostępniony",
-  modelEntities: "Elementy modelu",
-  parts: "Części",
-  assemblies: "Złożenia",
-  surfaces: "Powierzchnie",
-  solids: "Bryły",
-  additionalInfo: "Dodatkowe informacje",
+  created: "Utworzono",
+  modelNotFound: "Nie znaleziono modelu",
+  errorLoadingModel: "Błąd ładowania modelu",
   
   // Sharing
   shareModel: "Udostępnij model",
-  shareLink: "Link do udostępniania",
-  shareSuccess: "Model udostępniony pomyślnie",
-  shareCopied: "Link skopiowany do schowka",
+  shareTitle: "Udostępnij ten model CAD",
+  shareDescription: "Udostępnij ten model innym przez e-mail",
+  recipientEmail: "E-mail odbiorcy",
   shareWithPassword: "Udostępnij z hasłem",
-  passwordProtected: "Chronione hasłem",
-  shareViaEmail: "Udostępnij przez e-mail",
-  emailRecipient: "Adres e-mail odbiorcy",
-  setPassword: "Ustaw hasło",
+  sharePassword: "Hasło",
+  generatePassword: "Generuj hasło",
   setExpiry: "Ustaw datę wygaśnięcia",
-  passwordPlaceholder: "Wprowadź hasło dla udostępnionego linku",
-  shareExpiry: "Wygaśnięcie udostępnienia",
+  expiryDate: "Data wygaśnięcia",
+  shareLink: "Link do udostępnienia",
+  copyLink: "Kopiuj link",
+  linkCopied: "Link skopiowany",
+  enableSharing: "Włącz udostępnianie",
+  disableSharing: "Wyłącz udostępnianie",
+  sharingEnabled: "Udostępnianie włączone",
+  sharingDisabled: "Udostępnianie wyłączone",
+  sendEmail: "Wyślij powiadomienie e-mail",
+  emailSent: "E-mail wysłany",
+  emailNotSent: "Nie można wysłać e-maila",
   
-  // Upload
-  uploadTitle: "Wyślij model CAD",
-  uploadDescription: "Obsługiwane formaty: STEP, STL, DXF, DWG",
-  dragAndDrop: "Przeciągnij i upuść pliki tutaj lub kliknij, aby przeglądać",
-  selectFiles: "Wybierz pliki",
-  uploadProgress: "Postęp wysyłania",
+  // Shared model access
+  sharedModel: "Udostępniony model",
+  enterPassword: "Wprowadź hasło, aby wyświetlić ten model",
+  passwordProtected: "Chroniony hasłem",
+  incorrectPassword: "Nieprawidłowe hasło",
+  viewSharedModel: "Zobacz udostępniony model",
+  modelSharedBy: "Model udostępniony przez",
   
-  // Messages
-  confirmDelete: "Czy na pewno chcesz usunąć ten model?",
-  deleteWarning: "Tej operacji nie można cofnąć.",
-  uploadSuccess: "Model wysłany pomyślnie",
-  uploadError: "Nie udało się wysłać modelu",
-  shareEmailSent: "Link do udostępnienia wysłany przez e-mail",
-  shareRevoked: "Udostępnianie zostało odwołane",
-  errorOccurred: "Wystąpił błąd",
-  "message.share.copied": "Link skopiowany do schowka",
+  // Error messages
+  genericError: "Coś poszło nie tak",
+  connectionError: "Błąd połączenia",
+  fileNotSupported: "Format pliku nie jest obsługiwany",
+  fileTooLarge: "Plik jest zbyt duży",
+  invalidPassword: "Nieprawidłowe hasło",
+  invalidEmail: "Nieprawidłowy adres e-mail",
   
-  // Footer
-  copyright: "© 2025 CAD Viewer. Wszelkie prawa zastrzeżone.",
-  termsOfService: "Warunki korzystania z usługi",
-  privacyPolicy: "Polityka prywatności",
-  
-  // Empty States
-  noModels: "Brak modeli do wyświetlenia",
-  noSharedModels: "Brak udostępnionych modeli do wyświetlenia",
-  
-  // Validation
-  requiredField: "To pole jest wymagane",
-  invalidEmail: "Wprowadź prawidłowy adres e-mail",
-  invalidPassword: "Hasło musi mieć co najmniej 6 znaków",
-  
-  // Languages
-  language: "Język",
-  english: "Angielski",
-  polish: "Polski",
-  czech: "Czeski",
-  german: "Niemiecki",
-  french: "Francuski",
-
-  // Legacy keys
-  "app.footer": "© 2025 CAD Viewer. Wszelkie prawa zastrzeżone.",
-  "noPreviousFiles": "Brak wcześniej wysłanych plików",
-  "supportedFormats": "Obsługiwane formaty: STEP, STL, DXF, DWG",
-  "applicationName": "CAD Viewer",
-  "button.upload": "Wyślij",
-  "message.no.model": "Nie wybrano modelu",
-  "button.cancel": "Anuluj",
-  "label.file": "Plik",
-  "label.verification": "Weryfikacja",
-  "message.loading": "Ładowanie...",
-  "button.share": "Udostępnij",
-  "message.delete.warning": "Tej operacji nie można cofnąć.",
-  "label.password": "Hasło",
-  "label.password.share.placeholder": "Wprowadź hasło dla udostępnionego modelu",
-  "label.expiry": "Data wygaśnięcia",
-  "label.email": "E-mail",
-  "label.email.placeholder": "Wprowadź adres e-mail odbiorcy",
-  "message.share.success": "Udostępnianie zakończone powodzeniem",
-  "message.revocation.sent": "Wysłano powiadomienie o cofnięciu dostępu",
-  "mode": "Tryb",
-  "modelLoaded": "Model wczytany (format: {format})"
+  // Success messages
+  sharingSaved: "Ustawienia udostępniania zapisane",
+  sharingRemoved: "Udostępnianie zostało wyłączone"
 };
+
+export default translations;

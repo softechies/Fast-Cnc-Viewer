@@ -14,6 +14,7 @@ import { dirname } from 'path';
 import util from "util";
 import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
+import type { Language } from "../client/src/lib/translations";
 import { sendShareNotification as sendSendgridNotification, sendSharingRevokedNotification as sendSendgridRevokedNotification } from "./sendgrid";
 import { initializeGmailService, sendShareNotificationGmail, sendSharingRevokedNotificationGmail } from "./gmail";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
@@ -909,9 +910,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const host = req.headers['host'] || 'localhost:3000';
           const baseUrl = `${protocol}://${host}`;
           
-          // Wykryj język użytkownika na podstawie nagłówka Accept-Language
-          const userLanguage = detectLanguage(req.headers['accept-language']);
-          console.log(`Using user language for email: ${userLanguage}`);
+          // Użyj języka przekazanego z frontendu lub wykryj na podstawie nagłówka Accept-Language
+          const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
+          console.log(`Using language for email: ${userLanguage} (${shareData.language ? 'from frontend' : 'from browser header'})`);
           
           // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, potem Gmail, potem SendGrid, a na końcu Nodemailer jako fallback
           let emailSent = false;
@@ -998,9 +999,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
           let revocationSent = false;
           
-          // Wykryj język użytkownika na podstawie nagłówka Accept-Language
+          // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
-          console.log(`Using user language for revocation email: ${userLanguage}`);
+          console.log(`Using browser language for revocation email: ${userLanguage}`);
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
@@ -1184,11 +1185,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Próbuj wysłać przez własny SMTP, Gmail, SendGrid, a na końcu przez Nodemailer
           let revocationSent = false;
           
-          // Wykryj język użytkownika na podstawie nagłówka Accept-Language
+          // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
-          console.log(`Using user language for revocation email: ${userLanguage}`);
-          
-          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          console.log(`Using browser language for revocation email: ${userLanguage}`);
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 

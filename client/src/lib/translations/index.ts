@@ -1,34 +1,27 @@
-import en from './en';
-import pl from './pl';
-import cs from './cs';
-import de from './de';
-import fr from './fr';
+import enTranslations from './en';
+import plTranslations from './pl';
+import csTranslations from './cs';
+import deTranslations from './de';
+import frTranslations from './fr';
 
 export type Language = 'en' | 'pl' | 'cs' | 'de' | 'fr';
 
-export interface TranslationDictionary {
-  [key: string]: string;
-}
+export const languages: Language[] = ['en', 'pl', 'cs', 'de', 'fr'];
 
-export interface LanguageOption {
-  value: Language;
-  label: string;
-}
+export const languageNames: Record<Language, string> = {
+  en: 'English',
+  pl: 'Polski',
+  cs: 'Čeština',
+  de: 'Deutsch',
+  fr: 'Français'
+};
 
-export const languageOptions: LanguageOption[] = [
-  { value: 'en', label: 'English' },
-  { value: 'pl', label: 'Polski' },
-  { value: 'cs', label: 'Čeština' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' }
-];
-
-const translations: Record<Language, TranslationDictionary> = {
-  en,
-  pl,
-  cs,
-  de,
-  fr
+export const translations: Record<Language, typeof enTranslations> = {
+  en: enTranslations,
+  pl: plTranslations,
+  cs: csTranslations,
+  de: deTranslations,
+  fr: frTranslations
 };
 
 export default translations;

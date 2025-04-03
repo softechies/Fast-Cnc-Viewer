@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Model } from '@shared/schema';
+import { Language } from '../client/src/lib/translations';
 
 // Konfiguracja transportera do własnego serwera SMTP
 let customSmtpTransporter: nodemailer.Transporter | null = null;
@@ -50,8 +51,11 @@ export async function sendShareNotificationSmtp(
   recipient: string, 
   baseUrl: string,
   password?: string,
-  language: string = 'en'
+  language?: Language
 ): Promise<boolean> {
+  // Default to English if no language is provided
+  const emailLanguage: Language = language || 'en';
+  
   if (!customSmtpTransporter) {
     console.error('Custom SMTP email service not initialized');
     return false;
@@ -65,9 +69,6 @@ export async function sendShareNotificationSmtp(
     const emailModule = await import('./email');
     
     const shareUrl = `${baseUrl}/shared/${model.shareId}`;
-    
-    // Konwersja stringa language do typu Language
-    const emailLanguage = language as 'en' | 'pl' | 'de' | 'fr' | 'cs';
     
     // Pobierz tłumaczenia dla danego języka
     const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;
@@ -135,8 +136,11 @@ export async function sendShareNotificationSmtp(
 export async function sendSharingRevokedNotificationSmtp(
   model: Model,
   recipient: string,
-  language: string = 'en'
+  language?: Language
 ): Promise<boolean> {
+  // Default to English if no language is provided
+  const emailLanguage: Language = language || 'en';
+  
   if (!customSmtpTransporter) {
     console.error('Custom SMTP email service not initialized');
     return false;
@@ -148,9 +152,6 @@ export async function sendSharingRevokedNotificationSmtp(
   try {
     // Import funkcji i stałych z email.ts
     const emailModule = await import('./email');
-    
-    // Konwersja stringa language do typu Language
-    const emailLanguage = language as 'en' | 'pl' | 'de' | 'fr' | 'cs';
     
     // Pobierz tłumaczenia dla danego języka
     const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;

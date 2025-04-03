@@ -19,7 +19,7 @@ interface ShareModelDialogProps {
 }
 
 export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }: ShareModelDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [enableSharing, setEnableSharing] = useState(modelInfo?.shareEnabled || false);
@@ -64,7 +64,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
           enableSharing,
           password: password.length > 0 ? password : undefined,
           expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
-          email: email.trim() !== "" ? email.trim() : undefined
+          email: email.trim() !== "" ? email.trim() : undefined,
+          language: language // Przesyłanie aktualnie wybranego języka
         }),
         headers: {
           "Content-Type": "application/json"
