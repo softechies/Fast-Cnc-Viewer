@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
-import { isStandardPart } from '@/lib/standard-parts';
 
 // Interface for STL File Information
 interface StlFileInfo {
@@ -366,21 +365,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
-      // Usunięto specjalny parser standardowych części - 
-      // zamiast tego skupiamy się na uniwersalnym parsowaniu
-      
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
         setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
-        try {
-          const { createApproximatedStepModel } = await import('../lib/step-approximation');
-          const approxModel = createApproximatedStepModel(stepContent);
-          setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
-          return approxModel;
-        } catch (error) {
-          console.error("Błąd przybliżonego parsera:", error);
-          throw error;
-        }
+        const { createApproximatedStepModel } = await import('../lib/step-approximation');
+        const approxModel = createApproximatedStepModel(stepContent);
+        setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
+        return approxModel;
       });
       
       // Dodaj najprostszy parser jako ostateczny fallback
