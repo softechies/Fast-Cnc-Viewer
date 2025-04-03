@@ -38,29 +38,45 @@ export const initOpenCascade = async (): Promise<OpenCascadeInstance> => {
   loadingPromise = new Promise(async (resolve, reject) => {
     try {
       console.log('Inicjalizacja OpenCascade.js...');
-      // @ts-ignore
-      const openCascadeWasm = await import('opencascade.js');
-      console.log('Moduł OpenCascade.js zaimportowany, ładowanie WASM...');
+      console.log('Próba ręcznego załadowania OpenCascade.js...');
       
-      // Funkcja do śledzenia postępu ładowania
-      const onProgress = (event: ProgressEvent) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100);
-          console.log(`Ładowanie OpenCascade.js: ${percentComplete}%`);
-        }
-      };
+      // Alternatywne podejście do ładowania OpenCascade.js bez ES modules
+      // Użyjemy importu skryptu jako alternatywy dla ES modules
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/opencascade.js@2.0.0-beta.b5ff984/dist/opencascade.js';
       
-      // Ładowanie z plikami lokalnymi zamiast CDN
-      const openCascade = await openCascadeWasm.default({
-        // Nie używamy CDN, który może być niestabilny
-        // zamiast tego używamy lokalnej kopii z node_modules
-        locateFile: (filename: string) => {
-          console.log(`Lokalizowanie pliku: ${filename}`);
-          return filename;
-        },
-        onRuntimeInitialized: () => {
-          console.log('Runtime OpenCascade.js zainicjalizowany');
-        }
+      // Utwórz obiekt OpenCascade z globalnej przestrzeni nazw
+      const openCascade = await new Promise<any>((resolve, reject) => {
+        script.onload = async () => {
+          try {
+            console.log('Skrypt OpenCascade.js załadowany, inicjalizacja WASM...');
+            
+            // @ts-ignore - OpenCASCADE powinno być teraz dostępne globalnie
+            const oc = await globalThis.OpenCascade({
+              locateFile: (filename: string) => {
+                console.log(`Lokalizowanie pliku WASM: ${filename}`);
+                return `https://cdn.jsdelivr.net/npm/opencascade.js@2.0.0-beta.b5ff984/dist/${filename}`;
+              },
+              onRuntimeInitialized: () => {
+                console.log('Runtime OpenCascade.js zainicjalizowany');
+              }
+            });
+            
+            console.log('OpenCascade.js pomyślnie załadowany przez skrypt globalny');
+            resolve(oc);
+          } catch (error) {
+            console.error('Błąd inicjalizacji OpenCascade przez skrypt:', error);
+            reject(error);
+          }
+        };
+        
+        script.onerror = (event) => {
+          console.error('Błąd ładowania skryptu OpenCascade.js:', event);
+          reject(new Error('Nie udało się załadować skryptu OpenCascade.js'));
+        };
+        
+        // Dodaj skrypt do dokumentu
+        document.head.appendChild(script);
       });
       
       console.log('OpenCascade.js załadowany pomyślnie!');

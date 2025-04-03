@@ -271,28 +271,45 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         // Jeśli dostępny jest plik STL, to zaczynamy od niego
         parsers.push(async () => {
           setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
-          const stlModel = await loadSTLModel(stlFileInfo.url, onProgress);
+          // Zamieniamy na Mesh dla pewności typu
+          const stlModel = await loadSTLModel(stlFileInfo.url, onProgress) as unknown as THREE.Mesh;
           
           // Modyfikacja modelu w zależności od trybu
           if (renderMode === 'advanced') {
-            // Add wireframe for better visibility
-            const wireframe = new THREE.LineSegments(
-              new THREE.EdgesGeometry(stlModel.geometry),
-              new THREE.LineBasicMaterial({ color: 0x000000 })
-            );
-            stlModel.add(wireframe);
-            stlModel.material = new THREE.MeshStandardMaterial({
-              color: 0x3b82f6,
-              metalness: 0.5,
-              roughness: 0.3,
-              flatShading: false
-            });
+            // Tworzymy wireframe z geometry modelu
+            try {
+              if (stlModel.geometry) {
+                const wireframe = new THREE.LineSegments(
+                  new THREE.EdgesGeometry(stlModel.geometry as THREE.BufferGeometry),
+                  new THREE.LineBasicMaterial({ color: 0x000000 })
+                );
+                stlModel.add(wireframe);
+              }
+            } catch (wireframeError) {
+              console.warn("Nie można utworzyć wireframe:", wireframeError);
+            }
+            
+            // Ustawiamy materiał
+            try {
+              stlModel.material = new THREE.MeshStandardMaterial({
+                color: 0x3b82f6,
+                metalness: 0.5,
+                roughness: 0.3,
+                flatShading: false
+              });
+            } catch (materialError) {
+              console.warn("Nie można ustawić materiału:", materialError);
+            }
           } else {
             // Uproszczona wersja - bez wireframe
-            stlModel.material = new THREE.MeshBasicMaterial({
-              color: 0x3b82f6,
-              wireframe: false,
-            });
+            try {
+              stlModel.material = new THREE.MeshBasicMaterial({
+                color: 0x3b82f6,
+                wireframe: false,
+              });
+            } catch (materialError) {
+              console.warn("Nie można ustawić materiału:", materialError);
+            }
           }
           
           // Create a group to hold the model
