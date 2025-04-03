@@ -171,25 +171,32 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
-        setDebugInfo("Ładowanie pliku STEP...");
         
-        // Get STEP file
-        const response = await fetch(`/api/models/${modelId}/file`);
-        if (!response.ok) {
-          throw new Error(`Nie można pobrać pliku (${response.status})`);
-        }
-        
-        // Get model information
+        // Get model information first to check format
         const modelResponse = await fetch(`/api/models/${modelId}`);
         if (!modelResponse.ok) {
           throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status})`);
         }
         
         const modelInfo = await modelResponse.json();
+        const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
+        
+        if (isDirectStl) {
+          setDebugInfo("Model STL - pomijanie ładowania STEP");
+        } else {
+          setDebugInfo("Ładowanie pliku STEP...");
+        }
+        
+        // Get original file
+        const response = await fetch(`/api/models/${modelId}/file`);
+        if (!response.ok) {
+          throw new Error(`Nie można pobrać pliku (${response.status})`);
+        }
         
         const blob = await response.blob();
         const filename = modelInfo.filename || `model-${modelId}.step`;
-        const file = new File([blob], filename, { type: 'application/step' });
+        const fileType = isDirectStl ? 'model/stl' : 'application/step';
+        const file = new File([blob], filename, { type: fileType });
         
         setFileData(file);
         
@@ -200,9 +207,56 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           
           const stlResponse = await fetch(`/api/models/${modelId}/stl`);
           if (stlResponse.ok) {
-            // STL available
-            const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
+            // STL available 
             setStlFileInfo({ url: `/api/models/${modelId}/stl`, isDirectStl });
+            
+            if (isDirectStl) {
+              // Dla bezpośrednio wgranych plików STL, ładujemy model bezpośrednio
+              // i pomijamy renderowanie STEP, aby uniknąć szarej kostki
+              const modelGroup = new THREE.Group();
+              modelGroup.name = "StepModel";
+              
+              // Wczytanie modelu STL
+              if (sceneRef.current) {
+                const stlModel = await loadSTLModel(stlFileInfo.url, (event) => {
+                  if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    setDebugInfo(`Ładowanie STL: ${percent}%`);
+                  }
+                }) as unknown as THREE.Mesh;
+                
+                try {
+                  stlModel.material = new THREE.MeshBasicMaterial({
+                    color: 0x3b82f6,
+                    wireframe: false,
+                  });
+                } catch (materialError) {
+                  console.warn("Nie można ustawić materiału:", materialError);
+                }
+                
+                modelGroup.add(stlModel);
+                
+                // Dodaj informację o typie parsera
+                modelGroup.userData = { parserType: 'STL (bezpośredni upload)' };
+                
+                // Dodaj model do sceny
+                if (sceneRef.current) {
+                  // Usuń istniejący model jeśli istnieje
+                  const existingModel = sceneRef.current.getObjectByName("StepModel");
+                  if (existingModel) {
+                    sceneRef.current.remove(existingModel);
+                  }
+                  
+                  sceneRef.current.add(modelGroup);
+                  
+                  // Dopasuj kamerę do modelu
+                  if (cameraRef.current && controlsRef.current) {
+                    fitCameraToObject(modelGroup, cameraRef.current, controlsRef.current);
+                  }
+                }
+              }
+            }
+            
             setDebugInfo("Plik STL dostępny");
           } else {
             // No STL available
@@ -216,7 +270,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           setIsLoadingStlFile(false);
         }
       } catch (error) {
-        console.error("Error loading STEP file:", error);
+        console.error("Error loading file:", error);
         setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
         setFileData(null);
       } finally {
@@ -287,6 +341,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           // Create a group to hold the model
           const modelGroup = new THREE.Group();
           modelGroup.add(stlModel);
+          
+          // Dodaj informację o typie parsera
+          modelGroup.userData = { parserType: 'STL' + (stlFileInfo.isDirectStl ? ' (bezpośredni upload)' : ' (konwertowany)') };
           
           console.log("STL loaded successfully");
           setDebugInfo("Model STL wczytany pomyślnie");
@@ -452,8 +509,14 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             const stepContent = event.target.result as string;
             stepContentRef.current = stepContent;
             
-            // Render the model using current render mode
-            renderModel(stepContent);
+            // Jeśli mamy plik STL i nie uruchamiamy bezpośrednio funkcji renderowania STEP
+            // wtedy nie renderujemy modelu STEP - zapobiega to podwójnemu renderowaniu
+            if (stlFileInfo?.url && stlFileInfo.isDirectStl) {
+              setDebugInfo("Używany tylko model STL, pomijanie parsowania STEP");
+            } else {
+              // Render the model using current render mode
+              renderModel(stepContent);
+            }
             
           } catch (error) {
             console.error("Błąd przetwarzania modelu:", error);
