@@ -29,6 +29,7 @@ export default {
   add: "Dodaj",
   remove: "Usuń",
   copy: "Kopiuj",
+  "button.copy": "Kopiuj",
   
   // Model Info
   modelInformation: "Informacje o modelu",
@@ -74,6 +75,7 @@ export default {
   shareEmailSent: "Link do udostępnienia wysłany przez e-mail",
   shareRevoked: "Udostępnianie zostało odwołane",
   errorOccurred: "Wystąpił błąd",
+  "message.share.copied": "Link skopiowany do schowka",
   
   // Footer
   copyright: "© 2025 CAD Viewer. Wszelkie prawa zastrzeżone.",

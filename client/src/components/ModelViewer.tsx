@@ -2,6 +2,7 @@ import { useEffect, useState, lazy, Suspense, Component, ReactNode } from 'react
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 // Lazy load components to handle loading errors
 const StepViewer = lazy(() => import('./StepViewer'));
@@ -39,6 +40,7 @@ interface ModelViewerProps {
 type ModelType = '3d' | '2d' | 'unknown';
 
 export default function ModelViewer({ modelId }: ModelViewerProps) {
+  const { t } = useLanguage();
   const [modelType, setModelType] = useState<ModelType>('unknown');
   const [modelInfo, setModelInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +100,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
       {/* Kontrolki widoku */}
       <div className="h-10 bg-slate-100 border-b border-slate-200 flex items-center px-3 justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Tryb:</span>
+          <span className="text-sm font-medium">{t('mode')}:</span>
           
           <Badge variant={modelType === '3d' ? 'default' : 'outline'}>
             3D

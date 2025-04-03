@@ -3,7 +3,7 @@ export default {
   appName: "CAD Viewer",
   welcome: "Welcome to CAD Viewer",
   loading: "Loading...",
-  mode: "Mode",
+  viewMode: "Mode",
   
   // Header
   uploadModel: "Upload model",
@@ -75,6 +75,7 @@ export default {
   shareEmailSent: "Share link sent via email",
   shareRevoked: "Sharing has been revoked",
   errorOccurred: "An error occurred",
+  "message.share.copied": "Link copied to clipboard",
   modelLoaded: "Model loaded (format: {format})",
   
   // Footer
@@ -107,6 +108,7 @@ export default {
   "button.upload": "Upload",
   "message.no.model": "No model selected",
   "button.cancel": "Cancel",
+  "button.copy": "Copy",
   "label.file": "File",
   "label.verification": "Verification",
   "message.loading": "Loading...",
