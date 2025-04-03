@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
-import { Loader2, LockIcon, FileIcon, AlertCircle } from "lucide-react";
+import { useRoute, useLocation } from "wouter";
+import { Loader2, LockIcon, FileIcon, AlertCircle, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +8,22 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ModelViewer from "@/components/ModelViewer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SharedModelPage() {
   const [, params] = useRoute("/shared/:shareId");
   const shareId = params?.shareId;
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +34,7 @@ export default function SharedModelPage() {
   const [modelAccessed, setModelAccessed] = useState(false);
   const [modelId, setModelId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pobierz podstawowe informacje o udostępnionym modelu
   useEffect(() => {
@@ -118,6 +131,49 @@ export default function SharedModelPage() {
     e.preventDefault();
     accessSharedModel();
   };
+  
+  // Funkcja do usuwania udostępnienia modelu
+  const handleDeleteSharing = async () => {
+    if (!shareId) return;
+    
+    try {
+      setIsDeleting(true);
+      
+      const response = await apiRequest({
+        url: `/api/shared/${shareId}`,
+        method: "DELETE",
+        on401: "throw"
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Nie udało się usunąć udostępnienia");
+      }
+      
+      toast({
+        title: "Sukces",
+        description: "Udostępnienie modelu zostało anulowane",
+        variant: "default",
+        duration: 3000
+      });
+      
+      // Przekieruj do strony głównej po udanym usunięciu
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Błąd podczas usuwania udostępnienia:", error);
+      toast({
+        title: "Błąd",
+        description: error instanceof Error ? error.message : "Wystąpił błąd podczas usuwania udostępnienia",
+        variant: "destructive",
+        duration: 5000
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -204,13 +260,52 @@ export default function SharedModelPage() {
               (Udostępniony model)
             </span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.location.href = "/"}
-          >
-            Przejdź do aplikacji
-          </Button>
+          <div className="flex items-center gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  disabled={isDeleting}
+                  className="flex items-center gap-1"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Usuwanie...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Usuń udostępnienie
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Czy na pewno chcesz usunąć udostępnienie?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Ta operacja jest nieodwracalna. Link do modelu przestanie działać, a jeśli podano adres email, zostanie wysłane powiadomienie o anulowaniu dostępu.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteSharing}>Usuń udostępnienie</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = "/"}
+              className="flex items-center gap-1"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Przejdź do aplikacji
+            </Button>
+          </div>
         </div>
       </div>
       

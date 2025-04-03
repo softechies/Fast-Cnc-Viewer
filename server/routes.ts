@@ -13,7 +13,9 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import util from "util";
 import bcrypt from "bcryptjs";
-import { initializeEmailService, sendShareNotification, sendSharingRevokedNotification } from "./email";
+import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification } from "./email";
+import { sendShareNotification as sendSendgridNotification, sendSharingRevokedNotification as sendSendgridRevokedNotification } from "./sendgrid";
+import { initializeGmailService, sendShareNotificationGmail, sendSharingRevokedNotificationGmail } from "./gmail";
 
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
@@ -355,12 +357,27 @@ function generateModelTree(filename: string, filePath?: string): any {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Inicjalizacja usługi e-mail
+  // Inicjalizacja usług e-mail
   try {
+    // Inicjalizujemy podstawowy serwis Nodemailer (Ethereal) - tylko do testów
     await initializeEmailService();
-    console.log("Email service initialized");
+    
+    // Sprawdzamy czy możemy zainicjalizować Gmail
+    if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+      const gmailInitialized = initializeGmailService({
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASSWORD,
+        from: process.env.GMAIL_FROM || `"CAD Viewer" <${process.env.GMAIL_USER}>`,
+      });
+      
+      if (gmailInitialized) {
+        console.log("Gmail email service initialized successfully");
+      }
+    } else {
+      console.warn("Gmail credentials not provided, email notifications will use test service only");
+    }
   } catch (error) {
-    console.error("Failed to initialize email service, sharing notifications will not work:", error);
+    console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
   }
 
   // API routes
@@ -875,13 +892,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const host = req.headers['host'] || 'localhost:3000';
           const baseUrl = `${protocol}://${host}`;
           
-          // Wyślij e-mail z powiadomieniem
-          const emailSent = await sendShareNotification(
-            updatedModel!, 
-            shareData.email, 
-            baseUrl, 
-            shareData.password // Przekazujemy niezahashowane hasło
-          );
+          // Wyślij e-mail z powiadomieniem - próbuj Gmail, potem SendGrid, a na końcu Nodemailer jako fallback
+          let emailSent = false;
+          
+          // Najpierw spróbuj Gmail
+          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+            emailSent = await sendShareNotificationGmail(
+              updatedModel!, 
+              shareData.email, 
+              baseUrl,
+              shareData.password // Przekazujemy niezahashowane hasło
+            );
+            
+            if (emailSent) {
+              console.log(`Share notification email sent via Gmail to ${shareData.email}`);
+            } else {
+              console.warn("Gmail email failed, trying SendGrid fallback");
+            }
+          }
+          
+          // Jeśli Gmail nie zadziałał i mamy klucz SendGrid, spróbuj SendGrid
+          if (!emailSent && process.env.SENDGRID_API_KEY) {
+            emailSent = await sendSendgridNotification(
+              updatedModel!, 
+              shareData.email, 
+              baseUrl,
+              shareData.password // Przekazujemy niezahashowane hasło
+            );
+            
+            if (emailSent) {
+              console.log(`Share notification email sent via SendGrid to ${shareData.email}`);
+            } else {
+              console.warn("SendGrid email failed, trying Nodemailer fallback");
+            }
+          }
+          
+          // Jeśli ani Gmail ani SendGrid nie są skonfigurowane lub wystąpił błąd, użyj Nodemailer
+          if (!emailSent) {
+            emailSent = await sendNodemailerNotification(
+              updatedModel!, 
+              shareData.email, 
+              baseUrl,
+              shareData.password
+            );
+            
+            if (emailSent) {
+              console.log(`Share notification email sent via Nodemailer to ${shareData.email}`);
+            }
+          }
           
           if (emailSent) {
             // Zaktualizuj status wysłania powiadomienia
@@ -897,7 +955,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          await sendSharingRevokedNotification(model, model.shareEmail!);
+          // Próbuj wysłać przez Gmail, SendGrid, a na końcu przez Nodemailer
+          let revocationSent = false;
+          
+          // Najpierw spróbuj Gmail
+          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail!);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+            }
+          }
+          
+          // Spróbuj SendGrid jako drugą opcję
+          if (!revocationSent && process.env.SENDGRID_API_KEY) {
+            revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail!);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
+            }
+          }
+          
+          // Jako ostatnią opcję, spróbuj Nodemailer
+          if (!revocationSent) {
+            revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail!);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+            }
+          }
           console.log(`Share revocation notification email sent to ${model.shareEmail}`);
         } catch (emailError) {
           console.error("Error sending share revocation email:", emailError);
@@ -1016,6 +1099,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting shared model info:", error);
       res.status(500).json({ message: "Failed to get shared model info" });
+    }
+  });
+  
+  // Endpoint do usuwania udostępnienia modelu
+  app.delete("/api/shared/:shareId", async (req: Request, res: Response) => {
+    try {
+      const { shareId } = req.params;
+      
+      // Znajdź model po ID udostępnienia
+      const model = await storage.getModelByShareId(shareId);
+      
+      // Jeśli nie znaleziono modelu lub udostępnianie jest już wyłączone
+      if (!model || !model.shareEnabled) {
+        return res.status(404).json({ message: "Shared model not found" });
+      }
+      
+      // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
+      if (model.shareEmail) {
+        try {
+          // Próbuj wysłać przez Gmail, SendGrid, a na końcu przez Nodemailer
+          let revocationSent = false;
+          
+          // Najpierw spróbuj Gmail
+          if (process.env.GMAIL_USER && process.env.GMAIL_PASSWORD) {
+            revocationSent = await sendSharingRevokedNotificationGmail(model, model.shareEmail);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Gmail to ${model.shareEmail}`);
+            }
+          }
+          
+          // Spróbuj SendGrid jako drugą opcję
+          if (!revocationSent && process.env.SENDGRID_API_KEY) {
+            revocationSent = await sendSendgridRevokedNotification(model, model.shareEmail);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via SendGrid to ${model.shareEmail}`);
+            }
+          }
+          
+          // Jako ostatnią opcję, spróbuj Nodemailer
+          if (!revocationSent) {
+            revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+            }
+          }
+          console.log(`Share revocation notification email sent to ${model.shareEmail}`);
+        } catch (emailError) {
+          console.error("Error sending share revocation email:", emailError);
+          // Kontynuuj usuwanie udostępnienia nawet jeśli email nie mógł zostać wysłany
+        }
+      }
+      
+      // Wyłącz udostępnianie modelu
+      const updatedModel = await storage.updateModel(model.id, {
+        shareEnabled: false
+      });
+      
+      res.status(200).json({ 
+        message: "Sharing has been revoked",
+        modelId: model.id
+      });
+    } catch (error) {
+      console.error("Error revoking shared model:", error);
+      res.status(500).json({ message: "Failed to revoke shared model" });
     }
   });
 
