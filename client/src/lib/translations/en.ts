@@ -46,6 +46,7 @@ const translations = {
   uploadFailed: "Upload failed",
   supportedFormats: "Supported formats: STEP, IGES, STL, DXF, DWG",
   processingFile: "Processing file...",
+  uploadProgress: "Upload progress",
   
   // Model viewer
   modelInfo: "Model Info",
@@ -114,6 +115,12 @@ const translations = {
     },
     password: {
       required: "This model requires a password to view"
+    },
+    share: {
+      success: "Model has been shared successfully"
+    },
+    revocation: {
+      sent: "Revocation notification email has been sent"
     }
   },
   

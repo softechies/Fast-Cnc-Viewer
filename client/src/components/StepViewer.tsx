@@ -258,7 +258,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
       const useTryStlFirst = Boolean(stlFileInfo?.url);
       
-      // Zawsze używamy uproszczonego trybu
+      // Z powodu ograniczeń konfiguracji Vite nie używamy OpenCascade.js
       const useTryOpenCascade = false;
       
       // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
@@ -294,14 +294,33 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         });
       }
       
-      // W trybie prostym - nie używamy OpenCascade.js
-      // Ten blok kodu został celowo usunięty
+      // W trybie zaawansowanym używamy OpenCascade.js do precyzyjnego renderowania
+      if (useTryOpenCascade && !useAlwaysApproximate) {
+        parsers.push(async () => {
+          setDebugInfo("Ładowanie OpenCascade.js...");
+          try {
+            const { parseSTEPFile } = await import('../lib/opencascade-parser');
+            setDebugInfo("Parsowanie modelu STEP z OpenCascade.js...");
+            const ocModel = await parseSTEPFile(stepContent);
+            // Dodaj informację o typie parsera
+            ocModel.userData = { parserType: 'STEP (OpenCascade.js)' };
+            setDebugInfo("Model STEP wczytany (OpenCascade.js)");
+            return ocModel;
+          } catch (ocError) {
+            console.error("Błąd parsera OpenCascade.js:", ocError);
+            setDebugInfo(`Błąd OpenCascade.js: ${ocError instanceof Error ? ocError.message : 'Nieznany błąd'}`);
+            throw ocError;
+          }
+        });
+      }
       
       // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
       parsers.push(async () => {
         setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
         const { createApproximatedStepModel } = await import('../lib/step-approximation');
         const approxModel = createApproximatedStepModel(stepContent);
+        // Dodaj informację o typie parsera
+        approxModel.userData = { parserType: 'STEP (zaawansowane przybliżenie)' };
         setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
         return approxModel;
       });
@@ -312,6 +331,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         // Zawsze używamy uproszczonego modelu
         const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
         const simpleModel = createSimpleModelRepresentation(complexity);
+        // Dodaj informację o typie parsera
+        simpleModel.userData = { parserType: 'STEP (prosty model)' };
         setDebugInfo("Model STEP wczytany (prosty model)");
         return simpleModel;
       });
@@ -361,9 +382,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       }
       
       // Ustal format modelu dla informacji debugowej
-      let modelFormat = 'STEP (uproszczony)';
+      let modelFormat = 'STEP (przybliżony)';
       if (stlFileInfo) {
         modelFormat = 'STL';
+      } else if (model.userData && model.userData.parserType) {
+        modelFormat = model.userData.parserType;
       }
       
       setDebugInfo(`Model wczytany (format: ${modelFormat})`);
@@ -566,16 +589,23 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       {/* Mode info */}
       <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded flex flex-col gap-1">
-        {stlFileInfo ? (
-          <div className="flex items-center gap-2 mt-1">
-            Format: 
+        <div className="flex items-center gap-2 mt-1">
+          Format: 
+          {stlFileInfo ? (
             <Badge variant="outline" className="bg-green-900/50">
               STL (wysokiej jakości)
             </Badge>
-          </div>
-        ) : (
+          ) : (
+            <Badge variant="outline" className="bg-blue-900/50">
+              {(sceneRef.current && 
+               sceneRef.current.getObjectByName("StepModel")?.userData?.parserType) || 
+               'STEP (przybliżony)'}
+            </Badge>
+          )}
+        </div>
+        {!stlFileInfo && (
           <div className="text-gray-300 text-xs italic">
-            Uwaga: Używany jest przybliżony model (STL niedostępny).
+            Uwaga: Używany jest przybliżony model geometryczny.
           </div>
         )}
       </div>
