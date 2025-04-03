@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
 import { Clipboard, Calendar, Copy, Check, Link2, Mail } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface ShareModelDialogProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface ShareModelDialogProps {
 }
 
 export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }: ShareModelDialogProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [enableSharing, setEnableSharing] = useState(modelInfo?.shareEnabled || false);
@@ -44,8 +46,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     // Sprawdź, czy adres email jest wymagany
     if (enableSharing && email.trim() === "") {
       toast({
-        title: "Wymagany email",
-        description: "Aby udostępnić model, należy podać adres email osoby, której udostępniasz plik.",
+        title: t('label.email'),
+        description: t('label.email.placeholder'),
         variant: "destructive"
       });
       return;
@@ -72,7 +74,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Nie udało się udostępnić modelu");
+        throw new Error(errorData.message || t('error.share'));
       }
 
       const shareData = await response.json();
@@ -90,19 +92,19 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/info`] });
       
       toast({
-        title: enableSharing ? "Model udostępniony" : "Udostępnianie wyłączone",
+        title: t('message.share.success'),
         description: enableSharing 
           ? (shareData.emailSent 
-            ? `Model został udostępniony. Powiadomienie zostało wysłane na adres ${email}.` 
-            : "Model został udostępniony. Możesz skopiować link, aby się nim podzielić.")
-          : "Udostępnianie modelu zostało wyłączone.",
+            ? `${t('message.share.success')}. ${t('message.revocation.sent')}: ${email}.` 
+            : `${t('message.share.success')}. ${t('message.share.copied')}.`)
+          : t('message.delete.success'),
         variant: "default"
       });
     } catch (error) {
-      console.error("Błąd podczas udostępniania modelu:", error);
+      console.error("Error sharing model:", error);
       toast({
-        title: "Błąd",
-        description: error instanceof Error ? error.message : "Wystąpił błąd podczas udostępniania modelu",
+        title: t('header.error'),
+        description: error instanceof Error ? error.message : t('error.share'),
         variant: "destructive"
       });
     } finally {
@@ -119,8 +121,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       setTimeout(() => setCopied(false), 2000);
       
       toast({
-        title: "Skopiowano!",
-        description: "Link do udostępnienia został skopiowany do schowka",
+        title: t('button.copy'),
+        description: t('message.share.copied'),
         variant: "default"
       });
     });
@@ -130,16 +132,16 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Udostępnij model</DialogTitle>
+          <DialogTitle>{t('button.share')}</DialogTitle>
           <DialogDescription>
-            Utworzenie linku do modelu pozwoli innym osobom na jego wyświetlenie bez logowania.
+            {t('message.delete.warning')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="enable-sharing" className="text-right">
-              Włącz udostępnianie
+              {t('button.share')}
             </Label>
             <Switch
               id="enable-sharing"
@@ -152,12 +154,12 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
             <>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password" className="text-right">
-                  Hasło
+                  {t('label.password')}
                 </Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Opcjonalne hasło"
+                  placeholder={t('label.password.share.placeholder')}
                   className="col-span-3"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -167,7 +169,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="expiry-date" className="text-right flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Wygasa
+                  {t('label.expiry')}
                 </Label>
                 <Input
                   id="expiry-date"
@@ -181,12 +183,12 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  Email
+                  {t('label.email')}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Adres email odbiorcy"
+                  placeholder={t('label.email.placeholder')}
                   className="col-span-3"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -196,7 +198,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
 
               {modelInfo?.shareEnabled && modelInfo?.shareId && (
                 <div className="mt-2 p-3 border rounded-lg bg-secondary/20">
-                  <Label className="text-sm mb-2 block">Link do udostępnienia:</Label>
+                  <Label className="text-sm mb-2 block">{t('header.shared.model')}:</Label>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 truncate text-sm bg-background rounded px-2 py-1">
                       {window.location.origin}/shared/{modelInfo.shareId}
@@ -208,8 +210,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                         const url = `${window.location.origin}/shared/${modelInfo.shareId}`;
                         navigator.clipboard.writeText(url);
                         toast({
-                          title: "Skopiowano!",
-                          description: "Link został skopiowany do schowka",
+                          title: t('button.copy'),
+                          description: t('message.share.copied'),
                         });
                       }}
                     >
@@ -220,8 +222,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                   <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                     <Link2 className="h-3 w-3" />
                     {modelInfo.hasPassword 
-                      ? "Link zabezpieczony hasłem" 
-                      : "Link dostępny bez hasła"}
+                      ? t('label.password.share') 
+                      : t('message.password.required')}
                   </div>
                 </div>
               )}
@@ -231,7 +233,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
 
         {shareUrl && (
           <div className="mb-4 p-3 border rounded-lg bg-secondary/20">
-            <div className="text-sm mb-1">Link został wygenerowany:</div>
+            <div className="text-sm mb-1">{t('message.share.success')}:</div>
             <div className="flex items-center gap-2">
               <Input 
                 readOnly 
@@ -255,13 +257,13 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Anuluj
+            {t('button.cancel')}
           </Button>
           <Button 
             onClick={handleShare} 
             disabled={isSharing}
           >
-            {isSharing ? "Przetwarzanie..." : (enableSharing ? "Udostępnij" : "Zapisz")}
+            {isSharing ? t('label.verification') : (enableSharing ? t('button.share') : t('button.cancel'))}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -7,12 +7,12 @@ import Home from "@/pages/Home";
 import Test3D from "@/pages/Test3D"; 
 import FileUploadTest from "@/pages/FileUploadTest";
 import SharedModelPage from "@/pages/SharedModelPage";
-
-// Komponent nagłówka został usunięty, ponieważ jest już obecny w komponencie Home
+import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
 
 // Sprawdza czy jesteśmy na stronie udostępnionego modelu
 function SharedModelLayout() {
   const [isSharedRoute] = useRoute("/shared/:shareId");
+  const { t } = useLanguage();
   
   if (isSharedRoute) {
     return (
@@ -21,7 +21,7 @@ function SharedModelLayout() {
           <SharedModelPage />
         </main>
         <footer className="bg-gray-100 text-center p-2 text-gray-600 text-sm">
-          &copy; 2024 STEP Viewer | Udostępniony model
+          {t('app.footer')} {t('label.shared.model')}
         </footer>
       </div>
     );
@@ -32,6 +32,7 @@ function SharedModelLayout() {
 
 function Router() {
   const [isSharedRoute] = useRoute("/shared/:shareId");
+  const { t } = useLanguage();
   
   // Jeśli jesteśmy na trasie udostępnionego modelu, użyj innego layoutu
   if (isSharedRoute) {
@@ -50,7 +51,7 @@ function Router() {
         </Switch>
       </main>
       <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">
-        &copy; 2024 STEP Viewer | Aplikacja do przeglądania plików CAD
+        {t('app.footer')}
       </footer>
     </div>
   );
@@ -59,8 +60,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <LanguageProvider>
+        <Router />
+        <Toaster />
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
