@@ -11,8 +11,79 @@ import os from "os";
 import { exec } from "child_process";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import util from "util";
 
 // ES modules compatibility (replacement for __dirname)
+const execPromise = util.promisify(exec);
+
+// Funkcja do konwersji pliku DXF do SVG
+async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
+  try {
+    if (!fs.existsSync(dxfFilePath)) {
+      console.error("DXF file does not exist:", dxfFilePath);
+      return null;
+    }
+    
+    const pythonScript = path.join(__dirname, 'dxf_converter.py');
+    if (!fs.existsSync(pythonScript)) {
+      console.error("DXF converter script not found:", pythonScript);
+      return null;
+    }
+    
+    // Utwórz tymczasowy plik dla SVG
+    const tempSvgPath = path.join(os.tmpdir(), `${path.parse(dxfFilePath).name}_${Date.now()}.svg`);
+    
+    try {
+      // Uruchom skrypt Pythona do konwersji DXF na SVG z zapisem do pliku
+      await execPromise(`python3 "${pythonScript}" "${dxfFilePath}" svg "${tempSvgPath}"`);
+      
+      // Sprawdź czy plik SVG został utworzony
+      if (fs.existsSync(tempSvgPath)) {
+        // Odczytaj plik SVG
+        const svgContent = fs.readFileSync(tempSvgPath, 'utf8');
+        
+        // Usuń plik tymczasowy
+        try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
+        
+        if (svgContent) {
+          return svgContent;
+        } else {
+          console.error("Empty SVG file created");
+          return null;
+        }
+      } else {
+        console.error("SVG file was not created");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error executing DXF to SVG conversion:", error);
+      
+      // Sprawdź czy istnieje plik debugowania
+      const debugLogPath = '/tmp/dxf_debug.log';
+      let debugInfo = "";
+      
+      if (fs.existsSync(debugLogPath)) {
+        try {
+          debugInfo = fs.readFileSync(debugLogPath, 'utf8');
+          debugInfo = debugInfo.split('\n').slice(-5).join('\n'); // Ostatnie 5 linii
+        } catch (e) { /* ignore */ }
+      }
+      
+      // Zwróć podstawowy SVG z informacją o błędzie
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="100%" height="100%">
+          <rect width="400" height="200" fill="#f8f8f8" />
+          <text x="50" y="80" font-family="Arial" font-size="16" fill="red">Error converting DXF to SVG</text>
+          <text x="50" y="110" font-family="Arial" font-size="12">${error instanceof Error ? error.message : "Unknown error"}</text>
+          ${debugInfo ? `<text x="50" y="130" font-family="Arial" font-size="10" fill="#666">Debug: ${debugInfo.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</text>` : ''}
+        </svg>
+      `;
+    }
+  } catch (error) {
+    console.error("Error in convertDxfToSvg:", error);
+    return null;
+  }
+}
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -531,6 +602,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error serving STL file:", error);
       res.status(500).json({ message: "Failed to serve STL file" });
+    }
+  });
+  
+  // Konwertowanie pliku DXF do formatu SVG i zwracanie wyniku
+  app.get("/api/models/:id/svg", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const model = await storage.getModel(id);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy model jest w formacie DXF
+      if (model.format !== 'DXF' && model.format !== 'DWG') {
+        return res.status(400).json({ 
+          message: "SVG conversion is only available for DXF/DWG files",
+          format: model.format
+        });
+      }
+      
+      const metadata = model.metadata as any;
+      
+      // Sprawdź czy mamy ścieżkę do pliku DXF
+      if (!metadata?.filePath || !fs.existsSync(metadata.filePath)) {
+        return res.status(404).json({ message: "DXF file not found" });
+      }
+      
+      // Konwertuj DXF do SVG
+      const svgContent = await convertDxfToSvg(metadata.filePath);
+      
+      if (!svgContent) {
+        return res.status(500).json({ message: "Failed to convert DXF to SVG" });
+      }
+      
+      // Ustaw nagłówki dla SVG
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.send(svgContent);
+      
+    } catch (error) {
+      console.error("Error converting DXF to SVG:", error);
+      res.status(500).json({ message: "Failed to convert DXF to SVG" });
     }
   });
 
