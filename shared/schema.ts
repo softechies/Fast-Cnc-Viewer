@@ -24,6 +24,10 @@ export const models = pgTable("models", {
   created: text("created").notNull(),
   sourceSystem: text("source_system"),
   metadata: jsonb("metadata"), // Zawiera wszystkie dodatkowe dane, w tym ścieżki do plików STL i JSON
+  shareId: text("share_id").unique(), // Unikalny identyfikator do udostępniania
+  shareEnabled: boolean("share_enabled").default(false), // Czy udostępnianie jest włączone
+  sharePassword: text("share_password"), // Opcjonalne hasło do zabezpieczenia pliku (przechowywane jako hash)
+  shareExpiryDate: text("share_expiry_date"), // Data wygaśnięcia udostępniania (opcjonalnie)
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({
@@ -51,6 +55,24 @@ export const modelInfoSchema = z.object({
   surfaces: z.number().optional(),
   solids: z.number().optional(),
   properties: z.record(z.string(), z.string()).optional(),
+  // Dodane pola dotyczące udostępniania
+  shareEnabled: z.boolean().optional(),
+  shareId: z.string().optional(),
+  hasPassword: z.boolean().optional(),
+});
+
+// Define schema for share model request
+export const shareModelSchema = z.object({
+  modelId: z.number(),
+  enableSharing: z.boolean(),
+  password: z.string().optional(),
+  expiryDate: z.string().optional(),
+});
+
+// Define schema for accessing shared model with password
+export const accessSharedModelSchema = z.object({
+  shareId: z.string(),
+  password: z.string().optional(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -59,3 +81,5 @@ export type Model = typeof models.$inferSelect;
 export type InsertModel = z.infer<typeof insertModelSchema>;
 export type ModelTree = z.infer<typeof modelTreeSchema>;
 export type ModelInfo = z.infer<typeof modelInfoSchema>;
+export type ShareModelRequest = z.infer<typeof shareModelSchema>;
+export type AccessSharedModelRequest = z.infer<typeof accessSharedModelSchema>;

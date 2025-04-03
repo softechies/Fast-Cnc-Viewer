@@ -15,6 +15,9 @@ export interface IStorage {
   updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined>;
   deleteModel(id: number): Promise<boolean>;
   getModels(): Promise<Model[]>; // Dodana metoda do pobierania wszystkich modeli
+  
+  // Share operations
+  getModelByShareId(shareId: string): Promise<Model | undefined>; // Znajdź model po identyfikatorze udostępniania
 }
 
 // In-memory storage implementation
@@ -56,7 +59,11 @@ export class MemStorage implements IStorage {
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
-      metadata: insertModel.metadata ?? null
+      metadata: insertModel.metadata ?? null,
+      shareId: insertModel.shareId ?? null,
+      shareEnabled: insertModel.shareEnabled ?? false,
+      sharePassword: insertModel.sharePassword ?? null,
+      shareExpiryDate: insertModel.shareExpiryDate ?? null
     };
     const model: Model = { ...modelData, id };
     this.models.set(id, model);
@@ -89,6 +96,12 @@ export class MemStorage implements IStorage {
   async getModels(): Promise<Model[]> {
     return Array.from(this.models.values());
   }
+  
+  async getModelByShareId(shareId: string): Promise<Model | undefined> {
+    return Array.from(this.models.values()).find(
+      (model) => model.shareId === shareId && model.shareEnabled === true
+    );
+  }
 }
 
 // PostgreSQL storage implementation
@@ -115,7 +128,11 @@ export class PostgresStorage implements IStorage {
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
-      metadata: insertModel.metadata ?? null
+      metadata: insertModel.metadata ?? null,
+      shareId: insertModel.shareId ?? null,
+      shareEnabled: insertModel.shareEnabled ?? false,
+      sharePassword: insertModel.sharePassword ?? null,
+      shareExpiryDate: insertModel.shareExpiryDate ?? null
     };
     const result = await db.insert(models).values(modelData).returning();
     return result[0];
@@ -147,6 +164,11 @@ export class PostgresStorage implements IStorage {
   
   async getModels(): Promise<Model[]> {
     return await db.select().from(models);
+  }
+  
+  async getModelByShareId(shareId: string): Promise<Model | undefined> {
+    const result = await db.select().from(models).where(eq(models.shareId, shareId));
+    return result[0];
   }
 }
 

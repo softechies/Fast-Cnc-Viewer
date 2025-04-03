@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
@@ -12,6 +12,7 @@ import { exec } from "child_process";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import util from "util";
+import bcrypt from "bcryptjs";
 
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
@@ -517,7 +518,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assemblies: metadata?.assemblies,
         surfaces: metadata?.surfaces,
         solids: metadata?.solids,
-        properties: metadata?.properties
+        properties: metadata?.properties,
+        // Dodane informacje o udostępnianiu
+        shareEnabled: model.shareEnabled || false,
+        shareId: model.shareId,
+        hasPassword: !!model.sharePassword
       };
       
       res.json(modelInfoSchema.parse(modelInfo));
@@ -797,6 +802,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting model:", error);
       res.status(500).json({ message: "Failed to delete model" });
+    }
+  });
+
+  // Endpoint do udostępniania modelu
+  app.post("/api/models/:id/share", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      // Walidacja danych wejściowych
+      const shareData = shareModelSchema.parse(req.body);
+      
+      // Pobierz model
+      const model = await storage.getModel(id);
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Generowanie unikalnego ID udostępniania
+      let shareId = model.shareId;
+      
+      // Jeśli włączamy udostępnianie i nie ma jeszcze shareId, generujemy nowy
+      if (shareData.enableSharing && !shareId) {
+        shareId = nanoid(10); // Generuj 10-znakowy identyfikator
+      }
+      
+      // Hashowanie hasła, jeśli zostało podane
+      let sharePassword = null;
+      if (shareData.password) {
+        sharePassword = await bcrypt.hash(shareData.password, 10);
+      }
+      
+      // Aktualizacja modelu
+      const updatedModel = await storage.updateModel(id, {
+        shareId: shareId,
+        shareEnabled: shareData.enableSharing,
+        sharePassword: sharePassword,
+        shareExpiryDate: shareData.expiryDate
+      });
+      
+      // Zwróć informacje o udostępnieniu
+      res.json({
+        modelId: id,
+        shareId: updatedModel?.shareId,
+        shareEnabled: updatedModel?.shareEnabled,
+        hasPassword: !!sharePassword,
+        shareUrl: shareData.enableSharing ? `/shared/${shareId}` : null,
+        expiryDate: updatedModel?.shareExpiryDate
+      });
+    } catch (error) {
+      console.error("Error sharing model:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid sharing data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to share model" });
+    }
+  });
+
+  // Endpoint do sprawdzania i dostępu do udostępnionych modeli
+  app.post("/api/shared/:shareId/access", async (req: Request, res: Response) => {
+    try {
+      const { shareId } = req.params;
+      
+      // Walidacja danych wejściowych (opcjonalne hasło)
+      const accessData = accessSharedModelSchema.parse({
+        ...req.body,
+        shareId
+      });
+      
+      // Znajdź model po ID udostępnienia
+      const model = await storage.getModelByShareId(shareId);
+      
+      // Jeśli nie znaleziono modelu lub udostępnianie jest wyłączone
+      if (!model || !model.shareEnabled) {
+        return res.status(404).json({ message: "Shared model not found" });
+      }
+      
+      // Sprawdź czy link wygasł
+      if (model.shareExpiryDate) {
+        const expiryDate = new Date(model.shareExpiryDate);
+        const now = new Date();
+        if (now > expiryDate) {
+          return res.status(403).json({ message: "This shared link has expired" });
+        }
+      }
+      
+      // Sprawdź hasło (jeśli jest wymagane)
+      if (model.sharePassword) {
+        if (!accessData.password) {
+          return res.status(401).json({ message: "Password required", requiresPassword: true });
+        }
+        
+        const passwordIsValid = await bcrypt.compare(accessData.password, model.sharePassword);
+        if (!passwordIsValid) {
+          return res.status(401).json({ message: "Invalid password" });
+        }
+      }
+      
+      // Zwróć podstawowe dane modelu po weryfikacji
+      res.json({
+        id: model.id,
+        filename: model.filename,
+        filesize: model.filesize,
+        format: model.format,
+        created: model.created,
+        sourceSystem: model.sourceSystem
+      });
+    } catch (error) {
+      console.error("Error accessing shared model:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid access data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to access shared model" });
+    }
+  });
+
+  // Endpoint do pobierania udostępnionego modelu
+  app.get("/api/shared/:shareId", async (req: Request, res: Response) => {
+    try {
+      const { shareId } = req.params;
+      
+      // Znajdź model po ID udostępnienia
+      const model = await storage.getModelByShareId(shareId);
+      
+      // Jeśli nie znaleziono modelu lub udostępnianie jest wyłączone
+      if (!model || !model.shareEnabled) {
+        return res.status(404).json({ message: "Shared model not found" });
+      }
+      
+      // Sprawdź czy link wygasł
+      if (model.shareExpiryDate) {
+        const expiryDate = new Date(model.shareExpiryDate);
+        const now = new Date();
+        if (now > expiryDate) {
+          return res.status(403).json({ message: "This shared link has expired" });
+        }
+      }
+      
+      // Sprawdź czy model jest chroniony hasłem
+      const requiresPassword = !!model.sharePassword;
+      
+      // Zwróć podstawowe informacje o modelu (bez pełnych danych, które będą dostępne po weryfikacji hasła)
+      res.json({
+        filename: model.filename,
+        format: model.format,
+        created: model.created,
+        requiresPassword
+      });
+    } catch (error) {
+      console.error("Error getting shared model info:", error);
+      res.status(500).json({ message: "Failed to get shared model info" });
     }
   });
 

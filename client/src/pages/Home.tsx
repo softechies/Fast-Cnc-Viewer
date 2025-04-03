@@ -106,7 +106,8 @@ export default function Home() {
             <TabsContent value="info" className="flex-grow p-0 border-0">
               <ModelInfo 
                 isLoading={isLoadingInfo} 
-                modelInfo={modelInfo as ModelInfoType} 
+                modelInfo={modelInfo as ModelInfoType}
+                modelId={activeModelId}
               />
             </TabsContent>
           </Tabs>

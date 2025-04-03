@@ -1,13 +1,19 @@
+import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { ModelInfo as ModelInfoType } from '@shared/schema';
 import { formatFileSize } from '@/lib/utils';
+import { Share2 } from 'lucide-react';
+import ShareModelDialog from './ShareModelDialog';
 
 interface ModelInfoProps {
   isLoading: boolean;
   modelInfo?: ModelInfoType;
+  modelId: number | null;
 }
 
-export default function ModelInfo({ isLoading, modelInfo }: ModelInfoProps) {
+export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoProps) {
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   if (isLoading) {
     return (
       <div className="flex-grow overflow-y-auto p-4">
@@ -34,7 +40,26 @@ export default function ModelInfo({ isLoading, modelInfo }: ModelInfoProps) {
   
   return (
     <div className="flex-grow overflow-y-auto p-4">
-      <h2 className="text-lg font-medium text-gray-900 mb-4">Informacje o modelu</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium text-gray-900">Informacje o modelu</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={() => setIsShareDialogOpen(true)}
+        >
+          <Share2 className="h-4 w-4" />
+          <span>Udostępnij</span>
+        </Button>
+      </div>
+      
+      {/* Dialog udostępniania */}
+      <ShareModelDialog 
+        isOpen={isShareDialogOpen} 
+        onClose={() => setIsShareDialogOpen(false)}
+        modelId={modelId}
+        modelInfo={modelInfo}
+      />
       
       <div className="space-y-4">
         <div>
@@ -61,6 +86,22 @@ export default function ModelInfo({ isLoading, modelInfo }: ModelInfoProps) {
           <h3 className="text-sm font-medium text-gray-500 mb-1">System źródłowy</h3>
           <p className="text-sm font-medium text-gray-900">{modelInfo.sourceSystem || 'Nieznany'}</p>
         </div>
+        
+        {/* Status udostępniania */}
+        {modelInfo.shareEnabled && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Status udostępniania</h3>
+            <div className="bg-gray-50 rounded-md p-3">
+              <div className="flex items-center text-sm text-emerald-700 font-medium mb-1">
+                <Share2 className="h-4 w-4 mr-1" /> 
+                Model jest udostępniony
+              </div>
+              {modelInfo.hasPassword && (
+                <p className="text-xs text-gray-600">Zabezpieczony hasłem</p>
+              )}
+            </div>
+          </div>
+        )}
         
         <div>
           <h3 className="text-sm font-medium text-gray-500 mb-1">Elementy</h3>
