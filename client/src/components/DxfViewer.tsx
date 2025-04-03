@@ -107,10 +107,10 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                 <div 
                   className="svg-container"
                   style={{
-                    width: "300px",
-                    height: "300px",
-                    maxWidth: "300px",
-                    maxHeight: "300px",
+                    width: "900px",
+                    height: "900px",
+                    maxWidth: "900px",
+                    maxHeight: "900px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

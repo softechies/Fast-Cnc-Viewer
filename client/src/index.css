@@ -25,6 +25,13 @@
   transform-origin: center;
 }
 
+/* Style dla kontenera karty */
+.svg-container {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+}
+
 /* Poprawne wyświetlanie elementów rysunku */
 .svg-wrapper svg line,
 .svg-wrapper svg polyline,
@@ -33,12 +40,6 @@
 .svg-wrapper svg polygon {
   vector-effect: non-scaling-stroke;
   stroke-width: 0.5px;
-}
-
-/* Wymuszenie skalowania dla viewBoxów o dużych wartościach */
-.svg-container {
-  overflow: hidden;
-  position: relative;
 }
 
 .svg-wrapper {
