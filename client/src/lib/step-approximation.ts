@@ -12,6 +12,11 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     // Analiza zawartości pliku STEP
     console.log("Tworzenie przybliżonego modelu STEP...");
     
+    // Spróbujmy wyodrębnić więcej informacji z pliku STEP
+    // najpierw szukamy nazwy produktu
+    const productNameMatch = stepContent.match(/PRODUCT\([^,]+,\s*'([^']+)'/);
+    const productName = productNameMatch ? productNameMatch[1] : "Unknown Model";
+    
     // Liczenie elementów geometrycznych
     const cylinderMatches = stepContent.match(/CYLINDRICAL_SURFACE/g) || [];
     const cylinderCount = cylinderMatches.length;
