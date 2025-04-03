@@ -14,17 +14,7 @@ function NavHeader() {
     <header className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex flex-wrap justify-between items-center">
         <h1 className="text-xl font-bold">STEP Viewer</h1>
-        <nav className="flex space-x-4">
-          <Link href="/" className="hover:text-gray-300 px-2 py-1 rounded hover:bg-gray-700">
-            Strona główna
-          </Link>
-          <Link href="/upload" className="hover:text-gray-300 px-2 py-1 rounded hover:bg-gray-700">
-            Przesyłanie plików
-          </Link>
-          <Link href="/test3d" className="hover:text-gray-300 px-2 py-1 rounded hover:bg-gray-700">
-            Test 3D
-          </Link>
-        </nav>
+        {/* Menu nawigacyjne zostało usunięte */}
       </div>
     </header>
   );
