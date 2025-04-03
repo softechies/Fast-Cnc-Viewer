@@ -1,76 +1,99 @@
-// English translations
-export const en = {
-  // Common elements
-  upload: 'Upload',
-  download: 'Download',
-  share: 'Share',
-  delete: 'Delete',
-  cancel: 'Cancel',
-  close: 'Close',
-  save: 'Save',
-  loading: 'Loading...',
-  error: 'Error',
-  success: 'Success',
+export default {
+  // General
+  appName: "CAD Viewer",
+  welcome: "Welcome to CAD Viewer",
+  loading: "Loading...",
   
-  // Navigation and header
-  fileMenu: 'File',
-  viewMenu: 'View',
-  helpMenu: 'Help',
-  language: 'Language',
-  settings: 'Settings',
+  // Header
+  uploadModel: "Upload Model",
+  signIn: "Sign In",
+  signUp: "Sign Up",
+  signOut: "Sign Out",
+  profile: "Profile",
+  settings: "Settings",
   
-  // Home page
-  noPreviousFiles: 'No files uploaded yet',
-  supportedFormats: 'Upload CAD files in STEP, STL, DXF, or DWG formats to visualize them',
-  modelInformation: 'Model Information',
+  // Navigation
+  home: "Home",
+  models: "Models",
+  shared: "Shared",
   
-  // Upload
-  uploadFailed: 'Upload failed',
-  uploadProgress: 'Upload progress: {{percent}}%',
-  dropFilesHere: 'Drop files here or click to browse',
-  selectFile: 'Select a file',
-  processing: 'Processing file...',
-  fileError: 'There was a problem processing the file',
+  // Actions
+  upload: "Upload",
+  download: "Download",
+  cancel: "Cancel",
+  save: "Save",
+  delete: "Delete",
+  share: "Share",
+  view: "View",
+  edit: "Edit",
+  add: "Add",
+  remove: "Remove",
+  copy: "Copy",
   
-  // Model viewer
-  pan: 'Pan',
-  rotate: 'Rotate',
-  zoomIn: 'Zoom In',
-  zoomOut: 'Zoom Out',
-  fitToView: 'Fit to View',
-  wireframe: 'Wireframe',
-  solid: 'Solid',
-  
-  // Model info
-  parts: 'Parts',
-  surfaces: 'Surfaces',
-  edges: 'Edges',
-  vertices: 'Vertices',
-  fileType: 'File Type',
-  fileSize: 'File Size',
-  uploadDate: 'Upload Date',
+  // Model Info
+  modelInformation: "Model Information",
+  fileName: "File Name",
+  fileType: "File Type",
+  fileSize: "File Size",
+  createdDate: "Created Date",
+  modifiedDate: "Modified Date",
+  sharedModel: "Shared Model",
+  modelEntities: "Model Entities",
+  parts: "Parts",
+  assemblies: "Assemblies",
+  surfaces: "Surfaces",
+  solids: "Solids",
+  additionalInfo: "Additional Information",
   
   // Sharing
-  shareModel: 'Share Model',
-  shareViaEmail: 'Share via Email',
-  recipientEmail: 'Recipient Email',
-  shareDescription: 'Add a description',
-  shareLinkCopied: 'Share link copied to clipboard',
-  shareSuccess: 'Model shared successfully',
-  shareFailed: 'Failed to share model',
-  accessShared: 'Access Shared Model',
-  enterPassword: 'Enter password',
+  shareModel: "Share Model",
+  shareLink: "Share Link",
+  shareSuccess: "Model shared successfully",
+  shareCopied: "Link copied to clipboard",
+  shareWithPassword: "Share with password",
+  passwordProtected: "Password protected",
+  shareViaEmail: "Share via email",
+  emailRecipient: "Recipient email",
+  setPassword: "Set password",
+  setExpiry: "Set expiry date",
+  passwordPlaceholder: "Enter password for shared link",
+  shareExpiry: "Share expiry",
   
-  // Notifications
-  fileDeleted: 'File deleted successfully',
-  fileDeleteFailed: 'Failed to delete file',
+  // Upload
+  uploadTitle: "Upload CAD Model",
+  uploadDescription: "Supported formats: STEP, STL, DXF, DWG",
+  dragAndDrop: "Drag and drop files here or click to browse",
+  selectFiles: "Select Files",
+  uploadProgress: "Upload Progress",
   
-  // Errors
-  notFound: 'Not found',
-  fileNotFound: 'File not found',
-  unsupportedFormat: 'Unsupported file format',
+  // Messages
+  confirmDelete: "Are you sure you want to delete this model?",
+  deleteWarning: "This action cannot be undone.",
+  uploadSuccess: "Model uploaded successfully",
+  uploadError: "Failed to upload model",
+  shareEmailSent: "Share link sent to email",
+  shareRevoked: "Sharing has been revoked",
+  errorOccurred: "An error occurred",
   
-  // Email templates
-  emailSubject: 'CAD Model Shared With You',
-  emailRevoked: 'CAD Model Share Revoked'
+  // Footer
+  copyright: "© 2025 CAD Viewer. All rights reserved.",
+  termsOfService: "Terms of Service",
+  privacyPolicy: "Privacy Policy",
+  
+  // Empty States
+  noModels: "No models to display",
+  noSharedModels: "No shared models to display",
+  
+  // Validation
+  requiredField: "This field is required",
+  invalidEmail: "Please enter a valid email address",
+  invalidPassword: "Password must be at least 6 characters",
+  
+  // Languages
+  language: "Language",
+  english: "English",
+  polish: "Polish",
+  czech: "Czech",
+  german: "German",
+  french: "French"
 };

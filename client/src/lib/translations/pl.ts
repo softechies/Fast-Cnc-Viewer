@@ -1,76 +1,99 @@
-// Polish translations
-export const pl = {
-  // Common elements
-  upload: 'Prześlij',
-  download: 'Pobierz',
-  share: 'Udostępnij',
-  delete: 'Usuń',
-  cancel: 'Anuluj',
-  close: 'Zamknij',
-  save: 'Zapisz',
-  loading: 'Ładowanie...',
-  error: 'Błąd',
-  success: 'Sukces',
+export default {
+  // General
+  appName: "CAD Viewer",
+  welcome: "Witaj w CAD Viewer",
+  loading: "Ładowanie...",
   
-  // Navigation and header
-  fileMenu: 'Plik',
-  viewMenu: 'Widok',
-  helpMenu: 'Pomoc',
-  language: 'Język',
-  settings: 'Ustawienia',
+  // Header
+  uploadModel: "Wgraj Model",
+  signIn: "Zaloguj się",
+  signUp: "Zarejestruj się",
+  signOut: "Wyloguj się",
+  profile: "Profil",
+  settings: "Ustawienia",
   
-  // Home page
-  noPreviousFiles: 'Nie przesłano jeszcze plików',
-  supportedFormats: 'Prześlij pliki CAD w formatach STEP, STL, DXF lub DWG, aby je zwizualizować',
-  modelInformation: 'Informacje o modelu',
+  // Navigation
+  home: "Strona główna",
+  models: "Modele",
+  shared: "Udostępnione",
   
-  // Upload
-  uploadFailed: 'Przesyłanie nie powiodło się',
-  uploadProgress: 'Postęp przesyłania: {{percent}}%',
-  dropFilesHere: 'Upuść pliki tutaj lub kliknij, aby przeglądać',
-  selectFile: 'Wybierz plik',
-  processing: 'Przetwarzanie pliku...',
-  fileError: 'Wystąpił problem podczas przetwarzania pliku',
+  // Actions
+  upload: "Wgraj",
+  download: "Pobierz",
+  cancel: "Anuluj",
+  save: "Zapisz",
+  delete: "Usuń",
+  share: "Udostępnij",
+  view: "Zobacz",
+  edit: "Edytuj",
+  add: "Dodaj",
+  remove: "Usuń",
+  copy: "Kopiuj",
   
-  // Model viewer
-  pan: 'Przesuń',
-  rotate: 'Obróć',
-  zoomIn: 'Przybliż',
-  zoomOut: 'Oddal',
-  fitToView: 'Dopasuj do widoku',
-  wireframe: 'Szkielet',
-  solid: 'Bryła',
-  
-  // Model info
-  parts: 'Części',
-  surfaces: 'Powierzchnie',
-  edges: 'Krawędzie',
-  vertices: 'Wierzchołki',
-  fileType: 'Typ pliku',
-  fileSize: 'Rozmiar pliku',
-  uploadDate: 'Data przesłania',
+  // Model Info
+  modelInformation: "Informacje o modelu",
+  fileName: "Nazwa pliku",
+  fileType: "Typ pliku",
+  fileSize: "Rozmiar pliku",
+  createdDate: "Data utworzenia",
+  modifiedDate: "Data modyfikacji",
+  sharedModel: "Udostępniony model",
+  modelEntities: "Elementy modelu",
+  parts: "Części",
+  assemblies: "Złożenia",
+  surfaces: "Powierzchnie",
+  solids: "Bryły",
+  additionalInfo: "Dodatkowe informacje",
   
   // Sharing
-  shareModel: 'Udostępnij model',
-  shareViaEmail: 'Udostępnij przez email',
-  recipientEmail: 'Email odbiorcy',
-  shareDescription: 'Dodaj opis',
-  shareLinkCopied: 'Link do udostępnienia skopiowany do schowka',
-  shareSuccess: 'Model udostępniony pomyślnie',
-  shareFailed: 'Nie udało się udostępnić modelu',
-  accessShared: 'Dostęp do udostępnionego modelu',
-  enterPassword: 'Wprowadź hasło',
+  shareModel: "Udostępnij model",
+  shareLink: "Link do udostępnienia",
+  shareSuccess: "Model udostępniony pomyślnie",
+  shareCopied: "Link skopiowany do schowka",
+  shareWithPassword: "Udostępnij z hasłem",
+  passwordProtected: "Chroniony hasłem",
+  shareViaEmail: "Udostępnij przez email",
+  emailRecipient: "Email odbiorcy",
+  setPassword: "Ustaw hasło",
+  setExpiry: "Ustaw datę wygaśnięcia",
+  passwordPlaceholder: "Wprowadź hasło dla udostępnionego linku",
+  shareExpiry: "Data wygaśnięcia udostępnienia",
   
-  // Notifications
-  fileDeleted: 'Plik usunięty pomyślnie',
-  fileDeleteFailed: 'Nie udało się usunąć pliku',
+  // Upload
+  uploadTitle: "Wgraj model CAD",
+  uploadDescription: "Obsługiwane formaty: STEP, STL, DXF, DWG",
+  dragAndDrop: "Przeciągnij i upuść pliki tutaj lub kliknij, aby przeglądać",
+  selectFiles: "Wybierz pliki",
+  uploadProgress: "Postęp wgrywania",
   
-  // Errors
-  notFound: 'Nie znaleziono',
-  fileNotFound: 'Plik nie znaleziony',
-  unsupportedFormat: 'Niewspierany format pliku',
+  // Messages
+  confirmDelete: "Czy na pewno chcesz usunąć ten model?",
+  deleteWarning: "Tej akcji nie można cofnąć.",
+  uploadSuccess: "Model wgrany pomyślnie",
+  uploadError: "Nie udało się wgrać modelu",
+  shareEmailSent: "Link do udostępnienia wysłany na email",
+  shareRevoked: "Udostępnianie zostało wycofane",
+  errorOccurred: "Wystąpił błąd",
   
-  // Email templates
-  emailSubject: 'Model CAD udostępniony dla Ciebie',
-  emailRevoked: 'Udostępnienie modelu CAD zostało cofnięte'
+  // Footer
+  copyright: "© 2025 CAD Viewer. Wszelkie prawa zastrzeżone.",
+  termsOfService: "Warunki korzystania z usługi",
+  privacyPolicy: "Polityka prywatności",
+  
+  // Empty States
+  noModels: "Brak modeli do wyświetlenia",
+  noSharedModels: "Brak udostępnionych modeli do wyświetlenia",
+  
+  // Validation
+  requiredField: "To pole jest wymagane",
+  invalidEmail: "Wprowadź poprawny adres email",
+  invalidPassword: "Hasło musi mieć co najmniej 6 znaków",
+  
+  // Languages
+  language: "Język",
+  english: "Angielski",
+  polish: "Polski",
+  czech: "Czeski",
+  german: "Niemiecki",
+  french: "Francuski"
 };

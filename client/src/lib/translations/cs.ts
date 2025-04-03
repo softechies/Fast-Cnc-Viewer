@@ -1,76 +1,99 @@
-// Czech translations
-export const cs = {
-  // Common elements
-  upload: 'Nahrát',
-  download: 'Stáhnout',
-  share: 'Sdílet',
-  delete: 'Smazat',
-  cancel: 'Zrušit',
-  close: 'Zavřít',
-  save: 'Uložit',
-  loading: 'Načítání...',
-  error: 'Chyba',
-  success: 'Úspěch',
+export default {
+  // General
+  appName: "CAD Viewer",
+  welcome: "Vítejte v CAD Viewer",
+  loading: "Načítání...",
   
-  // Navigation and header
-  fileMenu: 'Soubor',
-  viewMenu: 'Zobrazení',
-  helpMenu: 'Nápověda',
-  language: 'Jazyk',
-  settings: 'Nastavení',
+  // Header
+  uploadModel: "Nahrát model",
+  signIn: "Přihlásit se",
+  signUp: "Registrovat se",
+  signOut: "Odhlásit se",
+  profile: "Profil",
+  settings: "Nastavení",
   
-  // Home page
-  noPreviousFiles: 'Zatím nebyly nahrány žádné soubory',
-  supportedFormats: 'Nahrajte CAD soubory ve formátech STEP, STL, DXF nebo DWG pro jejich vizualizaci',
-  modelInformation: 'Informace o modelu',
+  // Navigation
+  home: "Domů",
+  models: "Modely",
+  shared: "Sdílené",
   
-  // Upload
-  uploadFailed: 'Nahrávání selhalo',
-  uploadProgress: 'Průběh nahrávání: {{percent}}%',
-  dropFilesHere: 'Přetáhněte soubory sem nebo klikněte pro procházení',
-  selectFile: 'Vyberte soubor',
-  processing: 'Zpracování souboru...',
-  fileError: 'Při zpracování souboru došlo k problému',
+  // Actions
+  upload: "Nahrát",
+  download: "Stáhnout",
+  cancel: "Zrušit",
+  save: "Uložit",
+  delete: "Smazat",
+  share: "Sdílet",
+  view: "Zobrazit",
+  edit: "Upravit",
+  add: "Přidat",
+  remove: "Odebrat",
+  copy: "Kopírovat",
   
-  // Model viewer
-  pan: 'Posunout',
-  rotate: 'Rotovat',
-  zoomIn: 'Přiblížit',
-  zoomOut: 'Oddálit',
-  fitToView: 'Přizpůsobit pohledu',
-  wireframe: 'Drátový model',
-  solid: 'Plný model',
-  
-  // Model info
-  parts: 'Díly',
-  surfaces: 'Plochy',
-  edges: 'Hrany',
-  vertices: 'Vrcholy',
-  fileType: 'Typ souboru',
-  fileSize: 'Velikost souboru',
-  uploadDate: 'Datum nahrání',
+  // Model Info
+  modelInformation: "Informace o modelu",
+  fileName: "Název souboru",
+  fileType: "Typ souboru",
+  fileSize: "Velikost souboru",
+  createdDate: "Datum vytvoření",
+  modifiedDate: "Datum úpravy",
+  sharedModel: "Sdílený model",
+  modelEntities: "Objekty modelu",
+  parts: "Díly",
+  assemblies: "Sestavy",
+  surfaces: "Povrchy",
+  solids: "Tělesa",
+  additionalInfo: "Další informace",
   
   // Sharing
-  shareModel: 'Sdílet model',
-  shareViaEmail: 'Sdílet e-mailem',
-  recipientEmail: 'E-mail příjemce',
-  shareDescription: 'Přidat popis',
-  shareLinkCopied: 'Odkaz ke sdílení zkopírován do schránky',
-  shareSuccess: 'Model byl úspěšně sdílen',
-  shareFailed: 'Sdílení modelu se nezdařilo',
-  accessShared: 'Přístup ke sdílenému modelu',
-  enterPassword: 'Zadejte heslo',
+  shareModel: "Sdílet model",
+  shareLink: "Odkaz na sdílení",
+  shareSuccess: "Model byl úspěšně sdílen",
+  shareCopied: "Odkaz zkopírován do schránky",
+  shareWithPassword: "Sdílet s heslem",
+  passwordProtected: "Chráněno heslem",
+  shareViaEmail: "Sdílet přes email",
+  emailRecipient: "Email příjemce",
+  setPassword: "Nastavit heslo",
+  setExpiry: "Nastavit datum vypršení",
+  passwordPlaceholder: "Zadejte heslo pro sdílený odkaz",
+  shareExpiry: "Vypršení sdílení",
   
-  // Notifications
-  fileDeleted: 'Soubor byl úspěšně smazán',
-  fileDeleteFailed: 'Smazání souboru se nezdařilo',
+  // Upload
+  uploadTitle: "Nahrát CAD model",
+  uploadDescription: "Podporované formáty: STEP, STL, DXF, DWG",
+  dragAndDrop: "Přetáhněte soubory sem nebo klikněte pro procházení",
+  selectFiles: "Vybrat soubory",
+  uploadProgress: "Průběh nahrávání",
   
-  // Errors
-  notFound: 'Nenalezeno',
-  fileNotFound: 'Soubor nenalezen',
-  unsupportedFormat: 'Nepodporovaný formát souboru',
+  // Messages
+  confirmDelete: "Opravdu chcete tento model smazat?",
+  deleteWarning: "Tuto akci nelze vrátit zpět.",
+  uploadSuccess: "Model byl úspěšně nahrán",
+  uploadError: "Nepodařilo se nahrát model",
+  shareEmailSent: "Odkaz na sdílení byl odeslán emailem",
+  shareRevoked: "Sdílení bylo zrušeno",
+  errorOccurred: "Došlo k chybě",
   
-  // Email templates
-  emailSubject: 'CAD model sdílený s vámi',
-  emailRevoked: 'Sdílení CAD modelu bylo zrušeno'
+  // Footer
+  copyright: "© 2025 CAD Viewer. Všechna práva vyhrazena.",
+  termsOfService: "Podmínky služby",
+  privacyPolicy: "Zásady ochrany osobních údajů",
+  
+  // Empty States
+  noModels: "Žádné modely k zobrazení",
+  noSharedModels: "Žádné sdílené modely k zobrazení",
+  
+  // Validation
+  requiredField: "Toto pole je povinné",
+  invalidEmail: "Zadejte platnou emailovou adresu",
+  invalidPassword: "Heslo musí mít alespoň 6 znaků",
+  
+  // Languages
+  language: "Jazyk",
+  english: "Angličtina",
+  polish: "Polština",
+  czech: "Čeština",
+  german: "Němčina",
+  french: "Francouzština"
 };

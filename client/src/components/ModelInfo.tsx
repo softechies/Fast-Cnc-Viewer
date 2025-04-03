@@ -36,7 +36,7 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
   if (!modelInfo) {
     return (
       <div className="flex-grow overflow-y-auto p-4 text-center text-gray-500">
-        <p>{t('model.no.active')}</p>
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
   return (
     <div className="flex-grow overflow-y-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium text-gray-900">{t('header.model.info')}</h2>
+        <h2 className="text-lg font-medium text-gray-900">{t('modelInformation')}</h2>
         <Button 
           variant="outline" 
           size="sm" 
@@ -52,7 +52,7 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
           onClick={() => setIsShareDialogOpen(true)}
         >
           <Share2 className="h-4 w-4" />
-          <span>{t('button.share')}</span>
+          <span>{t('share')}</span>
         </Button>
       </div>
       
@@ -66,22 +66,22 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
       
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('label.file')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('fileType')}</h3>
           <p className="text-sm font-medium text-gray-900">{modelInfo.filename}</p>
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('model.format')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('fileType')}</h3>
           <p className="text-sm font-medium text-gray-900">{modelInfo.format || '-'}</p>
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('model.size')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('fileSize')}</h3>
           <p className="text-sm font-medium text-gray-900">{formatFileSize(modelInfo.filesize)}</p>
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('model.created')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('createdDate')}</h3>
           <p className="text-sm font-medium text-gray-900">{new Date(modelInfo.created).toLocaleDateString()}</p>
         </div>
         
@@ -93,37 +93,37 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
         {/* Status udostępniania */}
         {modelInfo.shareEnabled && (
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('header.shared.model')}</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('sharedModel')}</h3>
             <div className="bg-gray-50 rounded-md p-3">
               <div className="flex items-center text-sm text-emerald-700 font-medium mb-1">
                 <Share2 className="h-4 w-4 mr-1" /> 
-                {t('message.share.success')}
+                {t('shareSuccess')}
               </div>
               {modelInfo.hasPassword && (
-                <p className="text-xs text-gray-600">{t('label.password.share')}</p>
+                <p className="text-xs text-gray-600">{t('passwordProtected')}</p>
               )}
             </div>
           </div>
         )}
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('model.entities')}</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('modelEntities')}</h3>
           <div className="bg-gray-50 rounded-md p-3">
             <ul className="text-sm space-y-2">
               <li className="flex justify-between">
-                <span className="text-gray-600">{t('model.parts')}:</span>
+                <span className="text-gray-600">{t('parts')}:</span>
                 <span className="font-medium text-gray-900">{modelInfo.parts || 0}</span>
               </li>
               <li className="flex justify-between">
-                <span className="text-gray-600">{t('model.assemblies')}:</span>
+                <span className="text-gray-600">{t('assemblies')}:</span>
                 <span className="font-medium text-gray-900">{modelInfo.assemblies || 0}</span>
               </li>
               <li className="flex justify-between">
-                <span className="text-gray-600">{t('model.surfaces')}:</span>
+                <span className="text-gray-600">{t('surfaces')}:</span>
                 <span className="font-medium text-gray-900">{modelInfo.surfaces || 0}</span>
               </li>
               <li className="flex justify-between">
-                <span className="text-gray-600">{t('model.solids')}:</span>
+                <span className="text-gray-600">{t('solids')}:</span>
                 <span className="font-medium text-gray-900">{modelInfo.solids || 0}</span>
               </li>
             </ul>
@@ -132,7 +132,7 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
         
         {modelInfo.properties && Object.keys(modelInfo.properties).length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('header.model.info')}</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">{t('additionalInfo')}</h3>
             <div className="bg-gray-50 rounded-md overflow-hidden">
               <table className="min-w-full text-sm">
                 <tbody>

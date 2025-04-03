@@ -1,76 +1,99 @@
-// German translations
-export const de = {
-  // Common elements
-  upload: 'Hochladen',
-  download: 'Herunterladen',
-  share: 'Teilen',
-  delete: 'Löschen',
-  cancel: 'Abbrechen',
-  close: 'Schließen',
-  save: 'Speichern',
-  loading: 'Lädt...',
-  error: 'Fehler',
-  success: 'Erfolg',
+export default {
+  // General
+  appName: "CAD Viewer",
+  welcome: "Willkommen bei CAD Viewer",
+  loading: "Wird geladen...",
   
-  // Navigation and header
-  fileMenu: 'Datei',
-  viewMenu: 'Ansicht',
-  helpMenu: 'Hilfe',
-  language: 'Sprache',
-  settings: 'Einstellungen',
+  // Header
+  uploadModel: "Modell hochladen",
+  signIn: "Anmelden",
+  signUp: "Registrieren",
+  signOut: "Abmelden",
+  profile: "Profil",
+  settings: "Einstellungen",
   
-  // Home page
-  noPreviousFiles: 'Noch keine Dateien hochgeladen',
-  supportedFormats: 'Laden Sie CAD-Dateien in den Formaten STEP, STL, DXF oder DWG hoch, um sie zu visualisieren',
-  modelInformation: 'Modellinformationen',
+  // Navigation
+  home: "Startseite",
+  models: "Modelle",
+  shared: "Geteilt",
   
-  // Upload
-  uploadFailed: 'Hochladen fehlgeschlagen',
-  uploadProgress: 'Hochladefortschritt: {{percent}}%',
-  dropFilesHere: 'Dateien hier ablegen oder klicken zum Durchsuchen',
-  selectFile: 'Datei auswählen',
-  processing: 'Datei wird verarbeitet...',
-  fileError: 'Bei der Verarbeitung der Datei ist ein Problem aufgetreten',
+  // Actions
+  upload: "Hochladen",
+  download: "Herunterladen",
+  cancel: "Abbrechen",
+  save: "Speichern",
+  delete: "Löschen",
+  share: "Teilen",
+  view: "Ansehen",
+  edit: "Bearbeiten",
+  add: "Hinzufügen",
+  remove: "Entfernen",
+  copy: "Kopieren",
   
-  // Model viewer
-  pan: 'Verschieben',
-  rotate: 'Drehen',
-  zoomIn: 'Vergrößern',
-  zoomOut: 'Verkleinern',
-  fitToView: 'An Ansicht anpassen',
-  wireframe: 'Drahtgitter',
-  solid: 'Volumenmodell',
-  
-  // Model info
-  parts: 'Teile',
-  surfaces: 'Flächen',
-  edges: 'Kanten',
-  vertices: 'Scheitelpunkte',
-  fileType: 'Dateityp',
-  fileSize: 'Dateigröße',
-  uploadDate: 'Hochladedatum',
+  // Model Info
+  modelInformation: "Modellinformationen",
+  fileName: "Dateiname",
+  fileType: "Dateityp",
+  fileSize: "Dateigröße",
+  createdDate: "Erstellungsdatum",
+  modifiedDate: "Änderungsdatum",
+  sharedModel: "Geteiltes Modell",
+  modelEntities: "Modellentitäten",
+  parts: "Teile",
+  assemblies: "Baugruppen",
+  surfaces: "Oberflächen",
+  solids: "Festkörper",
+  additionalInfo: "Zusätzliche Informationen",
   
   // Sharing
-  shareModel: 'Modell teilen',
-  shareViaEmail: 'Per E-Mail teilen',
-  recipientEmail: 'Empfänger-E-Mail',
-  shareDescription: 'Beschreibung hinzufügen',
-  shareLinkCopied: 'Link zum Teilen in die Zwischenablage kopiert',
-  shareSuccess: 'Modell erfolgreich geteilt',
-  shareFailed: 'Modell konnte nicht geteilt werden',
-  accessShared: 'Zugriff auf geteiltes Modell',
-  enterPassword: 'Passwort eingeben',
+  shareModel: "Modell teilen",
+  shareLink: "Link teilen",
+  shareSuccess: "Modell erfolgreich geteilt",
+  shareCopied: "Link in die Zwischenablage kopiert",
+  shareWithPassword: "Mit Passwort teilen",
+  passwordProtected: "Passwortgeschützt",
+  shareViaEmail: "Per E-Mail teilen",
+  emailRecipient: "E-Mail des Empfängers",
+  setPassword: "Passwort festlegen",
+  setExpiry: "Ablaufdatum festlegen",
+  passwordPlaceholder: "Passwort für geteilten Link eingeben",
+  shareExpiry: "Ablaufdatum für Freigabe",
   
-  // Notifications
-  fileDeleted: 'Datei erfolgreich gelöscht',
-  fileDeleteFailed: 'Datei konnte nicht gelöscht werden',
+  // Upload
+  uploadTitle: "CAD-Modell hochladen",
+  uploadDescription: "Unterstützte Formate: STEP, STL, DXF, DWG",
+  dragAndDrop: "Dateien hierher ziehen oder klicken zum Durchsuchen",
+  selectFiles: "Dateien auswählen",
+  uploadProgress: "Fortschritt beim Hochladen",
   
-  // Errors
-  notFound: 'Nicht gefunden',
-  fileNotFound: 'Datei nicht gefunden',
-  unsupportedFormat: 'Nicht unterstütztes Dateiformat',
+  // Messages
+  confirmDelete: "Sind Sie sicher, dass Sie dieses Modell löschen möchten?",
+  deleteWarning: "Diese Aktion kann nicht rückgängig gemacht werden.",
+  uploadSuccess: "Modell erfolgreich hochgeladen",
+  uploadError: "Modell konnte nicht hochgeladen werden",
+  shareEmailSent: "Link zum Teilen per E-Mail gesendet",
+  shareRevoked: "Freigabe wurde widerrufen",
+  errorOccurred: "Ein Fehler ist aufgetreten",
   
-  // Email templates
-  emailSubject: 'CAD-Modell mit Ihnen geteilt',
-  emailRevoked: 'Freigabe des CAD-Modells wurde zurückgezogen'
+  // Footer
+  copyright: "© 2025 CAD Viewer. Alle Rechte vorbehalten.",
+  termsOfService: "Nutzungsbedingungen",
+  privacyPolicy: "Datenschutzrichtlinie",
+  
+  // Empty States
+  noModels: "Keine Modelle zum Anzeigen",
+  noSharedModels: "Keine geteilten Modelle zum Anzeigen",
+  
+  // Validation
+  requiredField: "Dieses Feld ist erforderlich",
+  invalidEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+  invalidPassword: "Das Passwort muss mindestens 6 Zeichen lang sein",
+  
+  // Languages
+  language: "Sprache",
+  english: "Englisch",
+  polish: "Polnisch",
+  czech: "Tschechisch",
+  german: "Deutsch",
+  french: "Französisch"
 };
