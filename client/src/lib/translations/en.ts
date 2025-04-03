@@ -24,10 +24,7 @@ const translations = {
   button: {
     upload: "Upload",
     cancel: "Cancel",
-    share: "Share",
-    back: "Back to main page",
-    view: "View model",
-    delete: "Delete"
+    share: "Share"
   },
   
   // Home page
@@ -110,10 +107,7 @@ const translations = {
     },
     loading: "Please wait, processing your file",
     delete: {
-      warning: "This action is irreversible. The shared link will stop working and an email notification will be sent if an email was provided."
-    },
-    password: {
-      required: "This model requires a password to view"
+      warning: "Are you sure you want to delete this model? This action cannot be undone."
     }
   },
   
@@ -134,17 +128,7 @@ const translations = {
   
   // Layout
   app: {
-    footer: "CAD Viewer - © 2025 All rights reserved",
-    goto: "Go to application"
-  },
-  
-  // Model sharing
-  model: {
-    share: {
-      password: "Password required",
-      revoke: "Revoke access",
-      warning: "Are you sure?"
-    }
+    footer: "CAD Viewer - © 2025 All rights reserved"
   },
 
   // Error messages
