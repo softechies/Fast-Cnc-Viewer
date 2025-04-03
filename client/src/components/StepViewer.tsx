@@ -266,8 +266,19 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       };
       
+      // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
+      const useTryStlFirst = Boolean(stlFileInfo?.url);
+      
+      // Ustawmy flagę, czy próbować załadować model OpenCascade w trybie zaawansowanym
+      const useTryOpenCascade = renderMode === 'advanced';
+      
+      // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
+      const useAlwaysApproximate = false; // Testowa flaga - ustaw na true, aby zawsze używać przybliżenia
+      
       // Ustalenie kolejności parsowania w zależności od warunków
-      if (stlFileInfo?.url) {
+      
+      // 1. STL jest zawsze naszym pierwszym wyborem, jeśli jest dostępny
+      if (useTryStlFirst && stlFileInfo?.url) {
         // Jeśli dostępny jest plik STL, to zaczynamy od niego
         parsers.push(async () => {
           setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
@@ -325,13 +336,32 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Dodaj parser OpenCascade.js jeśli jesteśmy w trybie zaawansowanym
       if (renderMode === 'advanced') {
         parsers.push(async () => {
-          setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
-          // Dynamiczny import modułu OpenCascade
-          const { parseSTEPFile } = await import('../lib/opencascade-parser');
-          setDebugInfo("Parsowanie STEP z OpenCascade.js...");
-          const ocModel = await parseSTEPFile(stepContent);
-          setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
-          return ocModel;
+          try {
+            setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
+            // Dynamiczny import modułu OpenCascade
+            const { parseSTEPFile } = await import('../lib/opencascade-parser');
+            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
+            
+            // Ustawienie limitu czasu na wykonanie operacji
+            const timeoutPromise = new Promise<THREE.Group>((_, reject) => {
+              setTimeout(() => {
+                reject(new Error('Timeout podczas parsowania OpenCascade.js - przekroczony limit czasu'));
+              }, 15000); // 15 sekund limitu
+            });
+            
+            // Wykonaj parsowanie z limitem czasu
+            const ocModel = await Promise.race([
+              parseSTEPFile(stepContent),
+              timeoutPromise
+            ]);
+            
+            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
+            return ocModel;
+          } catch (error) {
+            setDebugInfo(`Błąd parsera OpenCascade.js: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+            console.error("Szczegóły błędu OpenCascade:", error);
+            throw error;
+          }
         });
       }
       

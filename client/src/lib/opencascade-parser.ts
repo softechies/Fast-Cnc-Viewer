@@ -37,69 +37,101 @@ export const initOpenCascade = async (): Promise<OpenCascadeInstance> => {
   
   loadingPromise = new Promise(async (resolve, reject) => {
     try {
-      console.log('Inicjalizacja OpenCascade.js...');
-      console.log('Próba ręcznego załadowania OpenCascade.js...');
+      console.log('Inicjalizacja OpenCascade.js z lokalnego pakietu...');
       
-      // Alternatywne podejście do ładowania OpenCascade.js bez ES modules
-      // Użyjemy importu skryptu jako alternatywy dla ES modules
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/opencascade.js@2.0.0-beta.b5ff984/dist/opencascade.js';
-      
-      // Utwórz obiekt OpenCascade z globalnej przestrzeni nazw
-      const openCascade = await new Promise<any>((resolve, reject) => {
-        script.onload = async () => {
-          try {
-            console.log('Skrypt OpenCascade.js załadowany, inicjalizacja WASM...');
-            
-            // @ts-ignore - OpenCASCADE powinno być teraz dostępne globalnie
-            const oc = await globalThis.OpenCascade({
-              locateFile: (filename: string) => {
-                console.log(`Lokalizowanie pliku WASM: ${filename}`);
-                return `https://cdn.jsdelivr.net/npm/opencascade.js@2.0.0-beta.b5ff984/dist/${filename}`;
-              },
-              onRuntimeInitialized: () => {
-                console.log('Runtime OpenCascade.js zainicjalizowany');
-              }
-            });
-            
-            console.log('OpenCascade.js pomyślnie załadowany przez skrypt globalny');
-            resolve(oc);
-          } catch (error) {
-            console.error('Błąd inicjalizacji OpenCascade przez skrypt:', error);
-            reject(error);
-          }
+      // Dynamiczny import lokalnego pakietu OpenCascade.js
+      try {
+        const OC = await import('opencascade.js');
+        console.log('Moduł OpenCascade.js zaimportowany, inicjalizacja...');
+        
+        // Inicjalizacja modułu
+        const openCascade = await OC.default();
+        
+        console.log('OpenCascade.js załadowany pomyślnie!');
+        
+        openCascadeInstance = {
+          BRep_Builder: openCascade.BRep_Builder,
+          TopoDS_Compound: openCascade.TopoDS_Compound,
+          StlAPI_Writer: openCascade.StlAPI_Writer,
+          STEPControl_Reader: openCascade.STEPControl_Reader,
+          IFSelect_ReturnStatus: openCascade.IFSelect_ReturnStatus,
+          TopExp_Explorer: openCascade.TopExp_Explorer,
+          TopAbs_SOLID: openCascade.TopAbs_SOLID,
+          TopAbs_SHELL: openCascade.TopAbs_SHELL,
+          TopAbs_FACE: openCascade.TopAbs_FACE,
+          TopAbs_EDGE: openCascade.TopAbs_EDGE,
+          TopAbs_VERTEX: openCascade.TopAbs_VERTEX,
+          Handle_StepData_StepModel: openCascade.Handle_StepData_StepModel,
+          opencascade: openCascade
         };
         
-        script.onerror = (event) => {
-          console.error('Błąd ładowania skryptu OpenCascade.js:', event);
-          reject(new Error('Nie udało się załadować skryptu OpenCascade.js'));
+        console.log('OpenCascade.js zainicjalizowany!');
+        isLoadingInstance = false;
+        resolve(openCascadeInstance);
+      } catch (importError) {
+        console.error('Błąd podczas importu lokalnego pakietu OpenCascade.js:', importError);
+        
+        // Fallback - spróbujmy załadować z CDN jako alternatywę
+        console.log('Próba załadowania z CDN jako alternatywa...');
+        const script = document.createElement('script');
+        script.src = '/node_modules/opencascade.js/dist/opencascade.js';
+        
+        // Utwórz obiekt OpenCascade z globalnej przestrzeni nazw
+        const openCascade = await new Promise<any>((resolve, reject) => {
+          script.onload = async () => {
+            try {
+              console.log('Skrypt OpenCascade.js załadowany, inicjalizacja WASM...');
+              
+              // @ts-ignore - OpenCASCADE powinno być teraz dostępne globalnie
+              const oc = await globalThis.OpenCascade({
+                locateFile: (filename: string) => {
+                  console.log(`Lokalizowanie pliku WASM: ${filename}`);
+                  return `/node_modules/opencascade.js/dist/${filename}`;
+                },
+                onRuntimeInitialized: () => {
+                  console.log('Runtime OpenCascade.js zainicjalizowany');
+                }
+              });
+              
+              console.log('OpenCascade.js pomyślnie załadowany przez alternatywny skrypt');
+              resolve(oc);
+            } catch (error) {
+              console.error('Błąd inicjalizacji OpenCascade.js przez alternatywny skrypt:', error);
+              reject(error);
+            }
+          };
+          
+          script.onerror = (event) => {
+            console.error('Błąd ładowania alternatywnego skryptu OpenCascade.js:', event);
+            reject(new Error('Nie udało się załadować skryptu OpenCascade.js'));
+          };
+          
+          // Dodaj skrypt do dokumentu
+          document.head.appendChild(script);
+        });
+        
+        console.log('OpenCascade.js załadowany pomyślnie przez alternatywną metodę!');
+        
+        openCascadeInstance = {
+          BRep_Builder: openCascade.BRep_Builder,
+          TopoDS_Compound: openCascade.TopoDS_Compound,
+          StlAPI_Writer: openCascade.StlAPI_Writer,
+          STEPControl_Reader: openCascade.STEPControl_Reader,
+          IFSelect_ReturnStatus: openCascade.IFSelect_ReturnStatus,
+          TopExp_Explorer: openCascade.TopExp_Explorer,
+          TopAbs_SOLID: openCascade.TopAbs_SOLID,
+          TopAbs_SHELL: openCascade.TopAbs_SHELL,
+          TopAbs_FACE: openCascade.TopAbs_FACE,
+          TopAbs_EDGE: openCascade.TopAbs_EDGE,
+          TopAbs_VERTEX: openCascade.TopAbs_VERTEX,
+          Handle_StepData_StepModel: openCascade.Handle_StepData_StepModel,
+          opencascade: openCascade
         };
         
-        // Dodaj skrypt do dokumentu
-        document.head.appendChild(script);
-      });
-      
-      console.log('OpenCascade.js załadowany pomyślnie!');
-      
-      openCascadeInstance = {
-        BRep_Builder: openCascade.BRep_Builder,
-        TopoDS_Compound: openCascade.TopoDS_Compound,
-        StlAPI_Writer: openCascade.StlAPI_Writer,
-        STEPControl_Reader: openCascade.STEPControl_Reader,
-        IFSelect_ReturnStatus: openCascade.IFSelect_ReturnStatus,
-        TopExp_Explorer: openCascade.TopExp_Explorer,
-        TopAbs_SOLID: openCascade.TopAbs_SOLID,
-        TopAbs_SHELL: openCascade.TopAbs_SHELL,
-        TopAbs_FACE: openCascade.TopAbs_FACE,
-        TopAbs_EDGE: openCascade.TopAbs_EDGE,
-        TopAbs_VERTEX: openCascade.TopAbs_VERTEX,
-        Handle_StepData_StepModel: openCascade.Handle_StepData_StepModel,
-        opencascade: openCascade
-      };
-      
-      console.log('OpenCascade.js zainicjalizowany!');
-      isLoadingInstance = false;
-      resolve(openCascadeInstance);
+        console.log('OpenCascade.js zainicjalizowany przez alternatywną metodę!');
+        isLoadingInstance = false;
+        resolve(openCascadeInstance);
+      }
     } catch (error) {
       console.error('Błąd inicjalizacji OpenCascade.js:', error);
       isLoadingInstance = false;
