@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import traceback
+import numpy as np
 import ezdxf
 from ezdxf.addons import r12writer
 
@@ -208,55 +209,55 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         svg_width = "100%"
         svg_height = "100%"
         
-        # Poprawiamy współrzędne viewBox dla lepszego centrowania
-        # Znajdźmy punkt środkowy rysunku
+        # Uproszczone podejście - używamy faktycznych wymiarów
+        # i środkujemy rysunek
+        
+        # Znajdujemy punkt środkowy rysunku
         center_x = (min_x + max_x) / 2
-        center_y = (min_y_flipped + max_y_flipped) / 2
+        center_y = (min_y + max_y) / 2
         
-        # Obliczamy wymiary viewBox w taki sposób, aby rysunek był wycentrowany
-        max_dim = max(width, height_flipped)
-        view_min_x = center_x - max_dim / 2
-        view_min_y = center_y - max_dim / 2
+        # Dodajemy 10% marginesu do lepszej wizualizacji
+        padding = max(width, height) * 0.1
+        adjusted_width = width + 2 * padding
+        adjusted_height = height + 2 * padding
         
-        # Używamy skorygowanego viewBox 
+        # Obliczamy skorygowane współrzędne viewBox
+        view_min_x = min_x - padding
+        view_max_x = max_x + padding
+        view_min_y = min_y - padding
+        view_max_y = max_y + padding
+        
+        # Odwracamy współrzędne Y
+        view_min_y_flipped = -view_max_y
+        view_height_flipped = adjusted_height
+        
+        # Używamy prostego viewBox obejmującego cały rysunek z marginesem
         lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
-          viewBox="{view_min_x} {view_min_y} {max_dim} {max_dim}"
+          viewBox="{view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}"
           width="{svg_width}" height="{svg_height}"
           preserveAspectRatio="xMidYMid meet">''')
         
         # Dodajemy tło do lepszej wizualizacji
-        lines.append(f'<rect x="{view_min_x}" y="{view_min_y}" width="{max_dim}" height="{max_dim}" fill="#ffffff" />')
+        lines.append(f'<rect x="{view_min_x}" y="{view_min_y_flipped}" width="{adjusted_width}" height="{view_height_flipped}" fill="#ffffff" />')
         
         # Dodajemy grupę dla wszystkich elementów
         lines.append('<g>')
         
-        # Dodaj grid - używamy nowego viewBox do obliczenia siatki
-        grid_size = max_dim / 20  # Dzielimy maksymalny wymiar na 20 części
+        # Używamy siatki bazującej na faktycznych wymiarach rysunku
+        grid_step = adjusted_width / 20  # 20 podziałek na szerokość
         lines.append(f'<g id="grid" stroke="#d0d0d0" stroke-width="0.1" opacity="0.5">')
         
         # Obsługa zakresu wartości
         try:
-            # Przekonwertuj na liczby całkowite bezpiecznie
-            x_min = int(view_min_x // grid_size)
-            x_max = int((view_min_x + max_dim) // grid_size + 1)
-            y_min = int(view_min_y // grid_size)
-            y_max = int((view_min_y + max_dim) // grid_size + 1)
+            # Rysujemy siatkę pionową - linie równoległe do osi Y
+            for x in np.arange(view_min_x, view_max_x, grid_step):
+                lines.append(f'<line x1="{x}" y1="{view_min_y_flipped}" x2="{x}" y2="{view_min_y_flipped + view_height_flipped}" stroke-width="0.1" />')
             
-            # Ogranicz zakres jeśli jest zbyt duży
-            if x_max - x_min > 100:
-                x_max = x_min + 100
-            if y_max - y_min > 100:
-                y_max = y_min + 100
-                
-            grid_step = max(1, int(grid_size))
-            
-            # Rysujemy siatkę pionową
-            for x in range(x_min * grid_step, x_max * grid_step, grid_step):
-                lines.append(f'<line x1="{x}" y1="{view_min_y}" x2="{x}" y2="{view_min_y + max_dim}" stroke-width="0.1" />')
-            
-            # Rysujemy siatkę poziomą
-            for y in range(y_min * grid_step, y_max * grid_step, grid_step):
-                lines.append(f'<line x1="{view_min_x}" y1="{y}" x2="{view_min_x + max_dim}" y2="{y}" stroke-width="0.1" />')
+            # Rysujemy siatkę poziomą - linie równoległe do osi X
+            for y in np.arange(view_min_y, view_max_y, grid_step):
+                # Odwracamy współrzędne Y
+                y_flipped = -y
+                lines.append(f'<line x1="{view_min_x}" y1="{y_flipped}" x2="{view_max_x}" y2="{y_flipped}" stroke-width="0.1" />')
                 
         except Exception as e:
             with open("/tmp/dxf_debug.log", "a") as f:
@@ -266,12 +267,12 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         
         # Dodaj osie dla nowego viewBox
         # Używamy środka obszaru viewBox jako punktu przecięcia osi
-        mid_x = view_min_x + max_dim / 2
-        mid_y = view_min_y + max_dim / 2
+        mid_x = view_min_x + adjusted_width / 2
+        mid_y_flipped = view_min_y_flipped + view_height_flipped / 2
         
         lines.append(f'<g id="axes">')
-        lines.append(f'<line x1="{view_min_x}" y1="{mid_y}" x2="{view_min_x + max_dim}" y2="{mid_y}" stroke="red" stroke-width="0.2" />')
-        lines.append(f'<line x1="{mid_x}" y1="{view_min_y}" x2="{mid_x}" y2="{view_min_y + max_dim}" stroke="blue" stroke-width="0.2" />')
+        lines.append(f'<line x1="{view_min_x}" y1="{mid_y_flipped}" x2="{view_min_x + adjusted_width}" y2="{mid_y_flipped}" stroke="red" stroke-width="0.2" />')
+        lines.append(f'<line x1="{mid_x}" y1="{view_min_y_flipped}" x2="{mid_x}" y2="{view_min_y_flipped + view_height_flipped}" stroke="blue" stroke-width="0.2" />')
         lines.append('</g>')
         
         # Dodaj encje
