@@ -2,8 +2,8 @@ import { useRef, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-import { initScene, setupLights, createGridHelper } from '@/lib/three-utils';
+import { initScene, setupLights, createGridHelper, fitCameraToObject } from '@/lib/three-utils';
+import { createModelFromSTEP } from '@/lib/step-parser';
 import ViewerControls from '@/components/ViewerControls';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -83,28 +83,53 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
       setModel(null);
     }
     
-    // In a real app, we would parse the STEP file here
-    // Since we can't directly render STEP in Three.js, we'd normally:
-    // 1. Convert STEP to an intermediate format (like STL) on the server
-    // 2. Load the converted file with appropriate loader
-    
-    // For this demo, let's create a simple geometric shape
-    const geometry = new THREE.BoxGeometry(10, 10, 10);
-    const material = new THREE.MeshStandardMaterial({ 
-      color: 0x3b82f6,
-      metalness: 0.3,
-      roughness: 0.4,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    
-    scene.add(mesh);
-    setModel(mesh);
-    
-    // Reset camera view
-    if (camera && controls) {
-      camera.position.set(20, 20, 20);
-      controls.target.set(0, 0, 0);
-      controls.update();
+    try {
+      // Create a reader to parse the STEP file content
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        if (!event.target || !event.target.result) return;
+        
+        // Parse the STEP file content
+        const stepContent = event.target.result as string;
+        
+        // Create a 3D model from the STEP file using our parser
+        const stepModel = createModelFromSTEP(stepContent);
+        
+        // Add model to scene
+        scene.add(stepModel);
+        setModel(stepModel);
+        
+        // Reset camera and fit view to model
+        if (camera && controls) {
+          // Try to fit camera to model bounds
+          fitCameraToObject(camera, stepModel, 1.5, controls);
+        }
+      };
+      
+      // Read the model file as text
+      reader.readAsText(modelFile as Blob);
+    } catch (error) {
+      console.error("Error loading model:", error);
+      
+      // Fallback to simple box model if loading fails
+      const geometry = new THREE.BoxGeometry(10, 10, 10);
+      const material = new THREE.MeshStandardMaterial({ 
+        color: 0x3b82f6,
+        metalness: 0.3,
+        roughness: 0.4,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      scene.add(mesh);
+      setModel(mesh);
+      
+      // Reset camera view
+      if (camera && controls) {
+        camera.position.set(20, 20, 20);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
     }
   }, [scene, modelFile, camera, controls]);
   
@@ -146,10 +171,8 @@ export default function Viewer3D({ modelId }: Viewer3DProps) {
   const handleFitToView = () => {
     if (!camera || !controls || !model) return;
     
-    // Reset view to fit model
-    camera.position.set(20, 20, 20);
-    controls.target.set(0, 0, 0);
-    controls.update();
+    // Fit camera to model bounds
+    fitCameraToObject(camera, model, 1.5, controls);
   };
   
   if (isLoading) {
