@@ -51,6 +51,7 @@ export const en = {
   
   // Model properties
   'model.parts': 'Parts',
+  'model.assemblies': 'Assemblies',
   'model.surfaces': 'Surfaces',
   'model.solids': 'Solids',
   'model.entities': 'Entities',

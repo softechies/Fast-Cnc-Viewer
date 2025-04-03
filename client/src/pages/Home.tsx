@@ -7,10 +7,13 @@ import UploadModal from "@/components/UploadModal";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useModelUpload } from "@/lib/hooks";
-import { Box, InfoIcon } from "lucide-react";
+import { Box, InfoIcon, Upload } from "lucide-react";
 import { ModelInfo as ModelInfoType } from "@shared/schema";
+import { useLanguage } from "@/lib/LanguageContext";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("info");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
@@ -19,15 +22,15 @@ export default function Home() {
       setActiveModelId(data.id);
       setIsUploadModalOpen(false);
       toast({
-        title: "Wczytano plik",
-        description: `Plik ${data.filename} został pomyślnie wczytany.`,
+        title: t('message.upload.success', { filename: data.filename }),
+        description: t('message.upload.success', { filename: data.filename }),
         duration: 3000,
       });
     },
     onError: (error) => {
       toast({
-        title: "Błąd wczytywania pliku",
-        description: error.message || "Nie udało się wczytać pliku STEP.",
+        title: t('message.upload.error'),
+        description: error.message || t('error.file.load'),
         variant: "destructive",
       });
     },
@@ -52,15 +55,15 @@ export default function Home() {
           {!hasModel ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
               <Box className="w-16 h-16 mb-4 text-gray-300" />
-              <h2 className="text-xl font-medium mb-2">Brak modelu do wyświetlenia</h2>
-              <p className="text-center max-w-md mb-6">Wczytaj plik CAD (STEP, STL, DXF, DWG) aby rozpocząć przeglądanie</p>
-              <button 
+              <h2 className="text-xl font-medium mb-2">{t('header.no.model')}</h2>
+              <p className="text-center max-w-md mb-6">{t('message.no.model')}</p>
+              <Button 
                 onClick={() => setIsUploadModalOpen(true)} 
-                className="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center font-medium transition-colors duration-200"
+                className="bg-primary hover:bg-blue-700 text-white"
               >
-                <i className="fas fa-upload mr-2"></i>
-                <span>Wczytaj plik CAD</span>
-              </button>
+                <Upload className="mr-2 h-4 w-4" />
+                <span>{t('button.upload')}</span>
+              </Button>
             </div>
           ) : (
             <ModelViewer modelId={activeModelId} />
@@ -71,7 +74,7 @@ export default function Home() {
           <div className="w-full h-10 bg-slate-100 border-b border-gray-200 flex items-center px-3">
             <div className="flex items-center gap-2">
               <InfoIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">Informacje o modelu</span>
+              <span className="text-sm font-medium">{t('header.model.info')}</span>
             </div>
           </div>
           <div className="flex-grow">
@@ -85,7 +88,7 @@ export default function Home() {
       </main>
       
       <FooterBar 
-        modelName={modelInfo?.filename || "Brak aktywnego modelu"} 
+        modelName={modelInfo?.filename || t('model.no.active')} 
         partCount={modelInfo?.parts || 0} 
         entityCount={(modelInfo?.surfaces || 0) + (modelInfo?.solids || 0)}
       />

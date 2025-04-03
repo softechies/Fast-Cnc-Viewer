@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Upload, X, FileUp } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function UploadModal({
   uploadProgress, 
   onUpload 
 }: UploadModalProps) {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -71,7 +73,7 @@ export default function UploadModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Wczytaj plik CAD</DialogTitle>
+          <DialogTitle className="text-xl">{t('button.upload')}</DialogTitle>
         </DialogHeader>
         
         {isUploading ? (
@@ -79,8 +81,8 @@ export default function UploadModal({
             <div className="flex items-center justify-center mb-4">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
-            <h3 className="text-center font-medium text-lg mb-2">Przetwarzanie pliku</h3>
-            <p className="text-center text-gray-500 mb-4">Proszę czekać, trwa ładowanie modelu...</p>
+            <h3 className="text-center font-medium text-lg mb-2">{t('label.verification')}</h3>
+            <p className="text-center text-gray-500 mb-4">{t('message.loading')}</p>
             <Progress value={uploadProgress} className="h-2" />
           </div>
         ) : (
@@ -94,8 +96,8 @@ export default function UploadModal({
               <FileUp className="h-10 w-10 text-gray-400 mb-4" />
               <p className="text-sm text-gray-500 text-center mb-4">
                 {selectedFile 
-                  ? `Wybrany plik: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
-                  : 'Przeciągnij i upuść plik CAD, albo kliknij aby wybrać'}
+                  ? `${t('label.file')}: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
+                  : t('message.no.model')}
               </p>
               <input 
                 type="file" 
@@ -108,24 +110,24 @@ export default function UploadModal({
                 onClick={handleBrowseClick}
                 className="bg-primary hover:bg-blue-700"
               >
-                Wybierz plik
+                {t('button.upload')}
               </Button>
             </div>
-            <p className="mt-2 text-xs text-gray-500">Obsługiwane formaty: STEP (AP203, AP214), STL, DXF, DWG</p>
+            <p className="mt-2 text-xs text-gray-500">STEP (AP203, AP214), STL, DXF, DWG</p>
             
             <DialogFooter className="mt-4">
               <Button 
                 variant="outline" 
                 onClick={handleClose}
               >
-                Anuluj
+                {t('button.cancel')}
               </Button>
               <Button
                 disabled={!selectedFile}
                 onClick={handleUpload}
                 className="bg-primary hover:bg-blue-700"
               >
-                Wczytaj
+                {t('button.upload')}
               </Button>
             </DialogFooter>
           </>

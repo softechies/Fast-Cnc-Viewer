@@ -9,6 +9,22 @@ import FileUploadTest from "@/pages/FileUploadTest";
 import SharedModelPage from "@/pages/SharedModelPage";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
 
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AppContent />
+        <Toaster />
+      </LanguageProvider>
+    </QueryClientProvider>
+  );
+}
+
+// Komponent z główną zawartością aplikacji
+function AppContent() {
+  return <Router />;
+}
+
 // Sprawdza czy jesteśmy na stronie udostępnionego modelu
 function SharedModelLayout() {
   const [isSharedRoute] = useRoute("/shared/:shareId");
@@ -54,17 +70,6 @@ function Router() {
         {t('app.footer')}
       </footer>
     </div>
-  );
-}
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <Router />
-        <Toaster />
-      </LanguageProvider>
-    </QueryClientProvider>
   );
 }
 
