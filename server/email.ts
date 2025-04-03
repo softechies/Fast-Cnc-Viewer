@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Model } from '@shared/schema';
 import { Language } from '../client/src/lib/translations';
-import { getTranslation } from '../client/src/lib/translations';
 
 // Konfiguracja transportera do wysyłania e-maili
 let transporter: nodemailer.Transporter;

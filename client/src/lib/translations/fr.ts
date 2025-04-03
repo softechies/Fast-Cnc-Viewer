@@ -1,76 +1,99 @@
-// French translations
-export const fr = {
-  // Common elements
-  upload: 'Télécharger',
-  download: 'Télécharger',
-  share: 'Partager',
-  delete: 'Supprimer',
-  cancel: 'Annuler',
-  close: 'Fermer',
-  save: 'Enregistrer',
-  loading: 'Chargement...',
-  error: 'Erreur',
-  success: 'Succès',
+export default {
+  // General
+  appName: "CAD Viewer",
+  welcome: "Bienvenue sur CAD Viewer",
+  loading: "Chargement...",
   
-  // Navigation and header
-  fileMenu: 'Fichier',
-  viewMenu: 'Affichage',
-  helpMenu: 'Aide',
-  language: 'Langue',
-  settings: 'Paramètres',
+  // Header
+  uploadModel: "Télécharger un modèle",
+  signIn: "Se connecter",
+  signUp: "S'inscrire",
+  signOut: "Se déconnecter",
+  profile: "Profil",
+  settings: "Paramètres",
   
-  // Home page
-  noPreviousFiles: 'Aucun fichier téléchargé',
-  supportedFormats: 'Téléchargez des fichiers CAO aux formats STEP, STL, DXF ou DWG pour les visualiser',
-  modelInformation: 'Informations sur le modèle',
+  // Navigation
+  home: "Accueil",
+  models: "Modèles",
+  shared: "Partagés",
   
-  // Upload
-  uploadFailed: 'Échec du téléchargement',
-  uploadProgress: 'Progression du téléchargement: {{percent}}%',
-  dropFilesHere: 'Déposez les fichiers ici ou cliquez pour parcourir',
-  selectFile: 'Sélectionner un fichier',
-  processing: 'Traitement du fichier...',
-  fileError: 'Un problème est survenu lors du traitement du fichier',
+  // Actions
+  upload: "Télécharger",
+  download: "Télécharger",
+  cancel: "Annuler",
+  save: "Enregistrer",
+  delete: "Supprimer",
+  share: "Partager",
+  view: "Voir",
+  edit: "Modifier",
+  add: "Ajouter",
+  remove: "Supprimer",
+  copy: "Copier",
   
-  // Model viewer
-  pan: 'Déplacer',
-  rotate: 'Pivoter',
-  zoomIn: 'Zoomer',
-  zoomOut: 'Dézoomer',
-  fitToView: 'Ajuster à la vue',
-  wireframe: 'Filaire',
-  solid: 'Solide',
-  
-  // Model info
-  parts: 'Pièces',
-  surfaces: 'Surfaces',
-  edges: 'Arêtes',
-  vertices: 'Sommets',
-  fileType: 'Type de fichier',
-  fileSize: 'Taille du fichier',
-  uploadDate: 'Date de téléchargement',
+  // Model Info
+  modelInformation: "Informations sur le modèle",
+  fileName: "Nom du fichier",
+  fileType: "Type de fichier",
+  fileSize: "Taille du fichier",
+  createdDate: "Date de création",
+  modifiedDate: "Date de modification",
+  sharedModel: "Modèle partagé",
+  modelEntities: "Entités du modèle",
+  parts: "Pièces",
+  assemblies: "Assemblages",
+  surfaces: "Surfaces",
+  solids: "Solides",
+  additionalInfo: "Informations supplémentaires",
   
   // Sharing
-  shareModel: 'Partager le modèle',
-  shareViaEmail: 'Partager par e-mail',
-  recipientEmail: 'E-mail du destinataire',
-  shareDescription: 'Ajouter une description',
-  shareLinkCopied: 'Lien de partage copié dans le presse-papiers',
-  shareSuccess: 'Modèle partagé avec succès',
-  shareFailed: 'Échec du partage du modèle',
-  accessShared: 'Accéder au modèle partagé',
-  enterPassword: 'Entrez le mot de passe',
+  shareModel: "Partager le modèle",
+  shareLink: "Lien de partage",
+  shareSuccess: "Modèle partagé avec succès",
+  shareCopied: "Lien copié dans le presse-papiers",
+  shareWithPassword: "Partager avec un mot de passe",
+  passwordProtected: "Protégé par mot de passe",
+  shareViaEmail: "Partager par e-mail",
+  emailRecipient: "E-mail du destinataire",
+  setPassword: "Définir un mot de passe",
+  setExpiry: "Définir une date d'expiration",
+  passwordPlaceholder: "Entrez le mot de passe pour le lien partagé",
+  shareExpiry: "Expiration du partage",
   
-  // Notifications
-  fileDeleted: 'Fichier supprimé avec succès',
-  fileDeleteFailed: 'Échec de la suppression du fichier',
+  // Upload
+  uploadTitle: "Télécharger un modèle CAD",
+  uploadDescription: "Formats pris en charge: STEP, STL, DXF, DWG",
+  dragAndDrop: "Glissez-déposez les fichiers ici ou cliquez pour parcourir",
+  selectFiles: "Sélectionner des fichiers",
+  uploadProgress: "Progression du téléchargement",
   
-  // Errors
-  notFound: 'Non trouvé',
-  fileNotFound: 'Fichier non trouvé',
-  unsupportedFormat: 'Format de fichier non pris en charge',
+  // Messages
+  confirmDelete: "Êtes-vous sûr de vouloir supprimer ce modèle?",
+  deleteWarning: "Cette action ne peut pas être annulée.",
+  uploadSuccess: "Modèle téléchargé avec succès",
+  uploadError: "Échec du téléchargement du modèle",
+  shareEmailSent: "Lien de partage envoyé par e-mail",
+  shareRevoked: "Le partage a été révoqué",
+  errorOccurred: "Une erreur s'est produite",
   
-  // Email templates
-  emailSubject: 'Modèle CAO partagé avec vous',
-  emailRevoked: 'Partage du modèle CAO révoqué'
+  // Footer
+  copyright: "© 2025 CAD Viewer. Tous droits réservés.",
+  termsOfService: "Conditions d'utilisation",
+  privacyPolicy: "Politique de confidentialité",
+  
+  // Empty States
+  noModels: "Aucun modèle à afficher",
+  noSharedModels: "Aucun modèle partagé à afficher",
+  
+  // Validation
+  requiredField: "Ce champ est obligatoire",
+  invalidEmail: "Veuillez entrer une adresse e-mail valide",
+  invalidPassword: "Le mot de passe doit comporter au moins 6 caractères",
+  
+  // Languages
+  language: "Langue",
+  english: "Anglais",
+  polish: "Polonais",
+  czech: "Tchèque",
+  german: "Allemand",
+  french: "Français"
 };

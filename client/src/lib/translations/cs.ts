@@ -38,7 +38,7 @@ export default {
   createdDate: "Datum vytvoření",
   modifiedDate: "Datum úpravy",
   sharedModel: "Sdílený model",
-  modelEntities: "Objekty modelu",
+  modelEntities: "Entity modelu",
   parts: "Díly",
   assemblies: "Sestavy",
   surfaces: "Povrchy",
@@ -47,13 +47,13 @@ export default {
   
   // Sharing
   shareModel: "Sdílet model",
-  shareLink: "Odkaz na sdílení",
+  shareLink: "Odkaz pro sdílení",
   shareSuccess: "Model byl úspěšně sdílen",
   shareCopied: "Odkaz zkopírován do schránky",
   shareWithPassword: "Sdílet s heslem",
   passwordProtected: "Chráněno heslem",
-  shareViaEmail: "Sdílet přes email",
-  emailRecipient: "Email příjemce",
+  shareViaEmail: "Sdílet e-mailem",
+  emailRecipient: "E-mail příjemce",
   setPassword: "Nastavit heslo",
   setExpiry: "Nastavit datum vypršení",
   passwordPlaceholder: "Zadejte heslo pro sdílený odkaz",
@@ -67,11 +67,11 @@ export default {
   uploadProgress: "Průběh nahrávání",
   
   // Messages
-  confirmDelete: "Opravdu chcete tento model smazat?",
+  confirmDelete: "Opravdu chcete smazat tento model?",
   deleteWarning: "Tuto akci nelze vrátit zpět.",
   uploadSuccess: "Model byl úspěšně nahrán",
-  uploadError: "Nepodařilo se nahrát model",
-  shareEmailSent: "Odkaz na sdílení byl odeslán emailem",
+  uploadError: "Nahrání modelu se nezdařilo",
+  shareEmailSent: "Odkaz pro sdílení byl odeslán e-mailem",
   shareRevoked: "Sdílení bylo zrušeno",
   errorOccurred: "Došlo k chybě",
   
@@ -86,7 +86,7 @@ export default {
   
   // Validation
   requiredField: "Toto pole je povinné",
-  invalidEmail: "Zadejte platnou emailovou adresu",
+  invalidEmail: "Zadejte platnou e-mailovou adresu",
   invalidPassword: "Heslo musí mít alespoň 6 znaků",
   
   // Languages
@@ -95,5 +95,14 @@ export default {
   polish: "Polština",
   czech: "Čeština",
   german: "Němčina",
-  french: "Francouzština"
+  french: "Francouzština",
+
+  // Legacy keys
+  "app.footer": "© 2025 CAD Viewer. Všechna práva vyhrazena.",
+  "noPreviousFiles": "Žádné dříve nahrané soubory",
+  "supportedFormats": "Podporované formáty: STEP, STL, DXF, DWG",
+  "applicationName": "CAD Viewer",
+  "button.upload": "Nahrát",
+  "message.no.model": "Není vybrán žádný model",
+  "button.cancel": "Zrušit"
 };

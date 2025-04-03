@@ -5,10 +5,10 @@ export default {
   loading: "Loading...",
   
   // Header
-  uploadModel: "Upload Model",
-  signIn: "Sign In",
-  signUp: "Sign Up",
-  signOut: "Sign Out",
+  uploadModel: "Upload model",
+  signIn: "Sign in",
+  signUp: "Sign up",
+  signOut: "Sign out",
   profile: "Profile",
   settings: "Settings",
   
@@ -32,46 +32,46 @@ export default {
   
   // Model Info
   modelInformation: "Model Information",
-  fileName: "File Name",
-  fileType: "File Type",
-  fileSize: "File Size",
-  createdDate: "Created Date",
-  modifiedDate: "Modified Date",
-  sharedModel: "Shared Model",
-  modelEntities: "Model Entities",
+  fileName: "File name",
+  fileType: "File type",
+  fileSize: "File size",
+  createdDate: "Created date",
+  modifiedDate: "Modified date",
+  sharedModel: "Shared model",
+  modelEntities: "Model entities",
   parts: "Parts",
   assemblies: "Assemblies",
   surfaces: "Surfaces",
   solids: "Solids",
-  additionalInfo: "Additional Information",
+  additionalInfo: "Additional information",
   
   // Sharing
-  shareModel: "Share Model",
-  shareLink: "Share Link",
+  shareModel: "Share model",
+  shareLink: "Share link",
   shareSuccess: "Model shared successfully",
   shareCopied: "Link copied to clipboard",
   shareWithPassword: "Share with password",
   passwordProtected: "Password protected",
   shareViaEmail: "Share via email",
-  emailRecipient: "Recipient email",
+  emailRecipient: "Email recipient",
   setPassword: "Set password",
-  setExpiry: "Set expiry date",
-  passwordPlaceholder: "Enter password for shared link",
-  shareExpiry: "Share expiry",
+  setExpiry: "Set expiration date",
+  passwordPlaceholder: "Enter password for the shared link",
+  shareExpiry: "Share expiration",
   
   // Upload
-  uploadTitle: "Upload CAD Model",
+  uploadTitle: "Upload CAD model",
   uploadDescription: "Supported formats: STEP, STL, DXF, DWG",
   dragAndDrop: "Drag and drop files here or click to browse",
-  selectFiles: "Select Files",
-  uploadProgress: "Upload Progress",
+  selectFiles: "Select files",
+  uploadProgress: "Upload progress",
   
   // Messages
   confirmDelete: "Are you sure you want to delete this model?",
   deleteWarning: "This action cannot be undone.",
   uploadSuccess: "Model uploaded successfully",
   uploadError: "Failed to upload model",
-  shareEmailSent: "Share link sent to email",
+  shareEmailSent: "Share link sent via email",
   shareRevoked: "Sharing has been revoked",
   errorOccurred: "An error occurred",
   
@@ -87,7 +87,7 @@ export default {
   // Validation
   requiredField: "This field is required",
   invalidEmail: "Please enter a valid email address",
-  invalidPassword: "Password must be at least 6 characters",
+  invalidPassword: "Password must be at least 6 characters long",
   
   // Languages
   language: "Language",
@@ -95,5 +95,14 @@ export default {
   polish: "Polish",
   czech: "Czech",
   german: "German",
-  french: "French"
+  french: "French",
+
+  // Legacy keys
+  "app.footer": "© 2025 CAD Viewer. All rights reserved.",
+  "noPreviousFiles": "No previously uploaded files",
+  "supportedFormats": "Supported formats: STEP, STL, DXF, DWG",
+  "applicationName": "CAD Viewer",
+  "button.upload": "Upload",
+  "message.no.model": "No model selected",
+  "button.cancel": "Cancel"
 };

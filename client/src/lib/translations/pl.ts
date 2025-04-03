@@ -5,10 +5,10 @@ export default {
   loading: "Ładowanie...",
   
   // Header
-  uploadModel: "Wgraj Model",
+  uploadModel: "Wyślij model",
   signIn: "Zaloguj się",
   signUp: "Zarejestruj się",
-  signOut: "Wyloguj się",
+  signOut: "Wyloguj",
   profile: "Profil",
   settings: "Ustawienia",
   
@@ -18,13 +18,13 @@ export default {
   shared: "Udostępnione",
   
   // Actions
-  upload: "Wgraj",
+  upload: "Wyślij",
   download: "Pobierz",
   cancel: "Anuluj",
   save: "Zapisz",
   delete: "Usuń",
   share: "Udostępnij",
-  view: "Zobacz",
+  view: "Wyświetl",
   edit: "Edytuj",
   add: "Dodaj",
   remove: "Usuń",
@@ -37,7 +37,7 @@ export default {
   fileSize: "Rozmiar pliku",
   createdDate: "Data utworzenia",
   modifiedDate: "Data modyfikacji",
-  sharedModel: "Udostępniony model",
+  sharedModel: "Model udostępniony",
   modelEntities: "Elementy modelu",
   parts: "Części",
   assemblies: "Złożenia",
@@ -47,32 +47,32 @@ export default {
   
   // Sharing
   shareModel: "Udostępnij model",
-  shareLink: "Link do udostępnienia",
+  shareLink: "Link do udostępniania",
   shareSuccess: "Model udostępniony pomyślnie",
   shareCopied: "Link skopiowany do schowka",
   shareWithPassword: "Udostępnij z hasłem",
-  passwordProtected: "Chroniony hasłem",
-  shareViaEmail: "Udostępnij przez email",
-  emailRecipient: "Email odbiorcy",
+  passwordProtected: "Chronione hasłem",
+  shareViaEmail: "Udostępnij przez e-mail",
+  emailRecipient: "Adres e-mail odbiorcy",
   setPassword: "Ustaw hasło",
   setExpiry: "Ustaw datę wygaśnięcia",
   passwordPlaceholder: "Wprowadź hasło dla udostępnionego linku",
-  shareExpiry: "Data wygaśnięcia udostępnienia",
+  shareExpiry: "Wygaśnięcie udostępnienia",
   
   // Upload
-  uploadTitle: "Wgraj model CAD",
+  uploadTitle: "Wyślij model CAD",
   uploadDescription: "Obsługiwane formaty: STEP, STL, DXF, DWG",
   dragAndDrop: "Przeciągnij i upuść pliki tutaj lub kliknij, aby przeglądać",
   selectFiles: "Wybierz pliki",
-  uploadProgress: "Postęp wgrywania",
+  uploadProgress: "Postęp wysyłania",
   
   // Messages
   confirmDelete: "Czy na pewno chcesz usunąć ten model?",
-  deleteWarning: "Tej akcji nie można cofnąć.",
-  uploadSuccess: "Model wgrany pomyślnie",
-  uploadError: "Nie udało się wgrać modelu",
-  shareEmailSent: "Link do udostępnienia wysłany na email",
-  shareRevoked: "Udostępnianie zostało wycofane",
+  deleteWarning: "Tej operacji nie można cofnąć.",
+  uploadSuccess: "Model wysłany pomyślnie",
+  uploadError: "Nie udało się wysłać modelu",
+  shareEmailSent: "Link do udostępnienia wysłany przez e-mail",
+  shareRevoked: "Udostępnianie zostało odwołane",
   errorOccurred: "Wystąpił błąd",
   
   // Footer
@@ -86,7 +86,7 @@ export default {
   
   // Validation
   requiredField: "To pole jest wymagane",
-  invalidEmail: "Wprowadź poprawny adres email",
+  invalidEmail: "Wprowadź prawidłowy adres e-mail",
   invalidPassword: "Hasło musi mieć co najmniej 6 znaków",
   
   // Languages
@@ -95,5 +95,14 @@ export default {
   polish: "Polski",
   czech: "Czeski",
   german: "Niemiecki",
-  french: "Francuski"
+  french: "Francuski",
+
+  // Legacy keys
+  "app.footer": "© 2025 CAD Viewer. Wszelkie prawa zastrzeżone.",
+  "noPreviousFiles": "Brak wcześniej wysłanych plików",
+  "supportedFormats": "Obsługiwane formaty: STEP, STL, DXF, DWG",
+  "applicationName": "CAD Viewer",
+  "button.upload": "Wyślij",
+  "message.no.model": "Nie wybrano modelu",
+  "button.cancel": "Anuluj"
 };

@@ -41,23 +41,23 @@ export default {
   modelEntities: "Modellentitäten",
   parts: "Teile",
   assemblies: "Baugruppen",
-  surfaces: "Oberflächen",
-  solids: "Festkörper",
+  surfaces: "Flächen",
+  solids: "Körper",
   additionalInfo: "Zusätzliche Informationen",
   
   // Sharing
   shareModel: "Modell teilen",
-  shareLink: "Link teilen",
+  shareLink: "Link zum Teilen",
   shareSuccess: "Modell erfolgreich geteilt",
   shareCopied: "Link in die Zwischenablage kopiert",
   shareWithPassword: "Mit Passwort teilen",
   passwordProtected: "Passwortgeschützt",
   shareViaEmail: "Per E-Mail teilen",
-  emailRecipient: "E-Mail des Empfängers",
+  emailRecipient: "E-Mail-Empfänger",
   setPassword: "Passwort festlegen",
   setExpiry: "Ablaufdatum festlegen",
-  passwordPlaceholder: "Passwort für geteilten Link eingeben",
-  shareExpiry: "Ablaufdatum für Freigabe",
+  passwordPlaceholder: "Passwort für den geteilten Link eingeben",
+  shareExpiry: "Ablauf der Freigabe",
   
   // Upload
   uploadTitle: "CAD-Modell hochladen",
@@ -95,5 +95,14 @@ export default {
   polish: "Polnisch",
   czech: "Tschechisch",
   german: "Deutsch",
-  french: "Französisch"
+  french: "Französisch",
+
+  // Legacy keys
+  "app.footer": "© 2025 CAD Viewer. Alle Rechte vorbehalten.",
+  "noPreviousFiles": "Keine zuvor hochgeladenen Dateien",
+  "supportedFormats": "Unterstützte Formate: STEP, STL, DXF, DWG",
+  "applicationName": "CAD Viewer",
+  "button.upload": "Hochladen",
+  "message.no.model": "Kein Modell ausgewählt",
+  "button.cancel": "Abbrechen"
 };

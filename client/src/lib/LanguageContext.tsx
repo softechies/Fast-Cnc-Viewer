@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Language, getLanguageTranslations, getInitialLanguage, LANGUAGE_STORAGE_KEY } from './translations';
+import translations, { Language, TranslationDictionary } from './translations';
+
+const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 
 interface LanguageContextType {
   language: Language;
@@ -10,6 +12,28 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  // Funkcja do wykrywania domyślnego języka użytkownika
+  const getInitialLanguage = (): Language => {
+    // Try to get language from localStorage
+    try {
+      const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
+      if (savedLanguage && Object.keys(translations).includes(savedLanguage)) {
+        return savedLanguage;
+      }
+    } catch (e) {
+      console.error('Failed to read language preference:', e);
+    }
+    
+    // Fallback to browser language or navigator.languages
+    const browserLang = navigator.language.split('-')[0];
+    if (browserLang && Object.keys(translations).includes(browserLang as Language)) {
+      return browserLang as Language;
+    }
+    
+    // Default to English
+    return 'en';
+  };
+
   const [language, setLanguageState] = useState<Language>(getInitialLanguage());
 
   // Replace placeholders in translation strings
@@ -21,16 +45,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }, translation);
   };
 
+  // Funkcja zwracająca tłumaczenia dla danego języka
+  const getLanguageTranslations = (lang: Language) => {
+    return translations[lang] || translations.en;
+  };
+
   // Get translation for a key
   const t = (key: string, params?: Record<string, string>): string => {
-    const translations = getLanguageTranslations(language);
+    const translationObject = getLanguageTranslations(language);
     
-    if (translations[key] === undefined) {
+    if (translationObject[key] === undefined) {
       console.warn(`Translation key not found: ${key}`);
       return key;
     }
     
-    const translation = translations[key];
+    const translation = translationObject[key];
     if (typeof translation !== 'string') {
       console.warn(`Translation key is not a string: ${key}`);
       return key;
