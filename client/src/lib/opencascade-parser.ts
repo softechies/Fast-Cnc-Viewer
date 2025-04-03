@@ -40,12 +40,31 @@ export const initOpenCascade = async (): Promise<OpenCascadeInstance> => {
       console.log('Inicjalizacja OpenCascade.js...');
       // @ts-ignore
       const openCascadeWasm = await import('opencascade.js');
+      console.log('Moduł OpenCascade.js zaimportowany, ładowanie WASM...');
+      
+      // Funkcja do śledzenia postępu ładowania
+      const onProgress = (event: ProgressEvent) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          console.log(`Ładowanie OpenCascade.js: ${percentComplete}%`);
+        }
+      };
+      
+      // Ładowanie z plikami lokalnymi zamiast CDN
       const openCascade = await openCascadeWasm.default({
+        // Nie używamy CDN, który może być niestabilny
+        // zamiast tego używamy lokalnej kopii z node_modules
         locateFile: (filename: string) => {
-          return `https://cdn.jsdelivr.net/npm/opencascade.js@2.0.0-beta.b5ff984/${filename}`;
+          console.log(`Lokalizowanie pliku: ${filename}`);
+          return filename;
+        },
+        onRuntimeInitialized: () => {
+          console.log('Runtime OpenCascade.js zainicjalizowany');
         }
       });
-
+      
+      console.log('OpenCascade.js załadowany pomyślnie!');
+      
       openCascadeInstance = {
         BRep_Builder: openCascade.BRep_Builder,
         TopoDS_Compound: openCascade.TopoDS_Compound,

@@ -255,85 +255,182 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         sceneRef.current.remove(refCube);
       }
       
-      // Create model based on available format and render mode
-      let model: THREE.Object3D;
+      // Tablica parserów, które będą próbowane w kolejności
+      const parsers = [];
       
-      // Pierwsza próba: Wczytaj model STL, jeśli dostępny
-      if (stlFileInfo?.url && renderMode === 'advanced') {
-        try {
-          setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
-          model = await loadSTLModel(stlFileInfo.url, (event) => {
-            if (event.lengthComputable) {
-              const percent = Math.round((event.loaded / event.total) * 100);
-              setDebugInfo(`Ładowanie STL: ${percent}%`);
-            }
-          });
-          setDebugInfo("Model STL wczytany");
-        } catch (stlError) {
-          console.error("Błąd wczytywania STL, przełączenie na parser STEP:", stlError);
-          setDebugInfo("Problem z modelem STL, użycie parsera OpenCascade...");
-          
-          // Próba użycia OpenCascade
-          try {
-            setDebugInfo("Inicjalizacja OpenCascade.js...");
-            // Dynamiczny import modułu OpenCascade
-            const { parseSTEPFile } = await import('../lib/opencascade-parser');
-            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
-            model = await parseSTEPFile(stepContent);
-            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
-          } catch (ocError) {
-            console.error("Błąd parsera OpenCascade, przełączenie na alternatywny parser:", ocError);
-            setDebugInfo("Problem z OpenCascade, użycie alternatywnego parsera...");
-            
-            // Fallback do prostego parsera STEP
-            if (renderMode === 'advanced') {
-              model = createModelFromSTEP(stepContent);
-            } else {
-              const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-              model = createSimpleModelRepresentation(complexity);
-            }
-          }
+      // Funkcja pomocnicza do postępu ładowania
+      const onProgress = (event: ProgressEvent) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          setDebugInfo(`Ładowanie: ${percent}%`);
         }
-      } 
-      // Jeśli nie ma STL lub jest w trybie prostym
-      else {
-        if (renderMode === 'advanced') {
-          // First try OpenCascade parser for STEP 
-          try {
-            setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
-            // Dynamiczny import modułu OpenCascade
-            const { parseSTEPFile } = await import('../lib/opencascade-parser');
-            setDebugInfo("Parsowanie STEP z OpenCascade.js...");
-            model = await parseSTEPFile(stepContent);
-            setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
-          } catch (ocError) {
-            console.error("Błąd parsera OpenCascade, przełączenie na alternatywny parser:", ocError);
-            setDebugInfo("Problem z OpenCascade, użycie alternatywnego parsera...");
-            
-            // Fallback to original simple parser
-            model = createModelFromSTEP(stepContent);
+      };
+      
+      // Ustalenie kolejności parsowania w zależności od warunków
+      if (stlFileInfo?.url) {
+        // Jeśli dostępny jest plik STL, to zaczynamy od niego
+        parsers.push(async () => {
+          setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
+          const stlModel = await loadSTLModel(stlFileInfo.url, onProgress);
+          
+          // Modyfikacja modelu w zależności od trybu
+          if (renderMode === 'advanced') {
+            // Add wireframe for better visibility
+            const wireframe = new THREE.LineSegments(
+              new THREE.EdgesGeometry(stlModel.geometry),
+              new THREE.LineBasicMaterial({ color: 0x000000 })
+            );
+            stlModel.add(wireframe);
+            stlModel.material = new THREE.MeshStandardMaterial({
+              color: 0x3b82f6,
+              metalness: 0.5,
+              roughness: 0.3,
+              flatShading: false
+            });
+          } else {
+            // Uproszczona wersja - bez wireframe
+            stlModel.material = new THREE.MeshBasicMaterial({
+              color: 0x3b82f6,
+              wireframe: false,
+            });
           }
+          
+          // Create a group to hold the model
+          const modelGroup = new THREE.Group();
+          modelGroup.add(stlModel);
+          
+          console.log("STL loaded successfully");
+          setDebugInfo(`Model STL wczytany (tryb ${renderMode})`);
+          return modelGroup;
+        });
+      }
+      
+      // Dodaj parser OpenCascade.js jeśli jesteśmy w trybie zaawansowanym
+      if (renderMode === 'advanced') {
+        parsers.push(async () => {
+          setDebugInfo("Inicjalizacja zaawansowanego parsera OpenCascade.js...");
+          // Dynamiczny import modułu OpenCascade
+          const { parseSTEPFile } = await import('../lib/opencascade-parser');
+          setDebugInfo("Parsowanie STEP z OpenCascade.js...");
+          const ocModel = await parseSTEPFile(stepContent);
+          setDebugInfo("Model STEP wczytany za pomocą OpenCascade.js");
+          return ocModel;
+        });
+      }
+      
+      // Dodaj parser przybliżony zaawansowany (zawsze dostępny jako fallback)
+      parsers.push(async () => {
+        setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
+        const { createApproximatedStepModel } = await import('../lib/step-approximation');
+        const approxModel = createApproximatedStepModel(stepContent);
+        setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
+        return approxModel;
+      });
+      
+      // Dodaj najprostszy parser jako ostateczny fallback
+      parsers.push(async () => {
+        setDebugInfo("Używanie podstawowego parsera STEP...");
+        if (renderMode === 'advanced') {
+          const basicModel = createModelFromSTEP(stepContent);
+          setDebugInfo("Model STEP wczytany (podstawowe przybliżenie)");
+          return basicModel;
         } else {
-          // Use simple visualization
-          setDebugInfo("Użycie uproszczonej reprezentacji...");
           const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-          model = createSimpleModelRepresentation(complexity);
+          const simpleModel = createSimpleModelRepresentation(complexity);
+          setDebugInfo("Model STEP wczytany (prosty model)");
+          return simpleModel;
+        }
+      });
+      
+      // Próbuj kolejne parsery, aż któryś zadziała
+      let model: THREE.Object3D | null = null;
+      let error = null;
+      
+      for (const parser of parsers) {
+        try {
+          model = await parser();
+          error = null;
+          break;
+        } catch (parseError) {
+          error = parseError;
+          console.error("Błąd parsera, próba następnego:", parseError);
+          setDebugInfo(`Błąd parsera: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
+          continue;
         }
       }
       
+      // Jeśli wszystkie parsery zawiodły
+      if (error) {
+        throw error;
+      }
+      
+      // Jeśli w jakiś sposób model jest nadal undefined (nie powinno się to zdarzyć)
+      if (!model) {
+        console.error("Wszystkie parsery zawiodły, ale nie zgłoszono błędu");
+        const fallbackModel = new THREE.Group();
+        
+        // Dodaj prosty wskaźnik błędu
+        const errorGeometry = new THREE.SphereGeometry(2, 8, 8);
+        const errorMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
+        fallbackModel.add(new THREE.Mesh(errorGeometry, errorMaterial));
+        
+        model = fallbackModel;
+      }
+      
+      // Ustaw nazwę modelu i dodaj do sceny
       model.name = "StepModel";
       sceneRef.current.add(model);
       
-      // Fit camera to model
+      // Dopasuj kamerę do modelu
       if (cameraRef.current && controlsRef.current) {
         fitCameraToObject(model, cameraRef.current, controlsRef.current);
       }
       
-      const modelFormat = stlFileInfo ? 'STL' : (renderMode === 'advanced' ? 'STEP (OpenCascade)' : 'STEP (uproszczony)');
+      // Ustal format modelu dla informacji debugowej
+      let modelFormat = 'STEP (uproszczony)';
+      if (stlFileInfo) {
+        modelFormat = 'STL';
+      } else if (renderMode === 'advanced') {
+        modelFormat = 'STEP (zaawansowany)';
+      }
+      
       setDebugInfo(`Model wczytany (tryb: ${renderMode}, format: ${modelFormat})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+      
+      // W przypadku całkowitego błędu, spróbuj wyświetlić cokolwiek
+      try {
+        if (!sceneRef.current) return;
+        
+        const errorModel = new THREE.Group();
+        errorModel.name = "StepModel";
+        
+        // Dodaj marker błędu
+        const errorGeometry = new THREE.BoxGeometry(3, 3, 3);
+        const errorMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0xff3333,
+          wireframe: true
+        });
+        errorModel.add(new THREE.Mesh(errorGeometry, errorMaterial));
+        
+        // Dodaj tekst błędu (markery)
+        const axesHelper = new THREE.AxesHelper(5);
+        errorModel.add(axesHelper);
+        
+        // Dodaj model do sceny
+        sceneRef.current.add(errorModel);
+        
+        // Dopasuj kamerę
+        if (cameraRef.current && controlsRef.current) {
+          cameraRef.current.position.set(5, 5, 5);
+          cameraRef.current.lookAt(0, 0, 0);
+          controlsRef.current.target.set(0, 0, 0);
+          controlsRef.current.update();
+        }
+      } catch (fallbackError) {
+        console.error("Nawet wyświetlenie modelu błędu nie powiodło się:", fallbackError);
+      }
     }
   }
   
