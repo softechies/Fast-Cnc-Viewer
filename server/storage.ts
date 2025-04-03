@@ -167,11 +167,17 @@ export class PostgresStorage implements IStorage {
   }
   
   async getModelByShareId(shareId: string): Promise<Model | undefined> {
-    const result = await db.select().from(models)
+    // Używamy pojedynczego warunku do filtrowania modeli
+    const result = await db.select()
+      .from(models)
       .where(eq(models.shareId, shareId))
-      .where(eq(models.shareEnabled, true))
       .limit(1);
-    return result[0];
+
+    // Sprawdzamy warunek shareEnabled po pobraniu
+    if (result.length > 0 && result[0].shareEnabled) {
+      return result[0];
+    }
+    return undefined;
   }
 }
 
