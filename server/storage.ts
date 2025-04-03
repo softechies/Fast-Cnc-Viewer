@@ -56,9 +56,7 @@ export class MemStorage implements IStorage {
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
-      metadata: insertModel.metadata ?? null,
-      stlFilepath: insertModel.stlFilepath ?? null,
-      jsonFilepath: insertModel.jsonFilepath ?? null
+      metadata: insertModel.metadata ?? null
     };
     const model: Model = { ...modelData, id };
     this.models.set(id, model);

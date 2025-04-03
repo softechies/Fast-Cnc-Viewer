@@ -12,7 +12,8 @@ export function useModelUpload({ onSuccess, onError }: UseModelUploadOptions = {
   const [uploadProgress, setUploadProgress] = useState(0);
   
   const { mutate, isPending } = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (data: { file: File, url: string }) => {
+      const { file, url } = data;
       const formData = new FormData();
       formData.append('file', file);
       
@@ -47,7 +48,7 @@ export function useModelUpload({ onSuccess, onError }: UseModelUploadOptions = {
           reject(new Error('Upload aborted'));
         });
         
-        xhr.open('POST', '/api/models/upload');
+        xhr.open('POST', url);
         xhr.send(formData);
       });
     },
@@ -65,9 +66,20 @@ export function useModelUpload({ onSuccess, onError }: UseModelUploadOptions = {
     }
   });
   
+  // Function to reset upload progress
+  const reset = () => {
+    setUploadProgress(0);
+  };
+  
+  // Function to upload a file to a specific URL
+  const upload = (file: File, url: string) => {
+    mutate({ file, url });
+  };
+  
   return {
-    uploadModel: mutate,
+    upload,
     isUploading: isPending,
-    uploadProgress
+    uploadProgress,
+    reset
   };
 }

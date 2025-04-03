@@ -16,7 +16,7 @@ export default function Home() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("structure");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
-  const { isUploading, uploadProgress, uploadModel } = useModelUpload({
+  const { isUploading, uploadProgress, upload } = useModelUpload({
     onSuccess: (data) => {
       setActiveModelId(data.id);
       setIsUploadModalOpen(false);
@@ -124,7 +124,7 @@ export default function Home() {
         onClose={() => setIsUploadModalOpen(false)}
         isUploading={isUploading}
         uploadProgress={uploadProgress}
-        onUpload={uploadModel}
+        onUpload={(file) => upload(file, '/api/models/upload')}
       />
     </div>
   );
