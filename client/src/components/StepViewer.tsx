@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { createModelFromSTEP } from '@/lib/step-parser';
 
 interface StepViewerProps {
   modelId: number | null;
@@ -18,9 +20,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const stepContentRef = useRef<string | null>(null);
   
   // State for UI updates
   const [debugInfo, setDebugInfo] = useState<string>("Inicjalizacja...");
+  const [renderMode, setRenderMode] = useState<'simple' | 'advanced'>('simple');
   
   // Initialize Three.js scene only once
   useEffect(() => {
@@ -151,7 +155,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         
         // Remove renderer from DOM
         if (rendererRef.current && containerRef.current) {
-          containerRef.current.removeChild(rendererRef.current.domElement);
+          try {
+            if (containerRef.current.contains(rendererRef.current.domElement)) {
+              containerRef.current.removeChild(rendererRef.current.domElement);
+            }
+          } catch (error) {
+            console.error("Error removing renderer from DOM:", error);
+          }
         }
         
         // Dispose renderer
@@ -190,9 +200,67 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     }
   });
   
+  // Handle render mode change
+  function toggleRenderMode() {
+    // Toggle between simple and advanced
+    const newMode = renderMode === 'simple' ? 'advanced' : 'simple';
+    setRenderMode(newMode);
+    
+    // Re-render current model if we have content
+    if (stepContentRef.current && sceneRef.current) {
+      renderModel(stepContentRef.current);
+    }
+  }
+  
+  // Function to render model based on current render mode
+  function renderModel(stepContent: string) {
+    if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+    
+    try {
+      // Remove any existing model
+      const existingModel = sceneRef.current.getObjectByName("StepModel");
+      if (existingModel) {
+        sceneRef.current.remove(existingModel);
+      }
+      
+      // Remove reference cube
+      const refCube = sceneRef.current.getObjectByName("ReferenceBox");
+      if (refCube) {
+        sceneRef.current.remove(refCube);
+      }
+      
+      // Create model based on render mode
+      let model: THREE.Object3D;
+      
+      if (renderMode === 'advanced') {
+        // Use advanced STEP parser
+        setDebugInfo("Użycie zaawansowanego parsera STEP...");
+        model = createModelFromSTEP(stepContent);
+      } else {
+        // Use simple visualization
+        setDebugInfo("Użycie uproszczonej reprezentacji...");
+        const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+        model = createSimpleModelRepresentation(complexity);
+      }
+      
+      model.name = "StepModel";
+      sceneRef.current.add(model);
+      
+      // Fit camera to model
+      if (cameraRef.current && controlsRef.current) {
+        fitCameraToObject(model, cameraRef.current, controlsRef.current);
+      }
+      
+      setDebugInfo(`Model wczytany (tryb: ${renderMode})`);
+    } catch (error) {
+      console.error("Błąd renderowania modelu:", error);
+      setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+    }
+  }
+  
   // Process model file when it's available
   useEffect(() => {
-    if (!fileData || !sceneRef.current || !cameraRef.current || !controlsRef.current) return;
+    if (!fileData || !sceneRef.current) return;
     
     // Load model from file
     const loadModel = async () => {
@@ -209,28 +277,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           }
           
           try {
-            // Remove previous reference cube
-            const refCube = sceneRef.current.getObjectByName("ReferenceBox");
-            if (refCube) {
-              sceneRef.current.remove(refCube);
-            }
-            
-            // Read STEP content
+            // Store STEP content for later use
             const stepContent = event.target.result as string;
+            stepContentRef.current = stepContent;
             
-            // Create very simple model representation
-            // Instead of parsing STEP, create basic geometry based on file size
-            const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-            const model = createSimpleModelRepresentation(complexity);
-            model.name = "StepModel";
+            // Render the model using current render mode
+            renderModel(stepContent);
             
-            // Add to scene
-            sceneRef.current.add(model);
-            
-            // Update camera to fit model
-            fitCameraToObject(model, cameraRef.current, controlsRef.current);
-            
-            setDebugInfo("Model wczytany");
           } catch (error) {
             console.error("Błąd przetwarzania modelu:", error);
             setDebugInfo(`Błąd przetwarzania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
@@ -260,8 +313,10 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           sceneRef.current.remove(model);
         }
       }
+      // Clear stored content
+      stepContentRef.current = null;
     };
-  }, [fileData]);
+  }, [fileData, renderMode]);
   
   // Helper function to create a simple model representation
   function createSimpleModelRepresentation(complexity: number) {
@@ -301,8 +356,10 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     
     // Add wireframe to make it more visible
     const wireframe = new THREE.WireframeGeometry(baseGeometry);
-    const line = new THREE.LineSegments(wireframe);
-    (line.material as THREE.Material).color.setHex(0x000000);
+    const line = new THREE.LineSegments(
+      wireframe,
+      new THREE.LineBasicMaterial({ color: 0x000000 })
+    );
     base.add(line);
     
     return group;
@@ -336,6 +393,18 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         {debugInfo}
       </div>
       
+      {/* Controls overlay */}
+      <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+        <Button 
+          onClick={toggleRenderMode}
+          variant="outline"
+          size="sm"
+          className="bg-white/80 hover:bg-white text-xs"
+        >
+          {renderMode === 'simple' ? 'Tryb zaawansowany' : 'Tryb prosty'}
+        </Button>
+      </div>
+      
       {/* Loading overlay */}
       {isLoadingFile && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20">
@@ -352,6 +421,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         className="w-full h-full min-h-[500px] bg-gray-100"
         style={{ minHeight: '500px' }}
       />
+      
+      {/* Mode info */}
+      <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-1 rounded">
+        Tryb renderowania: {renderMode === 'simple' ? 'Uproszczony (stabilny)' : 'Zaawansowany (może być niestabilny)'}
+      </div>
     </div>
   );
 }
