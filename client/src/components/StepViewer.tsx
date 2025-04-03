@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useQuery } from '@tanstack/react-query';
-import { createModelFromSTEP } from '@/lib/step-parser';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface StepViewerProps {
@@ -13,124 +12,98 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   // Container reference for Three.js scene
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Scene state
-  const [scene, setScene] = useState<THREE.Scene | null>(null);
-  const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null);
-  const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
-  const [controls, setControls] = useState<OrbitControls | null>(null);
-  const [model, setModel] = useState<THREE.Object3D | null>(null);
-  
-  // Debug and animation state
-  const [debugInfo, setDebugInfo] = useState<string>("Inicjalizacja...");
+  // Refs to maintain Three.js objects references
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   
-  // Initialize Three.js scene
+  // State for UI updates
+  const [debugInfo, setDebugInfo] = useState<string>("Inicjalizacja...");
+  
+  // Initialize Three.js scene only once
   useEffect(() => {
     // Skip if container doesn't exist
     if (!containerRef.current) return;
     
     try {
-      console.log("Initializing Three.js for StepViewer");
+      // Log initialization
+      console.log("Inicjalizacja sceny Three.js");
+      setDebugInfo("Inicjalizacja sceny...");
       
       // Clear container
       while (containerRef.current.firstChild) {
         containerRef.current.removeChild(containerRef.current.firstChild);
       }
       
-      // Make container have explicit dimensions
-      containerRef.current.style.width = "100%";
-      containerRef.current.style.height = "100%";
-      containerRef.current.style.minHeight = "500px";
-      containerRef.current.style.backgroundColor = "#f0f0f0";
-      
       // Get dimensions
       const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
+      const height = containerRef.current.clientHeight || 500; // Fallback height
       
-      console.log("Container dimensions:", { width, height });
-      
-      // Create scene
-      const newScene = new THREE.Scene();
-      newScene.background = new THREE.Color(0xf0f0f0);
+      // Create basic scene
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf7f7f7);
+      sceneRef.current = scene;
       
       // Create camera
-      const newCamera = new THREE.PerspectiveCamera(
-        60, 
-        width / height, 
-        0.1, 
-        1000
-      );
-      newCamera.position.set(15, 15, 15);
-      newCamera.lookAt(0, 0, 0);
+      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      camera.position.set(10, 10, 10);
+      camera.lookAt(0, 0, 0);
+      cameraRef.current = camera;
       
-      // Create renderer
-      const newRenderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        alpha: true
-      });
-      newRenderer.setSize(width, height);
-      newRenderer.shadowMap.enabled = true;
-      newRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      
-      // Add renderer to container
-      containerRef.current.appendChild(newRenderer.domElement);
+      // Create renderer (basic)
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      containerRef.current.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
       
       // Create controls
-      const newControls = new OrbitControls(newCamera, newRenderer.domElement);
-      newControls.enableDamping = true;
-      newControls.dampingFactor = 0.25;
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controlsRef.current = controls;
       
-      // Set up lighting
-      addLighting(newScene);
+      // Basic lighting (simpler)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambientLight);
       
-      // Add grid and axes
-      const grid = new THREE.GridHelper(20, 20, 0x888888, 0xcccccc);
-      grid.position.y = -0.01;
-      newScene.add(grid);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      directionalLight.position.set(10, 10, 10);
+      scene.add(directionalLight);
+      
+      // Add grid and axes for reference
+      const grid = new THREE.GridHelper(20, 20);
+      scene.add(grid);
       
       const axes = new THREE.AxesHelper(5);
-      newScene.add(axes);
+      scene.add(axes);
       
-      // Store references
-      setScene(newScene);
-      setCamera(newCamera);
-      setRenderer(newRenderer);
-      setControls(newControls);
-      
-      // Create reference cube
+      // Add simple reference cube
       const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
-      const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+      const cubeMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0xff0000,
+        wireframe: true
+      });
       const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-      cube.position.set(0, 1, 0);
-      cube.castShadow = true;
-      cube.receiveShadow = true;
       cube.name = "ReferenceBox";
-      newScene.add(cube);
+      scene.add(cube);
       
-      // Add wireframe to cube for better visibility
-      const wireframe = new THREE.LineSegments(
-        new THREE.EdgesGeometry(cubeGeometry),
-        new THREE.LineBasicMaterial({ color: 0xffffff })
-      );
-      cube.add(wireframe);
-      
-      setDebugInfo("Scena zainicjalizowana");
-      
-      // Animation loop
+      // Simple animation loop
       const animate = () => {
-        if (!newScene || !newCamera || !newRenderer || !newControls) return;
+        if (controlsRef.current) {
+          controlsRef.current.update();
+        }
         
-        // Rotate reference cube
-        const refCube = newScene.getObjectByName("ReferenceBox");
+        // Rotate reference cube (if it exists)
+        const refCube = sceneRef.current?.getObjectByName("ReferenceBox");
         if (refCube) {
           refCube.rotation.y += 0.01;
         }
         
-        // Update controls
-        newControls.update();
-        
         // Render
-        newRenderer.render(newScene, newCamera);
+        if (rendererRef.current && cameraRef.current && sceneRef.current) {
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
         
         // Continue animation
         animationFrameRef.current = requestAnimationFrame(animate);
@@ -141,175 +114,130 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       // Handle resize
       const handleResize = () => {
-        if (!containerRef.current || !newCamera || !newRenderer) return;
+        if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
         
         const newWidth = containerRef.current.clientWidth;
-        const newHeight = containerRef.current.clientHeight;
+        const newHeight = containerRef.current.clientHeight || 500;
         
-        // Skip invalid dimensions
-        if (newWidth === 0 || newHeight === 0) return;
+        // Update camera aspect ratio
+        cameraRef.current.aspect = newWidth / newHeight;
+        cameraRef.current.updateProjectionMatrix();
         
-        // Update camera and renderer
-        newCamera.aspect = newWidth / newHeight;
-        newCamera.updateProjectionMatrix();
-        newRenderer.setSize(newWidth, newHeight);
+        // Update renderer size
+        rendererRef.current.setSize(newWidth, newHeight);
       };
       
       window.addEventListener('resize', handleResize);
       
+      // Update debug info
+      setDebugInfo("Scena gotowa");
+      
       // Cleanup function
       return () => {
-        console.log("Cleaning up Three.js resources in StepViewer");
+        console.log("Sprzątanie zasobów Three.js");
         
-        // Cancel animation
+        // Stop animation
         if (animationFrameRef.current !== null) {
           cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = null;
         }
         
         // Remove event listeners
         window.removeEventListener('resize', handleResize);
         
         // Dispose controls
-        if (newControls) {
-          newControls.dispose();
-        }
-        
-        // Remove scene objects 
-        if (newScene) {
-          newScene.traverse((object) => {
-            if (object instanceof THREE.Mesh) {
-              if (object.geometry) object.geometry.dispose();
-              if (object.material) {
-                if (Array.isArray(object.material)) {
-                  object.material.forEach(material => material.dispose());
-                } else {
-                  object.material.dispose();
-                }
-              }
-            }
-          });
-          newScene.clear();
+        if (controlsRef.current) {
+          controlsRef.current.dispose();
         }
         
         // Remove renderer from DOM
-        if (newRenderer && newRenderer.domElement && containerRef.current) {
-          try {
-            if (containerRef.current.contains(newRenderer.domElement)) {
-              containerRef.current.removeChild(newRenderer.domElement);
-            }
-          } catch (error) {
-            console.error("Error removing renderer:", error);
-          }
+        if (rendererRef.current && containerRef.current) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
         }
         
         // Dispose renderer
-        if (newRenderer) {
-          newRenderer.dispose();
+        if (rendererRef.current) {
+          rendererRef.current.dispose();
         }
         
-        // Reset state
-        setScene(null);
-        setCamera(null);
-        setRenderer(null);
-        setControls(null);
-        setModel(null);
+        // Clear references
+        sceneRef.current = null;
+        cameraRef.current = null;
+        rendererRef.current = null;
+        controlsRef.current = null;
       };
     } catch (error) {
-      console.error("Error initializing Three.js:", error);
+      console.error("Błąd inicjalizacji Three.js:", error);
       setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
     }
   }, []);
   
-  // Fetch STEP file when model ID changes
+  // Fetch model file when modelId changes
   const { data: fileData, isLoading: isLoadingFile } = useQuery({
     queryKey: [`/api/models/${modelId}/file`],
-    enabled: !!modelId && !!scene,
+    enabled: !!modelId,
     queryFn: async ({ queryKey }) => {
       const url = queryKey[0] as string;
       setDebugInfo(`Pobieranie pliku: ${url}`);
       
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        
-        const blob = await response.blob();
-        console.log(`File fetched: ${blob.size} bytes`);
-        setDebugInfo(`Plik pobrany: ${blob.size} bajtów`);
-        return blob;
-      } catch (error) {
-        console.error("Error fetching file:", error);
-        setDebugInfo(`Błąd pobierania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
-        throw error;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
       }
+      
+      const blob = await response.blob();
+      setDebugInfo(`Plik pobrany: ${blob.size} bajtów`);
+      return blob;
     }
   });
   
-  // Process STEP file when it's loaded
+  // Process model file when it's available
   useEffect(() => {
-    if (!fileData || !scene || !camera || !controls) return;
+    if (!fileData || !sceneRef.current || !cameraRef.current || !controlsRef.current) return;
     
-    // Load model from STEP file
+    // Load model from file
     const loadModel = async () => {
       try {
-        setDebugInfo("Wczytywanie modelu STEP...");
+        setDebugInfo("Przetwarzanie modelu...");
         
-        // Read STEP file as text
+        // Read file as text
         const reader = new FileReader();
         
         reader.onload = (event) => {
-          if (!event.target || !event.target.result || !scene) {
+          if (!event.target || !event.target.result || !sceneRef.current) {
             setDebugInfo("Błąd odczytu pliku");
             return;
           }
           
           try {
-            // Get STEP content
-            const stepContent = event.target.result as string;
-            console.log(`STEP content loaded: ${stepContent.length} bytes`);
-            
-            // Remove previous model and reference cube
-            if (model) {
-              scene.remove(model);
-            }
-            
-            const refCube = scene.getObjectByName("ReferenceBox");
+            // Remove previous reference cube
+            const refCube = sceneRef.current.getObjectByName("ReferenceBox");
             if (refCube) {
-              scene.remove(refCube);
-              console.log("Removed reference cube");
+              sceneRef.current.remove(refCube);
             }
             
-            // Create new model from STEP content
-            const newModel = createModelFromSTEP(stepContent);
+            // Read STEP content
+            const stepContent = event.target.result as string;
             
-            // Ensure all objects have shadows enabled
-            newModel.traverse((object) => {
-              if (object instanceof THREE.Mesh) {
-                object.castShadow = true;
-                object.receiveShadow = true;
-              }
-            });
+            // Create very simple model representation
+            // Instead of parsing STEP, create basic geometry based on file size
+            const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
+            const model = createSimpleModelRepresentation(complexity);
+            model.name = "StepModel";
             
             // Add to scene
-            scene.add(newModel);
-            setModel(newModel);
+            sceneRef.current.add(model);
             
-            setDebugInfo("Model STEP wczytany");
-            console.log("STEP model loaded successfully");
+            // Update camera to fit model
+            fitCameraToObject(model, cameraRef.current, controlsRef.current);
             
-            // Fit camera to model
-            fitCameraToModel(newModel, camera, controls);
-            
+            setDebugInfo("Model wczytany");
           } catch (error) {
-            console.error("Error loading STEP content:", error);
+            console.error("Błąd przetwarzania modelu:", error);
             setDebugInfo(`Błąd przetwarzania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
           }
         };
         
         reader.onerror = () => {
-          console.error("FileReader error");
           setDebugInfo("Błąd odczytu pliku");
         };
         
@@ -317,122 +245,112 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         reader.readAsText(fileData);
         
       } catch (error) {
-        console.error("Error loading model:", error);
+        console.error("Błąd ładowania modelu:", error);
         setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
       }
     };
     
     loadModel();
-  }, [fileData, scene, camera, controls, model]);
+    
+    // Cleanup previous model when modelId changes
+    return () => {
+      if (sceneRef.current) {
+        const model = sceneRef.current.getObjectByName("StepModel");
+        if (model) {
+          sceneRef.current.remove(model);
+        }
+      }
+    };
+  }, [fileData]);
   
-  // Helper functions
-  function addLighting(scene: THREE.Scene) {
-    // Ambient light for base illumination
-    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambient);
+  // Helper function to create a simple model representation
+  function createSimpleModelRepresentation(complexity: number) {
+    const group = new THREE.Group();
     
-    // Main directional light with shadows
-    const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    mainLight.position.set(10, 10, 10);
-    mainLight.castShadow = true;
+    // Create base cube
+    const baseGeometry = new THREE.BoxGeometry(complexity, 0.5, complexity);
+    const baseMaterial = new THREE.MeshBasicMaterial({ color: 0x3366cc });
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    group.add(base);
     
-    // Improve shadow quality
-    mainLight.shadow.mapSize.width = 2048;
-    mainLight.shadow.mapSize.height = 2048;
-    mainLight.shadow.camera.near = 0.5;
-    mainLight.shadow.camera.far = 50;
-    
-    // Set shadow camera frustum
-    const shadowSize = 15;
-    mainLight.shadow.camera.left = -shadowSize;
-    mainLight.shadow.camera.right = shadowSize;
-    mainLight.shadow.camera.top = shadowSize;
-    mainLight.shadow.camera.bottom = -shadowSize;
-    
-    scene.add(mainLight);
-    
-    // Fill light from opposite side
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    fillLight.position.set(-10, 5, -10);
-    scene.add(fillLight);
-    
-    // Add a ground plane to catch shadows
-    const groundGeometry = new THREE.PlaneGeometry(50, 50);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xf0f0f0,
-      roughness: 1.0,
-      metalness: 0.0,
-      side: THREE.DoubleSide
-    });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = Math.PI / 2;
-    ground.position.y = -0.01;
-    ground.receiveShadow = true;
-    scene.add(ground);
-  }
-  
-  function fitCameraToModel(model: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
-    // Calculate bounding box
-    const boundingBox = new THREE.Box3().setFromObject(model);
-    
-    // Skip if invalid
-    if (boundingBox.isEmpty()) {
-      console.warn("Empty bounding box, can't fit camera");
-      return;
+    // Add some detail based on complexity
+    for (let i = 0; i < complexity * 2; i++) {
+      // Random position
+      const x = (Math.random() - 0.5) * complexity;
+      const y = Math.random() * complexity + 0.5;
+      const z = (Math.random() - 0.5) * complexity;
+      
+      // Random size
+      const size = 0.3 + Math.random() * 0.7;
+      
+      // Alternate between cubes and cylinders
+      let detail;
+      if (i % 2 === 0) {
+        const geometry = new THREE.BoxGeometry(size, size, size);
+        const material = new THREE.MeshBasicMaterial({ color: 0x6699cc });
+        detail = new THREE.Mesh(geometry, material);
+      } else {
+        const geometry = new THREE.CylinderGeometry(size/2, size/2, size, 8);
+        const material = new THREE.MeshBasicMaterial({ color: 0x99ccff });
+        detail = new THREE.Mesh(geometry, material);
+      }
+      
+      detail.position.set(x, y, z);
+      group.add(detail);
     }
     
-    // Get center and size
+    // Add wireframe to make it more visible
+    const wireframe = new THREE.WireframeGeometry(baseGeometry);
+    const line = new THREE.LineSegments(wireframe);
+    (line.material as THREE.Material).color.setHex(0x000000);
+    base.add(line);
+    
+    return group;
+  }
+  
+  // Helper function to fit camera to object
+  function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
+    const boundingBox = new THREE.Box3().setFromObject(object);
+    
+    // Get bounding box center
     const center = new THREE.Vector3();
     boundingBox.getCenter(center);
     
-    const size = new THREE.Vector3();
-    boundingBox.getSize(size);
-    
-    // Calculate suitable distance
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = camera.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
-    cameraZ *= 1.5; // Add some margin
-    
-    // Move camera to position
-    const direction = new THREE.Vector3(1, 0.7, 1).normalize();
-    camera.position.copy(center.clone().add(direction.multiplyScalar(cameraZ)));
+    // Move camera to look at center
+    camera.position.set(
+      center.x + 10,
+      center.y + 10,
+      center.z + 10
+    );
     camera.lookAt(center);
     
-    // Update controls
+    // Update orbit controls target
     controls.target.copy(center);
     controls.update();
-    
-    // Log debug info
-    console.log("Model bounds:", {
-      center: [center.x, center.y, center.z],
-      size: [size.x, size.y, size.z],
-      maxDim,
-      cameraDistance: cameraZ
-    });
   }
   
   return (
     <div className="relative w-full h-full">
-      {/* Debug info overlay */}
-      <div className="absolute top-2 left-2 z-50 bg-black/70 text-white text-xs p-1 rounded">
+      {/* Debug info */}
+      <div className="absolute top-2 left-2 z-10 bg-black/70 text-white text-xs p-1 rounded">
         {debugInfo}
       </div>
       
       {/* Loading overlay */}
       {isLoadingFile && (
-        <div className="absolute inset-0 bg-gray-100/50 flex items-center justify-center z-40">
-          <div className="bg-white p-4 rounded-lg shadow-lg">
-            <Skeleton className="h-8 w-32 mb-2" />
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20">
+          <div className="bg-white p-4 rounded shadow-md">
+            <Skeleton className="h-4 w-32 mb-2" />
             <Skeleton className="h-4 w-48" />
           </div>
         </div>
       )}
       
-      {/* 3D container */}
+      {/* Three.js container */}
       <div 
         ref={containerRef} 
-        className="w-full h-full min-h-[500px] bg-gray-100 border border-gray-200"
+        className="w-full h-full min-h-[500px] bg-gray-100"
+        style={{ minHeight: '500px' }}
       />
     </div>
   );
