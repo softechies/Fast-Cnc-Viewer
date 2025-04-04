@@ -98,12 +98,12 @@ const stepUpload = multer({
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept only STEP files
+    // Accept STEP and IGES files
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext === '.stp' || ext === '.step') {
+    if (ext === '.stp' || ext === '.step' || ext === '.igs' || ext === '.iges') {
       cb(null, true);
     } else {
-      cb(new Error('Only STEP files are allowed') as any, false);
+      cb(new Error('Only STEP and IGES files are allowed') as any, false);
     }
   }
 });
@@ -142,45 +142,95 @@ const cadUpload = multer({
   }
 });
 
-// Simple STEP file parser to extract metadata
+// Extracts metadata from STEP or IGES files
 function extractStepMetadata(filePath: string): any {
   try {
     // Read first few lines of the file to extract header information
     const header = fs.readFileSync(filePath, 'utf8').slice(0, 8000);
+    const fileExt = path.extname(filePath).toLowerCase();
     
-    // Parsing STEP file header
-    const formatMatch = header.match(/FILE_SCHEMA\s*\(\s*\(\s*'(.+?)'/i);
-    const format = formatMatch 
-                   ? formatMatch[1].includes('AP214') ? 'STEP AP214'
-                   : formatMatch[1].includes('AP203') ? 'STEP AP203'
-                   : formatMatch[1].includes('AP242') ? 'STEP AP242'
-                   : 'STEP'
-                   : 'STEP';
+    // Determine if it's an IGES file
+    const isIges = fileExt === '.igs' || fileExt === '.iges';
     
-    const sourceSystemMatch = header.match(/originating_system\s*\>\s*'(.+?)'/i);
-    const sourceSystem = sourceSystemMatch ? sourceSystemMatch[1] : 'Unknown';
+    // Default format based on file extension
+    let format = isIges ? 'IGES' : 'STEP';
+    let sourceSystem = 'Unknown';
+    let author = 'Unknown';
+    let organization = 'Unknown';
     
-    // Extract more information if available
-    const authorMatch = header.match(/author\s*\>\s*\(\s*'(.+?)'\s*\)/i);
-    const author = authorMatch && authorMatch[1] ? authorMatch[1] : 'Unknown';
+    if (isIges) {
+      // IGES format parsing
+      const igesStartMatch = header.match(/S\s+([^;]+);/);
+      const igesSystemMatch = header.match(/,[^,]*,([^,]*),/);
+      
+      if (igesSystemMatch && igesSystemMatch[1]) {
+        sourceSystem = igesSystemMatch[1].trim();
+      }
+      
+      // Look for author in IGES header
+      const authorMatch = header.match(/AUTHOR:?\s*([^,]+)/i);
+      if (authorMatch && authorMatch[1]) {
+        author = authorMatch[1].trim();
+      }
+      
+      // Look for organization in IGES header
+      const orgMatch = header.match(/ORGANIZATION:?\s*([^,]+)/i);
+      if (orgMatch && orgMatch[1]) {
+        organization = orgMatch[1].trim();
+      }
+    } else {
+      // STEP file parsing
+      const formatMatch = header.match(/FILE_SCHEMA\s*\(\s*\(\s*'(.+?)'/i);
+      format = formatMatch 
+              ? formatMatch[1].includes('AP214') ? 'STEP AP214'
+              : formatMatch[1].includes('AP203') ? 'STEP AP203'
+              : formatMatch[1].includes('AP242') ? 'STEP AP242'
+              : 'STEP'
+              : 'STEP';
+      
+      const sourceSystemMatch = header.match(/originating_system\s*\>\s*'(.+?)'/i);
+      if (sourceSystemMatch) {
+        sourceSystem = sourceSystemMatch[1];
+      }
+      
+      // Extract more information if available
+      const authorMatch = header.match(/author\s*\>\s*\(\s*'(.+?)'\s*\)/i);
+      if (authorMatch && authorMatch[1]) {
+        author = authorMatch[1];
+      }
+      
+      const organizationMatch = header.match(/organization\s*\>\s*\(\s*'(.+?)'\s*\)/i);
+      if (organizationMatch && organizationMatch[1]) {
+        organization = organizationMatch[1];
+      }
+    }
     
-    const organizationMatch = header.match(/organization\s*\>\s*\(\s*'(.+?)'\s*\)/i);
-    const organization = organizationMatch && organizationMatch[1] ? organizationMatch[1] : 'Unknown';
-    
-    // Counting entities more reliably
-    // These are simplified estimates based on file content
+    // Counting entities - works for both formats with different patterns
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    const partMatches = fileContent.match(/MANIFOLD_SOLID_BREP/g) || [];
+    
+    // Patterns to search for in both formats
+    const partMatches = isIges
+      ? fileContent.match(/(\d+)0\s+0\s+1\s+1/g) || [] // IGES entity pattern
+      : fileContent.match(/MANIFOLD_SOLID_BREP/g) || [];
     const parts = partMatches.length > 0 ? partMatches.length : 5;
     
-    const assemblyMatches = fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE/g) || [];
+    const assemblyMatches = isIges
+      ? fileContent.match(/(\d+)0\s+0\s+1\s+2/g) || []
+      : fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE/g) || [];
     const assemblies = assemblyMatches.length > 0 ? assemblyMatches.length : 2;
     
-    const surfaceMatches = fileContent.match(/B_SPLINE_SURFACE/g) || [];
+    const surfaceMatches = isIges
+      ? fileContent.match(/(\d+)0\s+0\s+1\s+(128|144)/g) || [] // IGES surface entities
+      : fileContent.match(/B_SPLINE_SURFACE/g) || [];
     const surfaces = surfaceMatches.length > 0 ? surfaceMatches.length : 10;
     
-    const solidMatches = fileContent.match(/BREP_WITH_VOIDS|MANIFOLD_SOLID_BREP/g) || [];
+    const solidMatches = isIges
+      ? fileContent.match(/(\d+)0\s+0\s+1\s+(186|514)/g) || [] // IGES solid entities
+      : fileContent.match(/BREP_WITH_VOIDS|MANIFOLD_SOLID_BREP/g) || [];
     const solids = solidMatches.length > 0 ? solidMatches.length : 5;
+    
+    // Generate a unique part number prefix based on format
+    const partNumberPrefix = isIges ? "IGES-" : "STEP-";
     
     return {
       format,
@@ -192,14 +242,21 @@ function extractStepMetadata(filePath: string): any {
       properties: {
         author,
         organization,
-        partNumber: "STEP-" + nanoid(6).toUpperCase(),
+        partNumber: partNumberPrefix + nanoid(6).toUpperCase(),
         revision: "A"
       }
     };
   } catch (error) {
-    console.error("Error parsing STEP file:", error);
+    console.error("Error parsing CAD file:", error);
+    
+    // Check if it's an IGES file based on file extension
+    const fileExt = path.extname(filePath).toLowerCase();
+    const isIges = fileExt === '.igs' || fileExt === '.iges';
+    const format = isIges ? "IGES" : "Unknown STEP Format";
+    const partNumberPrefix = isIges ? "IGES-" : "STEP-";
+    
     return { 
-      format: "Unknown STEP Format",
+      format,
       sourceSystem: "Unknown",
       parts: 1,
       assemblies: 1,
@@ -208,28 +265,33 @@ function extractStepMetadata(filePath: string): any {
       properties: {
         author: "Unknown",
         organization: "Unknown",
-        partNumber: "STEP-" + nanoid(6).toUpperCase(),
+        partNumber: partNumberPrefix + nanoid(6).toUpperCase(),
         revision: "A"
       }
     };
   }
 }
 
-// Konwertuj plik STEP do formatu STL przy użyciu skryptu FreeCAD
-// Zastępca dla funkcji konwertującej STEP do STL
+// Konwertuj plik STEP/IGES do formatu STL przy użyciu skryptu FreeCAD
+// Zastępca dla funkcji konwertującej STEP/IGES do STL
 // Ponieważ nie mamy dostępu do FreeCAD, używamy silnika JavaScript do renderowania
-async function convertStepToStl(stepFilePath: string): Promise<string | null> {
+async function convertStepToStl(filePath: string): Promise<string | null> {
   return new Promise((resolve) => {
     try {
-      if (!fs.existsSync(stepFilePath)) {
-        console.error("STEP file does not exist:", stepFilePath);
+      if (!fs.existsSync(filePath)) {
+        console.error("CAD file does not exist:", filePath);
         return resolve(null);
       }
       
+      // Sprawdź rozszerzenie pliku
+      const fileExt = path.extname(filePath).toLowerCase();
+      const isIges = fileExt === '.igs' || fileExt === '.iges';
+      const fileType = isIges ? "IGES" : "STEP";
+      
       // Tutaj w normalnych warunkach wykonalibyśmy faktyczną konwersję
       // Bez dostępu do FreeCAD, zwracamy null i zdajemy się na bezpośrednie parsowanie
-      // pliku STEP przez silnik JavaScript w przeglądarce
-      console.log(`Skip conversion: FreeCAD not available. Will use direct STEP parsing.`);
+      // pliku przez silnik JavaScript w przeglądarce
+      console.log(`Skip conversion: FreeCAD not available. Will use direct ${fileType} parsing.`);
       
       // Symulujemy opóźnienie konwersji
       setTimeout(() => {
@@ -242,29 +304,59 @@ async function convertStepToStl(stepFilePath: string): Promise<string | null> {
   });
 }
 
-// Generate a model tree from STEP file
+// Generate a model tree from STEP or IGES file
 function generateModelTree(filename: string, filePath?: string): any {
   try {
     const modelId = nanoid(8);
     
     // If we have a file path, try to extract a more meaningful structure
     if (filePath && fs.existsSync(filePath)) {
+      const fileExt = path.extname(filePath).toLowerCase();
+      const isIges = fileExt === '.igs' || fileExt === '.iges';
       const fileContent = fs.readFileSync(filePath, 'utf8');
       
-      // Simplified extraction of assembly and part names
-      // Look for product definitions in STEP file
-      const assemblyMatches = fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/g) || [];
-      const assemblies = assemblyMatches.map(match => {
-        const name = match.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/);
-        return name ? name[1] : `Assembly_${nanoid(4)}`;
-      });
+      let assemblies: string[] = [];
+      let parts: string[] = [];
       
-      // Look for solid breps that often represent parts
-      const partMatches = fileContent.match(/MANIFOLD_SOLID_BREP\('([^']+)'/g) || [];
-      const parts = partMatches.map(match => {
-        const name = match.match(/MANIFOLD_SOLID_BREP\('([^']+)'/);
-        return name ? name[1] : `Part_${nanoid(4)}`;
-      });
+      if (isIges) {
+        // IGES file format handling
+        // IGES entities in the directory entry section
+        const directoryEntries = fileContent.match(/^\s*\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+/gm) || [];
+        
+        // Extract entity names
+        const entityMatches = fileContent.match(/([A-Z0-9_]+)\s+ENTITY\s+(\d+)/g) || [];
+        parts = entityMatches.map((match, index) => {
+          const name = match.match(/([A-Z0-9_]+)\s+ENTITY/);
+          return name ? name[1] : `Part_${index + 1}`;
+        });
+        
+        // If not enough parts found, use generic naming
+        if (parts.length < 3) {
+          parts = [];
+          for (let i = 0; i < Math.min(directoryEntries.length, 10); i++) {
+            parts.push(`Part_${i + 1}`);
+          }
+        }
+        
+        // For IGES, usually there is just one assembly containing all parts
+        assemblies = ['Main Assembly'];
+      } else {
+        // STEP file parsing (existing code)
+        // Simplified extraction of assembly and part names
+        // Look for product definitions in STEP file
+        const assemblyMatches = fileContent.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/g) || [];
+        assemblies = assemblyMatches.map(match => {
+          const name = match.match(/NEXT_ASSEMBLY_USAGE_OCCURRENCE\('([^']+)'/);
+          return name ? name[1] : `Assembly_${nanoid(4)}`;
+        });
+        
+        // Look for solid breps that often represent parts
+        const partMatches = fileContent.match(/MANIFOLD_SOLID_BREP\('([^']+)'/g) || [];
+        parts = partMatches.map(match => {
+          const name = match.match(/MANIFOLD_SOLID_BREP\('([^']+)'/);
+          return name ? name[1] : `Part_${nanoid(4)}`;
+        });
+      }
       
       // If we found meaningful structures, build a tree
       if (assemblies.length > 0 || parts.length > 0) {
@@ -583,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get STEP file for viewing
+  // Get STEP/IGES file for viewing
   app.get("/api/models/:id/file", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -600,7 +692,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "File not found" });
       }
       
-      res.setHeader('Content-Type', 'application/step');
+      // Ustaw odpowiedni Content-Type na podstawie formatu pliku
+      const fileExt = path.extname(filePath).toLowerCase();
+      const isIges = fileExt === '.igs' || fileExt === '.iges';
+      
+      if (isIges) {
+        res.setHeader('Content-Type', 'application/iges');
+      } else {
+        res.setHeader('Content-Type', 'application/step');
+      }
+      
       res.setHeader('Content-Disposition', `attachment; filename="${model.filename}"`);
       fs.createReadStream(filePath).pipe(res);
     } catch (error) {
@@ -797,13 +898,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Delete the STEP file
+      // Delete the CAD file (STEP/IGES)
       const metadata = model.metadata as any;
       const filePath = metadata?.filePath;
       
       if (filePath && fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        console.log(`Deleted STEP file: ${filePath}`);
+        const fileExt = path.extname(filePath).toLowerCase();
+        const isIges = fileExt === '.igs' || fileExt === '.iges';
+        const fileType = isIges ? "IGES" : "STEP";
+        console.log(`Deleted ${fileType} file: ${filePath}`);
       }
       
       // Delete the STL file if it exists
