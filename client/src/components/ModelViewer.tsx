@@ -74,7 +74,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
         // Automatycznie wykryj typ pliku
         let detectedType: ModelType = 'unknown';
         
-        if (filename.endsWith('.step') || filename.endsWith('.stp') || filename.endsWith('.stl')) {
+        if (filename.endsWith('.stl')) {
           detectedType = '3d';
         } else if (filename.endsWith('.dxf') || filename.endsWith('.dwg')) {
           detectedType = '2d';
@@ -199,7 +199,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                 <div className="text-center">
                   <p className="text-lg font-medium mb-2">Wybierz model do wyświetlenia</p>
                   <p className="text-sm text-slate-500">
-                    Obsługiwane formaty: STEP, STP, STL, DXF, DWG
+                    Obsługiwane formaty: STL, DXF, DWG
                   </p>
                 </div>
               </div>

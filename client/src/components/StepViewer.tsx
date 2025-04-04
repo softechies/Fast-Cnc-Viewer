@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw } from 'lucide-react';
-import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
+import { loadSTLModel } from '@/lib/step-parser';
 
 // Interface for STL File Information
 interface StlFileInfo {
@@ -19,7 +19,7 @@ interface StepViewerProps {
   modelId: number | null;
 }
 
-// Component for viewing STEP and STL models
+// Component for viewing STL models
 export default function StepViewer({ modelId }: StepViewerProps) {
   // Refs for Three.js elements
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const stepContentRef = useRef<string | null>(null);
+  const fileContentRef = useRef<string | null>(null);
   
   // State for file data and loading status
   const [fileData, setFileData] = useState<File | null>(null);
@@ -37,8 +37,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
   
-  // Z powodu ograniczeń WASM w aktualnej konfiguracji używamy uproszczonego renderowania
-  const renderMode = 'simple' as const; // 'simple' używa uproszczonego renderowania bez WebAssembly
+  // Używamy tylko renderowania STL (bez STEP)
+  const renderMode = 'stl_only' as const;
   
   // Initialize Three.js scene
   useEffect(() => {
@@ -172,9 +172,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
-        setDebugInfo("Ładowanie pliku STEP...");
+        setDebugInfo("Ładowanie pliku modelu...");
         
-        // Get STEP file
+        // Get model file
         const response = await fetch(`/api/models/${modelId}/file`);
         if (!response.ok) {
           throw new Error(`Nie można pobrać pliku (${response.status})`);
@@ -217,7 +217,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           setIsLoadingStlFile(false);
         }
       } catch (error) {
-        console.error("Error loading STEP file:", error);
+        console.error("Error loading model file:", error);
         setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
         setFileData(null);
       } finally {
@@ -228,8 +228,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     loadFile();
   }, [modelId]);
   
-  // Render model using Three.js
-  async function renderModel(stepContent: string) {
+  // Render model using Three.js - tylko obsługa STL
+  async function renderModel(content: string) {
     if (!sceneRef.current || !cameraRef.current || !controlsRef.current) return;
     
     try {
@@ -239,15 +239,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         sceneRef.current.remove(existingModel);
       }
       
-      // Remove reference cube
-      const refCube = sceneRef.current.getObjectByName("ReferenceBox");
-      if (refCube) {
-        sceneRef.current.remove(refCube);
-      }
-      
-      // Tablica parserów, które będą próbowane w kolejności
-      const parsers = [];
-      
       // Funkcja pomocnicza do postępu ładowania
       const onProgress = (event: ProgressEvent) => {
         if (event.lengthComputable) {
@@ -256,21 +247,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       };
       
-      // Ustawmy flagę, czy mamy próbować najpierw załadować model STL (jeśli dostępny)
-      const useTryStlFirst = Boolean(stlFileInfo?.url);
-      
-      // W trybie simple nie używamy OpenCascade.js
-      const useTryOpenCascade = false; // W przyszłości możemy to włączyć, gdy rozwiążemy problemy z WASM
-      
-      // Ustawmy flagę, czy zawsze używać przybliżonego modelu (dla testów)
-      const useAlwaysApproximate = false; // Testowa flaga - ustaw na true, aby zawsze używać przybliżenie
-      
-      // Ustalenie kolejności parsowania w zależności od warunków
-      
-      // 1. STL jest zawsze naszym pierwszym wyborem, jeśli jest dostępny
-      if (useTryStlFirst && stlFileInfo?.url) {
-        // Jeśli dostępny jest plik STL, to zaczynamy od niego
-        parsers.push(async () => {
+      // Sprawdź czy dostępny jest plik STL
+      if (stlFileInfo?.url) {
+        try {
           setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
           // Zamieniamy na Mesh dla pewności typu
           const stlModel = await loadSTLModel(stlFileInfo.url, onProgress) as unknown as THREE.Mesh;
@@ -291,120 +270,58 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           
           console.log("STL loaded successfully");
           setDebugInfo("Model STL wczytany pomyślnie");
-          return modelGroup;
-        });
-      }
-      
-      // Zmiana: Zawsze używamy przybliżonego parsera zamiast OpenCascade.js
-      // z powodu ograniczeń WebAssembly w obecnej konfiguracji
-      
-      // Dodaj parser przybliżony zaawansowany jako główne rozwiązanie
-      parsers.push(async () => {
-        try {
-          setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
-          const { createApproximatedStepModel } = await import('../lib/step-approximation');
-          console.log("Zawartość STEP (pierwsze 100 znaków):", stepContent.substring(0, 100));
-          console.log("Długość STEP:", stepContent.length);
-          const approxModel = createApproximatedStepModel(stepContent);
-          console.log("Model przybliżony utworzony pomyślnie");
-          setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
-          return approxModel;
-        } catch (error) {
-          console.error("Błąd w przybliżonym parserze:", error);
-          throw error;
-        }
-      });
-      
-      // Dodaj najprostszy parser jako ostateczny fallback
-      parsers.push(async () => {
-        setDebugInfo("Używanie podstawowego parsera STEP...");
-        // Zawsze używamy uproszczonego modelu
-        const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
-        const simpleModel = createSimpleModelRepresentation(complexity);
-        setDebugInfo("Model STEP wczytany (prosty model)");
-        return simpleModel;
-      });
-      
-      // Próbuj kolejne parsery, ale tylko do pierwszego sukcesu
-      // Dla STL powinniśmy zatrzymać się po pierwszym udanym parsowaniu
-      let model: THREE.Object3D | null = null;
-      let error = null;
-      
-      // Jeśli pierwszy parser jest dla STL (useTryStlFirst jest true), to próbujemy tylko jego
-      if (useTryStlFirst && stlFileInfo?.url && parsers.length > 0) {
-        try {
-          model = await parsers[0](); // Użyj tylko pierwszego parsera (STL)
-          error = null;
-          console.log("Udane ładowanie modelu STL, pomijanie dalszych parserów");
-        } catch (parseError) {
-          error = parseError;
-          console.error("Błąd parsera STL, próba następnych:", parseError);
-          setDebugInfo(`Błąd parsera STL: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
           
-          // Jeśli parser STL zawiódł, to próbujemy pozostałe parsery
-          for (let i = 1; i < parsers.length; i++) {
-            try {
-              model = await parsers[i]();
-              error = null;
-              break;
-            } catch (fallbackError) {
-              error = fallbackError;
-              console.error(`Błąd parsera ${i}, próba następnego:`, fallbackError);
-              setDebugInfo(`Błąd parsera: ${fallbackError instanceof Error ? fallbackError.message : 'Nieznany błąd'}`);
-              continue;
-            }
+          // Ustaw nazwę modelu i dodaj do sceny
+          modelGroup.name = "StepModel";
+          sceneRef.current.add(modelGroup);
+          
+          // Dopasuj kamerę do modelu
+          if (cameraRef.current && controlsRef.current) {
+            fitCameraToObject(modelGroup, cameraRef.current, controlsRef.current);
           }
+          
+          setDebugInfo(`Model wczytany (format: STL)`);
+          return;
+        } catch (error) {
+          console.error("Błąd ładowania modelu STL:", error);
+          setDebugInfo(`Błąd ładowania STL: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
         }
       } else {
-        // Standardowe zachowanie dla plików innych niż STL - próbuj wszystkie parsery po kolei
-        for (const parser of parsers) {
-          try {
-            model = await parser();
-            error = null;
-            break;
-          } catch (parseError) {
-            error = parseError;
-            console.error("Błąd parsera, próba następnego:", parseError);
-            setDebugInfo(`Błąd parsera: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
-            continue;
-          }
+        // Jeśli nie ma STL, wyświetl informację
+        setDebugInfo("Ten format pliku nie jest obsługiwany. Tylko pliki STL są obsługiwane.");
+        
+        // Dodaj prosty placeholder informacyjny
+        const infoGroup = new THREE.Group();
+        infoGroup.name = "StepModel";
+        
+        // Dodaj prosty wskaźnik informacyjny
+        const infoGeometry = new THREE.PlaneGeometry(10, 5);
+        const infoMaterial = new THREE.MeshBasicMaterial({ 
+          color: 0xe0e0e0, 
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.7
+        });
+        const infoPlane = new THREE.Mesh(infoGeometry, infoMaterial);
+        infoPlane.rotation.x = Math.PI / 2;
+        infoPlane.position.y = 0.5;
+        infoGroup.add(infoPlane);
+        
+        // Dodaj osie pomocnicze
+        const axesHelper = new THREE.AxesHelper(5);
+        infoGroup.add(axesHelper);
+        
+        // Dodaj do sceny
+        sceneRef.current.add(infoGroup);
+        
+        // Ustaw kamerę
+        if (cameraRef.current && controlsRef.current) {
+          cameraRef.current.position.set(5, 5, 5);
+          cameraRef.current.lookAt(0, 0, 0);
+          controlsRef.current.target.set(0, 0, 0);
+          controlsRef.current.update();
         }
       }
-      
-      // Jeśli wszystkie parsery zawiodły
-      if (error) {
-        throw error;
-      }
-      
-      // Jeśli w jakiś sposób model jest nadal undefined (nie powinno się to zdarzyć)
-      if (!model) {
-        console.error("Wszystkie parsery zawiodły, ale nie zgłoszono błędu");
-        const fallbackModel = new THREE.Group();
-        
-        // Dodaj prosty wskaźnik błędu
-        const errorGeometry = new THREE.SphereGeometry(2, 8, 8);
-        const errorMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
-        fallbackModel.add(new THREE.Mesh(errorGeometry, errorMaterial));
-        
-        model = fallbackModel;
-      }
-      
-      // Ustaw nazwę modelu i dodaj do sceny
-      model.name = "StepModel";
-      sceneRef.current.add(model);
-      
-      // Dopasuj kamerę do modelu
-      if (cameraRef.current && controlsRef.current) {
-        fitCameraToObject(model, cameraRef.current, controlsRef.current);
-      }
-      
-      // Ustal format modelu dla informacji debugowej
-      let modelFormat = 'STEP (uproszczony)';
-      if (stlFileInfo) {
-        modelFormat = 'STL';
-      }
-      
-      setDebugInfo(`Model wczytany (format: ${modelFormat})`);
     } catch (error) {
       console.error("Błąd renderowania modelu:", error);
       setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
@@ -463,12 +380,12 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           }
           
           try {
-            // Store STEP content for later use
-            const stepContent = event.target.result as string;
-            stepContentRef.current = stepContent;
+            // Store content for later use
+            const fileContent = event.target.result as string;
+            fileContentRef.current = fileContent;
             
-            // Render the model using current render mode
-            renderModel(stepContent);
+            // Render the model
+            renderModel(fileContent);
             
           } catch (error) {
             console.error("Błąd przetwarzania modelu:", error);
@@ -500,7 +417,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       }
       // Clear stored content
-      stepContentRef.current = null;
+      fileContentRef.current = null;
     };
   }, [fileData, renderMode, stlFileInfo]);
   
@@ -537,15 +454,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   
   // Funkcja odświeżania modelu - ponowne renderowanie
   const refreshModel = () => {
-    if (!stepContentRef.current || !sceneRef.current) {
+    if (!fileContentRef.current || !sceneRef.current) {
       setDebugInfo("Brak danych do ponownego renderowania");
       return;
     }
     
     setDebugInfo("Odświeżanie modelu...");
     
-    // Wywołaj renderModel z zapisaną wcześniej zawartością pliku STEP/STL
-    renderModel(stepContentRef.current);
+    // Wywołaj renderModel z zapisaną wcześniej zawartością pliku
+    renderModel(fileContentRef.current);
   };
 
   // Helper function to fit camera to object
@@ -613,18 +530,18 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           <div className="flex items-center gap-2 mt-1">
             Format: 
             <Badge variant="outline" className="bg-green-900/50">
-              STL (wysokiej jakości)
+              STL
             </Badge>
           </div>
         ) : (
           <div className="flex flex-col gap-1">
             <div className="text-gray-300 text-xs">
-              <Badge variant="outline" className="bg-amber-700/50">
-                STEP (Symulowany)
+              <Badge variant="outline" className="bg-red-700/50">
+                Format nieobsługiwany
               </Badge>
             </div>
             <div className="text-gray-300 text-xs italic">
-              Widoczny jest model zastępczy
+              Obsługiwane są tylko pliki STL
             </div>
           </div>
         )}
