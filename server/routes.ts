@@ -383,15 +383,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Inicjalizacja Mailchimp, jeśli mamy klucz API
     if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
-      // Używaj klucza API Mailchimp z sufiksem, zgodnie z instrukcją użytkownika
+      // Używamy parametru dc=us2 zgodnie z instrukcją Mailchimp
       let mailchimpApiKey = process.env.MAILCHIMP_API_KEY;
       
-      console.log(`Używam pełnego klucza API Mailchimp (z sufiksem regionu, jeśli istnieje)`);
+      console.log(`Inicjalizacja Mailchimp z parametrem datacenter (dc=us2)`);
       
       const mailchimpInitialized = await initializeMailchimpService({
         apiKey: mailchimpApiKey,
         fromEmail: process.env.MAILCHIMP_FROM_EMAIL,
-        fromName: process.env.MAILCHIMP_FROM_NAME || 'CAD Viewer'
+        fromName: process.env.MAILCHIMP_FROM_NAME || 'CAD Viewer',
+        datacenter: 'us2' // Jawne ustawienie parametru datacenter zgodnie z zaleceniami Mailchimp
       });
       
       if (mailchimpInitialized) {

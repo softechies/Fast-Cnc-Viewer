@@ -1,5 +1,10 @@
 declare module '@mailchimp/mailchimp_transactional' {
-  export default function mailchimp(apiKey: string): {
+  export interface MailchimpOptions {
+    key: string;
+    dc?: string;  // Region datacenter (e.g., 'us2')
+  }
+  
+  export default function mailchimp(apiKeyOrOptions: string | MailchimpOptions): {
     users: {
       ping(): Promise<string>;
     };

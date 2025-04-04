@@ -1,4 +1,4 @@
-import mailchimp from '@mailchimp/mailchimp_transactional';
+import mailchimp, { MailchimpOptions } from '@mailchimp/mailchimp_transactional';
 import { Model } from '@shared/schema';
 import { Language } from '../client/src/lib/translations';
 
@@ -12,6 +12,7 @@ interface MailchimpConfig {
   apiKey: string; // Klucz API Mailchimp Transactional (dawniej Mandrill)
   fromEmail: string; // Email nadawcy
   fromName: string; // Nazwa nadawcy
+  datacenter?: string; // Opcjonalny region datacenter (np. 'us2')
 }
 
 let mailchimpClient: any = null;
@@ -30,9 +31,44 @@ export async function initializeMailchimpService(config: MailchimpConfig): Promi
     console.log(`Próba inicjalizacji Mailchimp z adresem: ${config.fromEmail} i nazwą: ${config.fromName}`);
     
     try {
-      // Inicjalizacja klienta Mailchimp
-      mailchimpClient = mailchimp(config.apiKey);
-      mailchimpConfig = config;
+      // Wyodrębnij klucz podstawowy, jeśli klucz zawiera przyrostek regionu
+      let apiKey = config.apiKey;
+      let datacenter = config.datacenter || 'us2'; // Domyślnie używamy 'us2' (lub wartość z konfiguracji)
+      
+      // Sprawdź, czy klucz ma już format z myślnikiem i regionem
+      const keyParts = apiKey.split('-');
+      if (keyParts.length > 1) {
+        // Klucz ma już format "xxxxxx-yyy", używamy tylko podstawowej części
+        apiKey = keyParts[0];
+        // Jeśli datacenter nie został jawnie określony, użyj z klucza
+        if (!config.datacenter) {
+          datacenter = keyParts[1];
+        }
+      }
+      
+      console.log(`Konfiguracja Mailchimp: używam datacenter: ${datacenter}`);
+      
+      // Próba pierwsza - inicjalizacja z parametrem datacenter
+      try {
+        console.log(`Próba inicjalizacji klienta Mailchimp z dc=${datacenter}`);
+        
+        // Zamiast używać struktur, użyjmy URL z datacenter bezpośrednio w adresie
+        // Mailchimp Transactional (dawniej Mandrill) ma inny format URL niż zwykły Mailchimp
+        // Utworzmy poprawny klucz API z parametrem regionu, jeśli jest potrzebny
+        if (datacenter && datacenter.toLowerCase() !== 'us1') {
+          // Dla regionów innych niż domyślny (us1), dodajemy parametr regionu do klucza
+          apiKey = `${apiKey}-${datacenter}`;
+        }
+        
+        console.log(`Używam klucza API z parametrem regionu: ${apiKey.replace(/(.{4}).*(.{4})/, '$1****$2')}`);
+        
+        // Inicjalizujemy klienta z prostym kluczem API
+        mailchimpClient = mailchimp(apiKey);
+        mailchimpConfig = config;
+      } catch (err) {
+        console.error('Błąd podczas tworzenia klienta Mailchimp:', err);
+        return false;
+      }
       
       console.log(`Klient Mailchimp zainicjalizowany, sprawdzam połączenie...`);
 
