@@ -513,8 +513,10 @@ export function loadSTLModel(
     // Create a group to hold the model
     const group = new THREE.Group();
     
-    // Add helper axes
-    const axesHelper = new THREE.AxesHelper(2);
+    // Małe osie pomocnicze - schowane pod spodem modelu
+    const axesHelper = new THREE.AxesHelper(0.5);
+    axesHelper.position.y = -5; // Przenieś pod model
+    axesHelper.visible = false; // Domyślnie ukryte
     group.add(axesHelper);
     
     // Load STL file
@@ -546,22 +548,56 @@ export function loadSTLModel(
         // Add to the group
         group.add(mesh);
         
-        // Add wireframe for better visibility
-        const wireframe = new THREE.LineSegments(
-          new THREE.EdgesGeometry(geometry),
-          materials.edge
-        );
-        wireframe.rotation.x = -Math.PI / 2;
-        wireframe.scale.set(scale, scale, scale);
-        group.add(wireframe);
+        // Add wireframe dla lepszej widoczności - ale tylko dla modeli o mniejszej złożoności
+        if (geometry.attributes.position.count < 50000) {
+          try {
+            const wireframe = new THREE.LineSegments(
+              new THREE.EdgesGeometry(geometry),
+              materials.edge
+            );
+            wireframe.rotation.x = -Math.PI / 2;
+            wireframe.scale.set(scale, scale, scale);
+            group.add(wireframe);
+          } catch (wireframeError) {
+            console.warn("Nie można utworzyć wireframe - zbyt złożona geometria:", wireframeError);
+          }
+        }
         
         resolve(group);
       },
       onProgress,
       (err) => {
         console.error("Error loading STL model:", err);
-        createFallbackModel(group);
-        resolve(group); // Return fallback instead of rejecting
+        // Tworzymy minimalny fallback model - bez kostek!
+        const fallbackGroup = new THREE.Group();
+        
+        // Dodaj tylko informację o błędzie
+        const textMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        const textGeometry = new THREE.BufferGeometry();
+        
+        // Prosty cross-mark jako wskaźnik błędu
+        const errorIndicator = new THREE.Group();
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        
+        // Linia ukośna 1
+        const line1Geometry = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(-1, -1, 0),
+          new THREE.Vector3(1, 1, 0)
+        ]);
+        const line1 = new THREE.Line(line1Geometry, lineMaterial);
+        
+        // Linia ukośna 2
+        const line2Geometry = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(1, -1, 0),
+          new THREE.Vector3(-1, 1, 0)
+        ]);
+        const line2 = new THREE.Line(line2Geometry, lineMaterial);
+        
+        errorIndicator.add(line1);
+        errorIndicator.add(line2);
+        fallbackGroup.add(errorIndicator);
+        
+        resolve(fallbackGroup);
       }
     );
   });

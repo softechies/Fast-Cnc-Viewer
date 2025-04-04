@@ -270,13 +270,18 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     gridHelper.position.y = -0.01; // Lekko poniżej, aby uniknąć z-fighting
     group.add(gridHelper);
     
-    // Jeśli nic nie dodaliśmy, dodaj domyślną geometrię
+    // Jeśli nic nie dodaliśmy, dodaj minimalne oznaczenie ale nie kostki!
     if (group.children.length <= 2) { // axesHelper + gridHelper
-      console.warn("Nie udało się stworzyć modelu z analizy pliku STEP, używanie domyślnej geometrii");
-      const defaultGeometry = new THREE.BoxGeometry(2, 2, 2);
-      const defaultMesh = new THREE.Mesh(defaultGeometry, materials.standard);
-      addWireframe(defaultMesh);
-      group.add(defaultMesh);
+      console.warn("Nie udało się stworzyć modelu z analizy pliku STEP, używanie minimalnego oznaczenia");
+      
+      // Zamiast kostki, dodajemy tylko tekstowy znacznik (symulowany przez linię)
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x888888 });
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-3, 0, 0),
+        new THREE.Vector3(3, 0, 0)
+      ]);
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      group.add(line);
     }
     
     console.log(`Przybliżony model utworzony (elementy: ${geometricElements.length})`);
@@ -285,23 +290,25 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
   } catch (error) {
     console.error("Błąd tworzenia przybliżonego modelu:", error);
     
-    // Jeśli coś pójdzie nie tak, zwróć prosty model zastępczy
-    const fallbackGeometry = new THREE.BoxGeometry(2, 2, 2);
-    const fallbackMaterial = new THREE.MeshStandardMaterial({
-      color: 0x999999,
-      metalness: 0.3,
-      roughness: 0.7
+    // Jeśli coś pójdzie nie tak, zwróć minimalne oznaczenie - BEZ KOSTEK!
+    
+    // Dodaj tylko osie pomocnicze jako wskaźnik
+    const errorAxesHelper = new THREE.AxesHelper(3);
+    group.add(errorAxesHelper);
+    
+    // Dodaj prostą płaszczyznę jako punkt odniesienia
+    const planeGeometry = new THREE.PlaneGeometry(10, 10);
+    const planeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xf0f0f0,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.2,
+      wireframe: true
     });
-    const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
-    
-    // Dodaj wireframe
-    const fallbackWireframe = new THREE.LineSegments(
-      new THREE.EdgesGeometry(fallbackGeometry),
-      new THREE.LineBasicMaterial({ color: 0x000000 })
-    );
-    fallbackMesh.add(fallbackWireframe);
-    
-    group.add(fallbackMesh);
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = Math.PI / 2;
+    plane.position.y = -0.01;
+    group.add(plane);
     
     // Dodaj wskaźnik, że to model zastępczy
     const axesHelper = new THREE.AxesHelper(3);
@@ -557,23 +564,14 @@ function parseStepFile(content: string): GeometricElement[] {
   } catch (error) {
     console.error("Błąd podczas analizy pliku STEP:", error);
     
-    // Nawet w przypadku błędu, zwróć domyślne elementy zamiast pustej tablicy
+    // Nawet w przypadku błędu, zwróć minimalny zestaw elementów - BEZ KOSTEK
     const defaultElements: GeometricElement[] = [
       {
-        type: 'box',
-        id: 'error-box',
-        points: [
-          { x: -1.5, y: -1.5, z: -1.5 },
-          { x: 1.5, y: 1.5, z: 1.5 }
-        ]
-      },
-      {
-        type: 'cylinder',
-        id: 'error-cylinder',
-        radius: 0.75,
-        height: 3.0,
+        type: 'plane',
+        id: 'error-plane',
         center: { x: 0, y: 0, z: 0 },
-        axis: { x: 0, y: 1, z: 0 }
+        normal: { x: 0, y: 1, z: 0 },
+        points: []
       }
     ];
     

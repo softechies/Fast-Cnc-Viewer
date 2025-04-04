@@ -324,20 +324,49 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         return simpleModel;
       });
       
-      // Próbuj kolejne parsery, aż któryś zadziała
+      // Próbuj kolejne parsery, ale tylko do pierwszego sukcesu
+      // Dla STL powinniśmy zatrzymać się po pierwszym udanym parsowaniu
       let model: THREE.Object3D | null = null;
       let error = null;
       
-      for (const parser of parsers) {
+      // Jeśli pierwszy parser jest dla STL (useTryStlFirst jest true), to próbujemy tylko jego
+      if (useTryStlFirst && stlFileInfo?.url && parsers.length > 0) {
         try {
-          model = await parser();
+          model = await parsers[0](); // Użyj tylko pierwszego parsera (STL)
           error = null;
-          break;
+          console.log("Udane ładowanie modelu STL, pomijanie dalszych parserów");
         } catch (parseError) {
           error = parseError;
-          console.error("Błąd parsera, próba następnego:", parseError);
-          setDebugInfo(`Błąd parsera: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
-          continue;
+          console.error("Błąd parsera STL, próba następnych:", parseError);
+          setDebugInfo(`Błąd parsera STL: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
+          
+          // Jeśli parser STL zawiódł, to próbujemy pozostałe parsery
+          for (let i = 1; i < parsers.length; i++) {
+            try {
+              model = await parsers[i]();
+              error = null;
+              break;
+            } catch (fallbackError) {
+              error = fallbackError;
+              console.error(`Błąd parsera ${i}, próba następnego:`, fallbackError);
+              setDebugInfo(`Błąd parsera: ${fallbackError instanceof Error ? fallbackError.message : 'Nieznany błąd'}`);
+              continue;
+            }
+          }
+        }
+      } else {
+        // Standardowe zachowanie dla plików innych niż STL - próbuj wszystkie parsery po kolei
+        for (const parser of parsers) {
+          try {
+            model = await parser();
+            error = null;
+            break;
+          } catch (parseError) {
+            error = parseError;
+            console.error("Błąd parsera, próba następnego:", parseError);
+            setDebugInfo(`Błąd parsera: ${parseError instanceof Error ? parseError.message : 'Nieznany błąd'}`);
+            continue;
+          }
         }
       }
       
