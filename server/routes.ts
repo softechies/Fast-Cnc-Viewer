@@ -16,7 +16,6 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
-import { initializeMailchimpService, sendShareNotificationMailchimp, sendSharingRevokedNotificationMailchimp } from "./mailchimp";
 
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
@@ -379,27 +378,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } else {
       console.warn("No custom SMTP credentials provided, email notifications will use test service only");
-    }
-    
-    // Inicjalizacja Mailchimp, jeśli mamy klucz API
-    if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
-      // Używamy parametru dc=us2 zgodnie z instrukcją Mailchimp
-      let mailchimpApiKey = process.env.MAILCHIMP_API_KEY;
-      
-      console.log(`Inicjalizacja Mailchimp z parametrem datacenter (dc=us2)`);
-      
-      const mailchimpInitialized = await initializeMailchimpService({
-        apiKey: mailchimpApiKey,
-        fromEmail: process.env.MAILCHIMP_FROM_EMAIL,
-        fromName: process.env.MAILCHIMP_FROM_NAME || 'CAD Viewer',
-        datacenter: 'us2' // Jawne ustawienie parametru datacenter zgodnie z zaleceniami Mailchimp
-      });
-      
-      if (mailchimpInitialized) {
-        console.log("Mailchimp email service initialized successfully");
-      } else {
-        console.warn("Failed to initialize Mailchimp service");
-      }
     }
   } catch (error) {
     console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
@@ -921,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
           console.log(`Using language for email: ${userLanguage} (${shareData.language ? 'from frontend' : 'from browser header'})`);
           
-          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, potem Mailchimp, a na końcu Nodemailer jako fallback
+          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, a potem Nodemailer jako fallback
           let emailSent = false;
           
           // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
@@ -937,23 +915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (emailSent) {
               console.log(`Share notification email sent via custom SMTP to ${shareData.email} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Mailchimp");
-            }
-          }
-          
-          // Jeśli SMTP się nie powiodło, spróbuj Mailchimp
-          if (!emailSent && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
-            emailSent = await sendShareNotificationMailchimp(
-              updatedModel!, 
-              baseUrl,
-              shareData.email,
-              userLanguage
-            );
-            
-            if (emailSent) {
-              console.log(`Share notification email sent via Mailchimp to ${shareData.email} in ${userLanguage}`);
-            } else {
-              console.warn("Mailchimp email failed, trying Nodemailer fallback");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
@@ -985,7 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          // Próbuj wysłać przez własny SMTP, potem Mailchimp, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
@@ -1003,22 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Mailchimp");
-            }
-          }
-
-          // Jeśli SMTP się nie powiodło, spróbuj Mailchimp
-          if (!revocationSent && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
-            revocationSent = await sendSharingRevokedNotificationMailchimp(
-              model, 
-              model.shareEmail!,
-              userLanguage
-            );
-            
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via Mailchimp to ${model.shareEmail} in ${userLanguage}`);
-            } else {
-              console.warn("Mailchimp email failed, trying Nodemailer fallback");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
@@ -1166,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
       if (model.shareEmail) {
         try {
-          // Próbuj wysłać przez własny SMTP, potem Mailchimp, a na końcu przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
@@ -1182,22 +1129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
             } else {
-              console.warn("Custom SMTP email failed, trying Mailchimp");
-            }
-          }
-
-          // Jeśli SMTP się nie powiodło, spróbuj Mailchimp
-          if (!revocationSent && process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
-            revocationSent = await sendSharingRevokedNotificationMailchimp(
-              model, 
-              model.shareEmail,
-              userLanguage
-            );
-            
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via Mailchimp to ${model.shareEmail} in ${userLanguage}`);
-            } else {
-              console.warn("Mailchimp email failed, trying Nodemailer fallback");
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
             }
           }
           
