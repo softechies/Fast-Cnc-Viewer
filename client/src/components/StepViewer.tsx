@@ -582,10 +582,10 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           variant="outline" 
           size="sm" 
           onClick={refreshModel}
-          className="bg-black/50 text-white hover:bg-black/70 border-none"
+          className="bg-black/50 text-white hover:bg-black/70 border-none p-2"
+          title="Odśwież model"
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Odśwież model
+          <RefreshCw className="h-6 w-6" />
         </Button>
       </div>
       
