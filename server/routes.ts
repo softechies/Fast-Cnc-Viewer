@@ -383,8 +383,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Inicjalizacja Mailchimp, jeśli mamy klucz API
     if (process.env.MAILCHIMP_API_KEY && process.env.MAILCHIMP_FROM_EMAIL) {
+      // Format klucza API Mailchimp może zawierać sufiks regionu, np. "-us2", który należy usunąć
+      let mailchimpApiKey = process.env.MAILCHIMP_API_KEY;
+      
+      // Usuń regional suffix (np. -us2) z klucza API, jeśli istnieje
+      if (mailchimpApiKey.includes('-us')) {
+        console.log("Usuwam region z klucza API Mailchimp");
+        mailchimpApiKey = mailchimpApiKey.split('-us')[0];
+      }
+      
       const mailchimpInitialized = await initializeMailchimpService({
-        apiKey: process.env.MAILCHIMP_API_KEY,
+        apiKey: mailchimpApiKey,
         fromEmail: process.env.MAILCHIMP_FROM_EMAIL,
         fromName: process.env.MAILCHIMP_FROM_NAME || 'CAD Viewer'
       });
