@@ -35,28 +35,10 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     const geometricElements = parseStepFile(stepContent);
     console.log(`Znaleziono ${geometricElements.length} elementów geometrycznych w analizie STEP`);
     
-    // Dodaj domyślne elementy, jeśli nie znaleziono żadnych
+    // Sprawdź, czy znaleziono jakieś elementy, ale nie dodawaj domyślnych kostek
     if (geometricElements.length === 0) {
-      console.log("Dodawanie domyślnych elementów geometrycznych");
-      // Dodaj przynajmniej jeden element (pudełko)
-      geometricElements.push({
-        type: 'box',
-        id: 'default-box',
-        points: [
-          { x: -2, y: -2, z: -2 },
-          { x: 2, y: 2, z: 2 }
-        ]
-      });
-      
-      // Dodaj cylinder w środku
-      geometricElements.push({
-        type: 'cylinder',
-        id: 'default-cylinder',
-        radius: 1.0,
-        height: 3.0,
-        center: { x: 0, y: 0, z: 0 },
-        axis: { x: 0, y: 1, z: 0 }
-      });
+      console.log("Nie znaleziono elementów geometrycznych w pliku STEP");
+      // Nie dodajemy domyślnych elementów, co rozwiąże problem z pojawiającymi się niepotrzebnymi kostkami
     }
     
     // Stwórz materiały
@@ -266,12 +248,12 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
     group.add(axesHelper);
     
     // Dodaj siatkę podłoża
-    const gridHelper = new THREE.GridHelper(10, 10);
-    gridHelper.position.y = -0.01; // Lekko poniżej, aby uniknąć z-fighting
-    group.add(gridHelper);
+    // const gridHelper = new THREE.GridHelper(10, 10);
+    // gridHelper.position.y = -0.01; // Lekko poniżej, aby uniknąć z-fighting
+    // group.add(gridHelper); // Zakomentwoane, aby uniknąć nakładania się z główną siatką
     
     // Jeśli nic nie dodaliśmy, dodaj minimalne oznaczenie ale nie kostki!
-    if (group.children.length <= 2) { // axesHelper + gridHelper
+    if (group.children.length <= 1) { // tylko axesHelper (gridHelper jest wyłączony)
       console.warn("Nie udało się stworzyć modelu z analizy pliku STEP, używanie minimalnego oznaczenia");
       
       // Zamiast kostki, dodajemy tylko tekstowy znacznik (symulowany przez linię)
@@ -282,6 +264,20 @@ export function createApproximatedStepModel(stepContent: string): THREE.Group {
       ]);
       const line = new THREE.Line(lineGeometry, lineMaterial);
       group.add(line);
+      
+      // Dodaj informację tekstową (symulowana przez widoczną płaszczyznę)
+      const infoPlaneGeometry = new THREE.PlaneGeometry(8, 2);
+      const infoPlaneMaterial = new THREE.MeshBasicMaterial({
+        color: 0xe0e0e0,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.7,
+        wireframe: false
+      });
+      const infoPlane = new THREE.Mesh(infoPlaneGeometry, infoPlaneMaterial);
+      infoPlane.rotation.x = Math.PI / 2;
+      infoPlane.position.set(0, 0.5, 0);
+      group.add(infoPlane);
     }
     
     console.log(`Przybliżony model utworzony (elementy: ${geometricElements.length})`);
@@ -501,79 +497,19 @@ function parseStepFile(content: string): GeometricElement[] {
     // Analizuj warstwy (SHELL_BASED_SURFACE_MODEL, OPEN_SHELL, itp.)
     // Możemy w ten sposób znaleźć zaawansowane informacje o strukturze modelu
     
-    // Jeśli nie znaleziono żadnych elementów, dodaj domyślne elementy geometryczne
+    // Jeśli nie znaleziono żadnych elementów, NIE dodajemy domyślnych elementów
     if (elements.length === 0) {
-      console.log("Dodawanie domyślnego modelu z analizy STEP...");
-      
-      // Dodaj domyślny box
-      elements.push({
-        type: 'box',
-        id: 'default-box-1',
-        points: [
-          { x: -2, y: -2, z: -2 },
-          { x: 2, y: 2, z: 2 }
-        ]
-      });
-      
-      // Dodaj domyślną kulę
-      elements.push({
-        type: 'sphere',
-        id: 'default-sphere-1',
-        radius: 1.0,
-        center: { x: 0, y: 0, z: 0 }
-      });
-      
-      // Dodaj domyślne cylindry w różnych orientacjach
-      elements.push({
-        type: 'cylinder',
-        id: 'default-cylinder-1',
-        radius: 0.5,
-        height: 4.0,
-        center: { x: 0, y: 0, z: 0 },
-        axis: { x: 1, y: 0, z: 0 }
-      });
-      
-      elements.push({
-        type: 'cylinder',
-        id: 'default-cylinder-2',
-        radius: 0.5,
-        height: 4.0,
-        center: { x: 0, y: 0, z: 0 },
-        axis: { x: 0, y: 1, z: 0 }
-      });
-      
-      elements.push({
-        type: 'cylinder',
-        id: 'default-cylinder-3',
-        radius: 0.5,
-        height: 4.0,
-        center: { x: 0, y: 0, z: 0 },
-        axis: { x: 0, y: 0, z: 1 }
-      });
-      
-      // Dodaj płaszczyznę
-      elements.push({
-        type: 'plane',
-        id: 'default-plane-1',
-        center: { x: 0, y: -2, z: 0 },
-        normal: { x: 0, y: 1, z: 0 }
-      });
+      console.log("Nie znaleziono elementów geometrycznych w pliku STEP - bez domyślnych zastępników");
+      // Usunięte dodawanie domyślnych elementów, aby uniknąć niepotrzebnych kubików
     }
     
     return elements;
   } catch (error) {
     console.error("Błąd podczas analizy pliku STEP:", error);
     
-    // Nawet w przypadku błędu, zwróć minimalny zestaw elementów - BEZ KOSTEK
-    const defaultElements: GeometricElement[] = [
-      {
-        type: 'plane',
-        id: 'error-plane',
-        center: { x: 0, y: 0, z: 0 },
-        normal: { x: 0, y: 1, z: 0 },
-        points: []
-      }
-    ];
+    // W przypadku błędu, zwróć pustą listę - aby nie renderować kostek
+    const defaultElements: GeometricElement[] = [];
+    // Usunięte domyślne elementy, aby uniknąć niepotrzebnych kubików
     
     return defaultElements;
   }

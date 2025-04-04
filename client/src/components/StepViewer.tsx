@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RefreshCw } from 'lucide-react';
 import { createModelFromSTEP, loadSTLModel } from '@/lib/step-parser';
 
 // Interface for STL File Information
@@ -83,10 +84,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     directionalLight.shadow.mapSize.height = 1024;
     scene.add(directionalLight);
     
-    // Add grid helper
-    const gridHelper = new THREE.GridHelper(20, 20);
-    scene.add(gridHelper);
-    
     // Create animation loop
     const animate = () => {
       if (controlsRef.current) controlsRef.current.update();
@@ -101,14 +98,18 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     console.log("Inicjalizacja sceny Three.js");
     setDebugInfo("Scena gotowa");
     
-    // Add a reference box to visualize scale
-    const refBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.2 })
-    );
-    refBox.name = "ReferenceBox";
-    refBox.visible = false;
-    scene.add(refBox);
+    // Dodaj osie pomocnicze - ukryte domyślnie
+    const axesHelper = new THREE.AxesHelper(3);
+    axesHelper.position.y = -0.1; // Przesuń lekko w dół aby nie zasłaniały modelu
+    axesHelper.visible = false; // Ukrywamy domyślnie
+    axesHelper.name = "AxesHelper";
+    scene.add(axesHelper);
+    
+    // Dodaj siatkę pomocniczą pod modelem - widoczna ale subtelna
+    const mainGridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd);
+    mainGridHelper.position.y = -0.01; // Lekko pod modelem
+    mainGridHelper.name = "GridHelper";
+    scene.add(mainGridHelper);
     
     // Handle window resize
     const handleResize = () => {
@@ -503,79 +504,50 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     };
   }, [fileData, renderMode, stlFileInfo]);
   
-  // Helper function to create a simple model representation
+  // Helper function to create a simple model representation (bez zbędnych kostek)
   function createSimpleModelRepresentation(complexity: number) {
     const group = new THREE.Group();
     
-    // Stwórz bardziej złożony model
-    const size = 3; // Stała wielkość dla lepszej widoczności
+    // Dodaj tylko informacyjne elementy, bez niepotrzebnych kostek
     
-    // Dodaj główne pudełko
-    const mainBoxGeometry = new THREE.BoxGeometry(size, size, size);
-    const mainBoxMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x4488ee,
-      metalness: 0.3,
-      roughness: 0.7,
-      flatShading: true 
+    // Dodaj płaszczyznę informacyjną
+    const infoPlaneGeometry = new THREE.PlaneGeometry(8, 4);
+    const infoPlaneMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xf0f0f0, 
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.5
     });
-    const mainBox = new THREE.Mesh(mainBoxGeometry, mainBoxMaterial);
-    
-    // Dodaj wireframe do pudełka
-    const wireframeGeometry = new THREE.EdgesGeometry(mainBoxGeometry);
-    const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
-    const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-    mainBox.add(wireframe);
-    
-    group.add(mainBox);
-    
-    // Dodaj cylindry na narożnikach
-    const cylinderPositions = [
-      [-size/2, -size/2, -size/2],
-      [size/2, -size/2, -size/2],
-      [-size/2, size/2, -size/2],
-      [size/2, size/2, -size/2],
-      [-size/2, -size/2, size/2],
-      [size/2, -size/2, size/2],
-      [-size/2, size/2, size/2],
-      [size/2, size/2, size/2],
-    ];
-    
-    // Dodaj cylindry na narożnikach
-    cylinderPositions.forEach(position => {
-      const cylinderGeometry = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 16);
-      const cylinderMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x66aaff,
-        metalness: 0.5,
-        roughness: 0.5 
-      });
-      const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-      cylinder.position.set(position[0], position[1], position[2]);
-      group.add(cylinder);
-    });
-    
-    // Dodaj kulę w środku
-    const sphereGeometry = new THREE.SphereGeometry(1.2, 32, 32);
-    const sphereMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x88ccff, 
-      metalness: 0.7,
-      roughness: 0.2,
-      envMapIntensity: 1.0
-    });
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    group.add(sphere);
+    const infoPlane = new THREE.Mesh(infoPlaneGeometry, infoPlaneMaterial);
+    infoPlane.rotation.x = Math.PI / 2;
+    infoPlane.position.y = 0.5;
+    group.add(infoPlane);
     
     // Dodaj osie pomocnicze
-    const axesHelper = new THREE.AxesHelper(size);
+    const axesHelper = new THREE.AxesHelper(5);
     group.add(axesHelper);
     
     // Dodaj siatkę podłoża
-    const gridHelper = new THREE.GridHelper(size * 2, 10);
-    gridHelper.position.y = -size/2 - 0.1; // Przesuń siatkę pod model
+    const gridHelper = new THREE.GridHelper(10, 10);
+    gridHelper.position.y = -0.1;
     group.add(gridHelper);
     
     return group;
   }
   
+  // Funkcja odświeżania modelu - ponowne renderowanie
+  const refreshModel = () => {
+    if (!stepContentRef.current || !sceneRef.current) {
+      setDebugInfo("Brak danych do ponownego renderowania");
+      return;
+    }
+    
+    setDebugInfo("Odświeżanie modelu...");
+    
+    // Wywołaj renderModel z zapisaną wcześniej zawartością pliku STEP/STL
+    renderModel(stepContentRef.current);
+  };
+
   // Helper function to fit camera to object
   function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
     const boundingBox = new THREE.Box3().setFromObject(object);
@@ -606,7 +578,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       {/* Controls overlay */}
       <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
-        {/* Przyciski usunięte */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refreshModel}
+          className="bg-black/50 text-white hover:bg-black/70 border-none"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Odśwież model
+        </Button>
       </div>
       
       {/* Loading overlay */}
