@@ -19,7 +19,7 @@ interface StepViewerProps {
   modelId: number | null;
 }
 
-// Component for viewing STEP and STL models
+// Component for viewing STEP, IGES and STL models
 export default function StepViewer({ modelId }: StepViewerProps) {
   // Refs for Three.js elements
   const containerRef = useRef<HTMLDivElement>(null);
@@ -172,9 +172,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
-        setDebugInfo("Ładowanie pliku STEP...");
+        setDebugInfo("Ładowanie pliku CAD...");
         
-        // Get STEP file
+        // Get CAD file (STEP or IGES)
         const response = await fetch(`/api/models/${modelId}/file`);
         if (!response.ok) {
           throw new Error(`Nie można pobrać pliku (${response.status})`);
@@ -190,7 +190,16 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         
         const blob = await response.blob();
         const filename = modelInfo.filename || `model-${modelId}.step`;
-        const file = new File([blob], filename, { type: 'application/step' });
+        
+        // Określ właściwy Content-Type na podstawie rozszerzenia pliku
+        let contentType = 'application/step';
+        if (filename.toLowerCase().endsWith('.iges') || filename.toLowerCase().endsWith('.igs')) {
+          contentType = 'application/iges';
+        } else if (filename.toLowerCase().endsWith('.stl')) {
+          contentType = 'application/sla';
+        }
+        
+        const file = new File([blob], filename, { type: contentType });
         
         setFileData(file);
         
@@ -301,13 +310,17 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       // Dodaj parser przybliżony zaawansowany jako główne rozwiązanie
       parsers.push(async () => {
         try {
-          setDebugInfo("Używanie zaawansowanego przybliżonego parsera STEP...");
+          // Wybierz odpowiedni komunikat w zależności od typu pliku
+          const isIges = fileData?.name.toLowerCase().endsWith('.iges') || fileData?.name.toLowerCase().endsWith('.igs');
+          const fileType = isIges ? 'IGES' : 'STEP';
+          
+          setDebugInfo(`Używanie zaawansowanego przybliżonego parsera ${fileType}...`);
           const { createApproximatedStepModel } = await import('../lib/step-approximation');
-          console.log("Zawartość STEP (pierwsze 100 znaków):", stepContent.substring(0, 100));
-          console.log("Długość STEP:", stepContent.length);
+          console.log(`Zawartość ${fileType} (pierwsze 100 znaków):`, stepContent.substring(0, 100));
+          console.log(`Długość ${fileType}:`, stepContent.length);
           const approxModel = createApproximatedStepModel(stepContent);
           console.log("Model przybliżony utworzony pomyślnie");
-          setDebugInfo("Model STEP wczytany (zaawansowane przybliżenie)");
+          setDebugInfo(`Model ${fileType} wczytany (zaawansowane przybliżenie)`);
           return approxModel;
         } catch (error) {
           console.error("Błąd w przybliżonym parserze:", error);
@@ -317,11 +330,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       
       // Dodaj najprostszy parser jako ostateczny fallback
       parsers.push(async () => {
-        setDebugInfo("Używanie podstawowego parsera STEP...");
+        // Wybierz odpowiedni komunikat w zależności od typu pliku
+        const isIges = fileData?.name.toLowerCase().endsWith('.iges') || fileData?.name.toLowerCase().endsWith('.igs');
+        const fileType = isIges ? 'IGES' : 'STEP';
+        
+        setDebugInfo(`Używanie podstawowego parsera ${fileType}...`);
         // Zawsze używamy uproszczonego modelu
         const complexity = Math.min(5, Math.max(1, Math.floor(stepContent.length / 10000)));
         const simpleModel = createSimpleModelRepresentation(complexity);
-        setDebugInfo("Model STEP wczytany (prosty model)");
+        setDebugInfo(`Model ${fileType} wczytany (prosty model)`);
         return simpleModel;
       });
       
@@ -399,9 +416,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       }
       
       // Ustal format modelu dla informacji debugowej
-      let modelFormat = 'STEP (uproszczony)';
+      let modelFormat = 'CAD (uproszczony)';
       if (stlFileInfo) {
         modelFormat = 'STL';
+      } else if (fileData?.name.toLowerCase().endsWith('.iges') || fileData?.name.toLowerCase().endsWith('.igs')) {
+        modelFormat = 'IGES (uproszczony)';
+      } else if (fileData?.name.toLowerCase().endsWith('.step') || fileData?.name.toLowerCase().endsWith('.stp')) {
+        modelFormat = 'STEP (uproszczony)';
       }
       
       setDebugInfo(`Model wczytany (format: ${modelFormat})`);
@@ -619,9 +640,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         ) : (
           <div className="flex flex-col gap-1">
             <div className="text-gray-300 text-xs">
-              <Badge variant="outline" className="bg-amber-700/50">
-                STEP (Symulowany)
-              </Badge>
+              {fileData?.name.toLowerCase().endsWith('.iges') || fileData?.name.toLowerCase().endsWith('.igs') ? (
+                <Badge variant="outline" className="bg-amber-700/50">
+                  IGES (Symulowany)
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-amber-700/50">
+                  STEP (Symulowany)
+                </Badge>
+              )}
             </div>
             <div className="text-gray-300 text-xs italic">
               Widoczny jest model zastępczy
