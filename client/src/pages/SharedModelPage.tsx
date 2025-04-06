@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ModelViewer from "@/components/ModelViewer";
+import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -202,6 +203,9 @@ export default function SharedModelPage() {
     return (
       <div className="container mx-auto py-8 px-4 flex justify-center">
         <Card className="w-full max-w-md">
+          <div className="flex justify-center mt-4">
+            <img src={fastCncLogo} alt="FastCNC Logo" className="h-12" />
+          </div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LockIcon className="h-5 w-5" />
@@ -254,6 +258,7 @@ export default function SharedModelPage() {
       <div className="bg-muted/40 rounded-lg p-2 mb-4 border text-sm">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
+            <img src={fastCncLogo} alt="FastCNC Logo" className="h-6 mr-2" />
             <FileIcon className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{modelInfo?.filename}</span>
             <span className="text-xs text-muted-foreground">

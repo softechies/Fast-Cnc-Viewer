@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
 import { Clipboard, Calendar, Copy, Check, Link2, Mail } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 
 interface ShareModelDialogProps {
   isOpen: boolean;
@@ -132,6 +133,9 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
+        <div className="flex justify-center mb-2">
+          <img src={fastCncLogo} alt="FastCNC Logo" className="h-10" />
+        </div>
         <DialogHeader>
           <DialogTitle>{t('button.share')}</DialogTitle>
           <DialogDescription>
