@@ -57,27 +57,21 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     try {
       setIsSharing(true);
       
-      const response = await apiRequest({
-        url: `/api/models/${modelId}/share`,
-        method: "POST",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        `/api/models/${modelId}/share`,
+        {
           modelId,
           enableSharing,
           password: password.length > 0 ? password : undefined,
           expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
           email: email.trim() !== "" ? email.trim() : undefined,
           language: language // Przesyłanie aktualnie wybranego języka
-        }),
-        headers: {
-          "Content-Type": "application/json"
         },
-        on401: "throw"
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || t('error.share'));
-      }
+        {
+          on401: "throw"
+        }
+      );
 
       const shareData = await response.json();
       
