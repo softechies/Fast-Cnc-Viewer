@@ -46,16 +46,16 @@ export default function SharedModelPage() {
         setIsLoading(true);
         setError(null);
         
-        const response = await apiRequest({
-          url: `/api/shared/${shareId}`,
-          method: "GET",
-          on401: "throw"
-        });
+        const response = await apiRequest(
+          "GET",
+          `/api/shared/${shareId}`,
+          undefined,
+          {
+            on401: "throw"
+          }
+        );
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Nie udało się pobrać informacji o modelu");
-        }
+        // apiRequest już rzuca błąd, jeśli response nie jest ok, więc ten kod nie jest już potrzebny
         
         const data = await response.json();
         setModelInfo(data);
@@ -83,29 +83,24 @@ export default function SharedModelPage() {
     try {
       setIsSubmitting(true);
       
-      const response = await apiRequest({
-        url: `/api/shared/${shareId}/access`,
-        method: "POST",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        `/api/shared/${shareId}/access`,
+        {
           password: password.length > 0 ? password : undefined
-        }),
-        headers: {
-          "Content-Type": "application/json"
         },
-        on401: "throw"
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.requiresPassword) {
-          setRequiresPassword(true);
-          throw new Error("Wymagane hasło");
-        } else {
-          throw new Error(errorData.message || "Nie udało się uzyskać dostępu do modelu");
+        {
+          on401: "throw"
         }
-      }
+      );
       
       const modelData = await response.json();
+      
+      if (modelData.requiresPassword) {
+        setRequiresPassword(true);
+        throw new Error("Wymagane hasło");
+      }
+      
       setModelId(modelData.id);
       setModelAccessed(true);
       setRequiresPassword(false);
@@ -140,16 +135,14 @@ export default function SharedModelPage() {
     try {
       setIsDeleting(true);
       
-      const response = await apiRequest({
-        url: `/api/shared/${shareId}`,
-        method: "DELETE",
-        on401: "throw"
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Nie udało się usunąć udostępnienia");
-      }
+      const response = await apiRequest(
+        "DELETE",
+        `/api/shared/${shareId}`,
+        undefined,
+        {
+          on401: "throw"
+        }
+      );
       
       toast({
         title: "Sukces",
