@@ -1167,6 +1167,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoints
+  
+  // Logowanie administratora
+  app.post("/api/admin/login", async (req: Request, res: Response) => {
+    try {
+      const loginData = adminLoginSchema.parse(req.body);
+      
+      // Pobierz użytkownika po nazwie użytkownika
+      const user = await storage.getUserByUsername(loginData.username);
+      
+      // Sprawdź czy użytkownik istnieje i czy jest administratorem
+      if (!user || !user.isAdmin) {
+        return res.status(401).json({ message: "Nieprawidłowe dane logowania lub brak uprawnień administratora" });
+      }
+      
+      // Sprawdź hasło
+      const passwordValid = await comparePassword(loginData.password, user.password);
+      if (!passwordValid) {
+        return res.status(401).json({ message: "Nieprawidłowe dane logowania" });
+      }
+      
+      // Usuń hasło z obiektu użytkownika przed zwróceniem
+      const { password, ...userWithoutPassword } = user;
+      
+      // Zwróć dane użytkownika (bez hasła)
+      res.status(200).json({ 
+        ...userWithoutPassword,
+        token: nanoid(32) // Bardzo prosty token, w produkcji użyłbyś JWT lub podobnego 
+      });
+    } catch (error) {
+      console.error("Error during admin login:", error);
+      res.status(500).json({ message: "Wystąpił błąd podczas logowania" });
+    }
+  });
+  
+  // Pobierz wszystkie udostępnione modele (tylko dla administratorów)
+  app.get("/api/admin/shared-models", async (req: Request, res: Response) => {
+    try {
+      // W prawdziwej aplikacji powinieneś sprawdzić token administratora
+      // Dla prostoty w prototypie pomijamy uwierzytelnianie
+      
+      // Pobierz wszystkie udostępnione modele
+      const sharedModels = await storage.getSharedModels();
+      
+      // Przygotuj dane do wysłania, zawierające tylko potrzebne informacje
+      const modelsList = sharedModels.map(model => ({
+        id: model.id,
+        filename: model.filename,
+        filesize: model.filesize,
+        format: model.format,
+        created: model.created,
+        shareId: model.shareId,
+        shareEnabled: model.shareEnabled,
+        shareEmail: model.shareEmail,
+        shareExpiryDate: model.shareExpiryDate,
+        shareLastAccessed: model.shareLastAccessed,
+        hasPassword: !!model.sharePassword
+      }));
+      
+      res.json(modelsList);
+    } catch (error) {
+      console.error("Error getting shared models list:", error);
+      res.status(500).json({ message: "Failed to get shared models list" });
+    }
+  });
+  
+  // Odwołaj udostępnianie modelu (tylko dla administratorów)
+  app.delete("/api/admin/shared-models/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const modelId = parseInt(id);
+      
+      if (isNaN(modelId)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      // W prawdziwej aplikacji powinieneś sprawdzić token administratora
+      // Dla prostoty w prototypie pomijamy uwierzytelnianie
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      if (!model.shareEnabled || !model.shareId) {
+        return res.status(400).json({ message: "Model is not shared" });
+      }
+      
+      // Usuń udostępnianie
+      const update = {
+        shareEnabled: false,
+        shareId: null,
+        sharePassword: null,
+        shareExpiryDate: null,
+        shareEmail: null
+      };
+      
+      const updatedModel = await storage.updateModel(modelId, update);
+      
+      // Powiadom użytkownika o usunięciu udostępnienia, jeśli podał adres e-mail
+      if (updatedModel && model.shareEmail) {
+        try {
+          const language = 'en'; // Domyślny język dla powiadomień administracyjnych
+          
+          // Próbuj użyć niestandardowego SMTP, a jeśli nie zadziała, użyj Nodemailer
+          try {
+            await sendSharingRevokedNotificationSmtp(model, language);
+          } catch (emailError) {
+            console.warn("Custom SMTP notification failed, trying Nodemailer:", emailError);
+            await sendNodemailerRevokedNotification(model, language);
+          }
+        } catch (notificationError) {
+          console.error("Failed to send sharing revocation notification:", notificationError);
+          // Nie przerywamy procesu, jeśli powiadomienie się nie powiedzie
+        }
+      }
+      
+      res.status(200).json({ message: "Sharing successfully disabled" });
+    } catch (error) {
+      console.error("Error disabling sharing:", error);
+      res.status(500).json({ message: "Failed to disable sharing" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
