@@ -165,7 +165,53 @@ const translations = {
   
   // Success messages
   sharingSaved: "Ustawienia udostępniania zapisane",
-  sharingRemoved: "Udostępnianie zostało wyłączone"
+  sharingRemoved: "Udostępnianie zostało wyłączone",
+  
+  // Admin panel
+  admin: {
+    loginTitle: "Logowanie do Panelu Administratora",
+    loginDescription: "Wprowadź dane uwierzytelniające, aby uzyskać dostęp do panelu administratora",
+    username: "Nazwa użytkownika",
+    usernamePlaceholder: "admin",
+    password: "Hasło",
+    loginButton: "Zaloguj się",
+    loggingIn: "Logowanie...",
+    dashboardTitle: "Panel Administratora",
+    sharedModelsTitle: "Udostępnione Modele",
+    sharedModelsDescription: "Zarządzaj wszystkimi udostępnionymi modelami w systemie",
+    refresh: "Odśwież",
+    logout: "Wyloguj",
+    notAuthenticated: "Niezalogowany",
+    pleaseLogin: "Proszę zalogować się, aby uzyskać dostęp do panelu administratora",
+    loadError: "Błąd ładowania danych",
+    unknownError: "Wystąpił nieznany błąd",
+    linkCopied: "Link skopiowany",
+    linkCopiedDescription: "Link został skopiowany do schowka",
+    sharingRevoked: "Udostępnianie odwołane",
+    sharingRevokedDescription: "Udostępnianie modelu zostało pomyślnie wyłączone",
+    revokeError: "Błąd odwoływania udostępniania",
+    loggedOut: "Wylogowano",
+    loggedOutDescription: "Zostałeś pomyślnie wylogowany",
+    filename: "Nazwa pliku",
+    format: "Format",
+    sharedWith: "Udostępniono dla",
+    createdDate: "Utworzono",
+    lastAccessed: "Ostatni dostęp",
+    expiryDate: "Data wygaśnięcia",
+    passwordProtection: "Hasło",
+    actions: "Akcje",
+    shareLink: "Link",
+    shareLinkTitle: "Link udostępniania",
+    openLink: "Otwórz link",
+    revoke: "Odwołaj",
+    protected: "Chroniony",
+    notProtected: "Niechroniony",
+    noSharedModels: "Nie znaleziono udostępnionych modeli",
+    revokeConfirmTitle: "Potwierdź odwołanie",
+    revokeConfirmDescription: "Czy na pewno chcesz odwołać udostępnianie tego modelu? Tej operacji nie można cofnąć.",
+    cancel: "Anuluj",
+    confirmRevoke: "Tak, odwołaj"
+  }
 };
 
 export default translations;
