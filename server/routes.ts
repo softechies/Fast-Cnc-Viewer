@@ -896,16 +896,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (shareData.enableSharing && shareData.email) {
         try {
           // Ustal baseUrl na podstawie żądania lub konfiguracji produkcyjnej
-          // Sprawdź, czy jesteśmy w środowisku produkcyjnym
-          const isProduction = host === 'viewer.fastcnc.eu' || req.headers['host'] === 'viewer.fastcnc.eu';
+          const protocol = req.headers['x-forwarded-proto'] || 'http';
+          const host = req.headers['host'] || 'localhost:3000';
           
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym
           let baseUrl;
-          if (isProduction) {
+          if (host === 'viewer.fastcnc.eu') {
+            // W środowisku produkcyjnym zawsze używaj HTTPS
             baseUrl = 'https://viewer.fastcnc.eu';
             console.log('Using production baseUrl:', baseUrl);
           } else {
-            const protocol = req.headers['x-forwarded-proto'] || 'http';
-            const host = req.headers['host'] || 'localhost:3000';
+            // W innych środowiskach używaj wykrytego protokołu i hosta
             baseUrl = `${protocol}://${host}`;
             console.log('Using detected baseUrl:', baseUrl);
           }
