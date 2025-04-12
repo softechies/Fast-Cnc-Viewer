@@ -55,7 +55,8 @@ interface SharedModel {
 }
 
 export default function AdminDashboardPage() {
-  const { t } = useLanguage();
+  // Używamy bezpośrednio tekstów angielskich, bez tłumaczeń
+  const { t } = useLanguage(); // Zachowujemy dla innych części aplikacji
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -69,8 +70,8 @@ export default function AdminDashboardPage() {
     if (!adminToken) {
       toast({
         variant: "destructive",
-        title: t('admin.notAuthenticated'),
-        description: t('admin.pleaseLogin'),
+        title: "Not Authenticated",
+        description: "Please log in to access the admin panel",
       });
       setLocation('/admin/login');
       return;
@@ -95,8 +96,8 @@ export default function AdminDashboardPage() {
       console.error('Error loading shared models:', error);
       toast({
         variant: "destructive",
-        title: t('admin.loadError'),
-        description: error instanceof Error ? error.message : t('admin.unknownError'),
+        title: "Error Loading Data",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     } finally {
       setIsLoading(false);
@@ -108,8 +109,8 @@ export default function AdminDashboardPage() {
     const shareUrl = `${window.location.origin}/shared/${shareId}`;
     navigator.clipboard.writeText(shareUrl);
     toast({
-      title: t('admin.linkCopied'),
-      description: t('admin.linkCopiedDescription'),
+      title: "Link Copied",
+      description: "Link has been copied to clipboard",
     });
   };
   
@@ -125,8 +126,8 @@ export default function AdminDashboardPage() {
       }
       
       toast({
-        title: t('admin.sharingRevoked'),
-        description: t('admin.sharingRevokedDescription'),
+        title: "Sharing Revoked",
+        description: "The model sharing has been successfully disabled",
       });
       
       // Odśwież listę modeli
@@ -135,8 +136,8 @@ export default function AdminDashboardPage() {
       console.error('Error revoking sharing:', error);
       toast({
         variant: "destructive",
-        title: t('admin.revokeError'),
-        description: error instanceof Error ? error.message : t('admin.unknownError'),
+        title: "Error Revoking Sharing",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     } finally {
       setIsRevoking(false);
@@ -150,8 +151,8 @@ export default function AdminDashboardPage() {
     localStorage.removeItem('adminUser');
     setLocation('/admin/login');
     toast({
-      title: t('admin.loggedOut'),
-      description: t('admin.loggedOutDescription'),
+      title: "Logged Out",
+      description: "You have been successfully logged out",
     });
   };
   
@@ -175,23 +176,23 @@ export default function AdminDashboardPage() {
   return (
     <div className="container p-4 mx-auto max-w-7xl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{t('admin.dashboardTitle')}</h1>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-2">
           <Button onClick={loadSharedModels} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t('admin.refresh')}
+            Refresh
           </Button>
           <Button onClick={handleLogout} variant="outline" size="sm">
-            {t('admin.logout')}
+            Log Out
           </Button>
         </div>
       </div>
       
       <Card className="shadow-md">
         <CardHeader>
-          <CardTitle>{t('admin.sharedModelsTitle')}</CardTitle>
+          <CardTitle>Shared Models</CardTitle>
           <CardDescription>
-            {t('admin.sharedModelsDescription')}
+            Manage all shared model links in the system
           </CardDescription>
         </CardHeader>
         <CardContent>
