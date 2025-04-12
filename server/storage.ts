@@ -7,6 +7,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
   // Model operations
   createModel(model: InsertModel): Promise<Model>;
@@ -18,6 +19,7 @@ export interface IStorage {
   
   // Share operations
   getModelByShareId(shareId: string): Promise<Model | undefined>; // Znajdź model po identyfikatorze udostępniania
+  getSharedModels(): Promise<Model[]>; // Pobierz wszystkie udostępnione modele
 }
 
 // In-memory storage implementation
@@ -46,7 +48,11 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      isAdmin: insertUser.isAdmin ?? false 
+    };
     this.users.set(id, user);
     return user;
   }
@@ -104,6 +110,21 @@ export class MemStorage implements IStorage {
     return Array.from(this.models.values()).find(
       (model) => model.shareId === shareId && model.shareEnabled === true
     );
+  }
+  
+  async getSharedModels(): Promise<Model[]> {
+    return Array.from(this.models.values()).filter(
+      (model) => model.shareEnabled === true && model.shareId !== null
+    );
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 }
 
@@ -184,6 +205,27 @@ export class PostgresStorage implements IStorage {
       return result[0];
     }
     return undefined;
+  }
+  
+  async getSharedModels(): Promise<Model[]> {
+    // Pobierz wszystkie modele z włączonym udostępnianiem
+    const result = await db.select()
+      .from(models)
+      .where(
+        eq(models.shareEnabled, true)
+      );
+    
+    return result;
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const result = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return result[0];
   }
 }
 

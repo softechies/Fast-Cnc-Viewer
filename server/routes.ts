@@ -17,6 +17,11 @@ import { initializeEmailService, sendShareNotification as sendNodemailerNotifica
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
 
+// Funkcja do porównywania haszowanego hasła
+async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(plainPassword, hashedPassword);
+}
+
 // ES modules compatibility (replacement for __dirname)
 const execPromise = util.promisify(exec);
 

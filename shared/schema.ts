@@ -13,6 +13,7 @@ export const users = pgTable("users", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  isAdmin: true,
 });
 
 // Define models table for storing model information
