@@ -24,7 +24,8 @@ const translations = {
   button: {
     upload: "Prześlij",
     cancel: "Anuluj",
-    share: "Udostępnij"
+    share: "Udostępnij",
+    copy: "Skopiowano"
   },
   
   // Home page
@@ -107,7 +108,18 @@ const translations = {
     },
     loading: "Proszę czekać, przetwarzamy Twój plik",
     delete: {
-      warning: "Czy na pewno chcesz usunąć ten model? Tej operacji nie można cofnąć."
+      warning: "Czy na pewno chcesz usunąć ten model? Tej operacji nie można cofnąć.",
+      success: "Model został pomyślnie usunięty"
+    },
+    share: {
+      success: "Model został pomyślnie udostępniony",
+      copied: "Link do udostępnienia został skopiowany do schowka"
+    },
+    revocation: {
+      sent: "Powiadomienie e-mail wysłane do"
+    },
+    password: {
+      required: "Hasło nie jest wymagane"
     }
   },
   
@@ -131,6 +143,14 @@ const translations = {
     footer: "Przeglądarka CAD - © 2025 Wszelkie prawa zastrzeżone"
   },
 
+  // Headers
+  header: {
+    error: "Błąd",
+    shared: {
+      model: "Udostępniony model"
+    }
+  },
+
   // Error messages
   genericError: "Coś poszło nie tak",
   connectionError: "Błąd połączenia",
@@ -138,6 +158,9 @@ const translations = {
   fileTooLarge: "Plik jest zbyt duży",
   invalidPassword: "Nieprawidłowe hasło",
   invalidEmail: "Nieprawidłowy adres e-mail",
+  errors: {
+    share: "Błąd podczas udostępniania modelu"
+  },
   
   // Success messages
   sharingSaved: "Ustawienia udostępniania zapisane",

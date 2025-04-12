@@ -100,7 +100,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       console.error("Error sharing model:", error);
       toast({
         title: t('header.error'),
-        description: error instanceof Error ? error.message : t('error.share'),
+        description: error instanceof Error ? error.message : t('errors.share'),
         variant: "destructive"
       });
     } finally {
