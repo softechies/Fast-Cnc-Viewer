@@ -174,7 +174,7 @@ const translations = {
     createdDate: "Created",
     lastAccessed: "Last Accessed",
     expiryDate: "Expiry Date",
-    password: "Password",
+    passwordProtection: "Password",
     actions: "Actions",
     shareLink: "Link",
     shareLinkTitle: "Share Link",

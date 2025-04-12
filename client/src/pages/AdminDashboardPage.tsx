@@ -214,7 +214,7 @@ export default function AdminDashboardPage() {
                     <TableHead>{t('admin.createdDate')}</TableHead>
                     <TableHead>{t('admin.lastAccessed')}</TableHead>
                     <TableHead>{t('admin.expiryDate')}</TableHead>
-                    <TableHead>{t('admin.password')}</TableHead>
+                    <TableHead>{t('admin.passwordProtection')}</TableHead>
                     <TableHead className="text-right">{t('admin.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
