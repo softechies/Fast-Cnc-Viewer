@@ -915,10 +915,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
           console.log(`Using language for email: ${userLanguage} (${shareData.language ? 'from frontend' : 'from browser header'})`);
           
-          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, a potem Nodemailer jako fallback
+          // Wyślij e-mail z powiadomieniem
           let emailSent = false;
           
-          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym - używamy tylko SMTP bez fallbacku
+          const isProduction = host === 'viewer.fastcnc.eu';
+          
+          // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             emailSent = await sendShareNotificationSmtp(
               updatedModel!, 
@@ -930,13 +933,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (emailSent) {
               console.log(`Share notification email sent via custom SMTP to ${shareData.email} in ${userLanguage}`);
+              
+              // Zaktualizuj status wysłania powiadomienia
+              await storage.updateModel(id, { shareNotificationSent: true });
+            } else if (!isProduction) {
+              // Tylko w środowisku deweloperskim próbujemy użyć Nodemailer jako fallback
+              console.warn("Custom SMTP email failed, trying Nodemailer fallback (dev environment only)");
+              
+              emailSent = await sendNodemailerNotification(
+                updatedModel!, 
+                shareData.email, 
+                baseUrl,
+                shareData.password
+              );
+              
+              if (emailSent) {
+                console.log(`Share notification email sent via Nodemailer to ${shareData.email}`);
+                
+                // Zaktualizuj status wysłania powiadomienia
+                await storage.updateModel(id, { shareNotificationSent: true });
+              } else {
+                console.error(`Failed to send share notification email to ${shareData.email}`);
+              }
             } else {
-              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
+              console.error(`Failed to send share notification email via SMTP to ${shareData.email} in production environment`);
             }
-          }
-          
-          // Jako ostatnią opcję, użyj Nodemailer z Ethereal
-          if (!emailSent) {
+          } else if (!isProduction) {
+            // Tylko w środowisku deweloperskim użyj Nodemailer, jeśli SMTP nie jest skonfigurowany
             emailSent = await sendNodemailerNotification(
               updatedModel!, 
               shareData.email, 
@@ -946,15 +969,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (emailSent) {
               console.log(`Share notification email sent via Nodemailer to ${shareData.email}`);
+              
+              // Zaktualizuj status wysłania powiadomienia
+              await storage.updateModel(id, { shareNotificationSent: true });
+            } else {
+              console.error(`Failed to send share notification email to ${shareData.email}`);
             }
-          }
-          
-          if (emailSent) {
-            // Zaktualizuj status wysłania powiadomienia
-            await storage.updateModel(id, { shareNotificationSent: true });
-            console.log(`Share notification email sent to ${shareData.email}`);
           } else {
-            console.error(`Failed to send share notification email to ${shareData.email}`);
+            console.error(`SMTP not configured in production environment, unable to send email to ${shareData.email}`);
           }
         } catch (emailError) {
           console.error("Error sending share notification email:", emailError);
@@ -963,14 +985,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
+          // Wysyłanie powiadomienia o wycofaniu udostępnienia
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
           console.log(`Using browser language for revocation email: ${userLanguage}`);
           
-          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym - używamy tylko SMTP bez fallbacku
+          const host = req.headers['host'] || 'localhost:3000';
+          const isProduction = host === 'viewer.fastcnc.eu';
+          
+          // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
@@ -980,19 +1006,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
+            } else if (!isProduction) {
+              // Tylko w środowisku deweloperskim próbujemy użyć Nodemailer jako fallback
+              console.warn("Custom SMTP revocation email failed, trying Nodemailer fallback (dev environment only)");
+              
+              revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail!);
+              if (revocationSent) {
+                console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+              } else {
+                console.error(`Failed to send share revocation email to ${model.shareEmail}`);
+              }
             } else {
-              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
+              console.error(`Failed to send share revocation email via SMTP to ${model.shareEmail} in production environment`);
             }
-          }
-          
-          // Jako ostatnią opcję, spróbuj Nodemailer
-          if (!revocationSent) {
+          } else if (!isProduction) {
+            // Tylko w środowisku deweloperskim użyj Nodemailer, jeśli SMTP nie jest skonfigurowany
             revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail!);
             if (revocationSent) {
               console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+            } else {
+              console.error(`Failed to send share revocation email to ${model.shareEmail}`);
             }
+          } else {
+            console.error(`SMTP not configured in production environment, unable to send revocation email to ${model.shareEmail}`);
           }
-          console.log(`Share revocation notification email sent to ${model.shareEmail}`);
         } catch (emailError) {
           console.error("Error sending share revocation email:", emailError);
         }
@@ -1129,12 +1166,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
       if (model.shareEmail) {
         try {
-          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
+          // Wysyłanie powiadomienia o wycofaniu udostępnienia
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
           console.log(`Using browser language for revocation email: ${userLanguage}`);
+          
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym - używamy tylko SMTP bez fallbacku
+          const host = req.headers['host'] || 'localhost:3000';
+          const isProduction = host === 'viewer.fastcnc.eu';
+          
+          // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
@@ -1144,19 +1187,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (revocationSent) {
               console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
+            } else if (!isProduction) {
+              // Tylko w środowisku deweloperskim próbujemy użyć Nodemailer jako fallback
+              console.warn("Custom SMTP revocation email failed, trying Nodemailer fallback (dev environment only)");
+              
+              revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
+              if (revocationSent) {
+                console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+              } else {
+                console.error(`Failed to send share revocation email to ${model.shareEmail}`);
+              }
             } else {
-              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
+              console.error(`Failed to send share revocation email via SMTP to ${model.shareEmail} in production environment`);
             }
-          }
-          
-          // Jako ostatnią opcję, spróbuj Nodemailer
-          if (!revocationSent) {
+          } else if (!isProduction) {
+            // Tylko w środowisku deweloperskim użyj Nodemailer, jeśli SMTP nie jest skonfigurowany
             revocationSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
             if (revocationSent) {
               console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+            } else {
+              console.error(`Failed to send share revocation email to ${model.shareEmail}`);
             }
+          } else {
+            console.error(`SMTP not configured in production environment, unable to send revocation email to ${model.shareEmail}`);
           }
-          console.log(`Share revocation notification email sent to ${model.shareEmail}`);
         } catch (emailError) {
           console.error("Error sending share revocation email:", emailError);
           // Kontynuuj usuwanie udostępnienia nawet jeśli email nie mógł zostać wysłany
