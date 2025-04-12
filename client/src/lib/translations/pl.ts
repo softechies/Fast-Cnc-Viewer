@@ -112,6 +112,7 @@ const translations = {
       success: "Model został pomyślnie usunięty"
     },
     share: {
+      warning: "Czy na pewno chcesz udostępnić ten model?",
       success: "Model został pomyślnie udostępniony",
       copied: "Link do udostępnienia został skopiowany do schowka"
     },

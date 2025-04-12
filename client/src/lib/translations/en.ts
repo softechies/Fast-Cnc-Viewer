@@ -112,6 +112,7 @@ const translations = {
       success: "Model deleted successfully"
     },
     share: {
+      warning: "Are you sure you want to share this model?",
       success: "Model shared successfully",
       copied: "Share link copied to clipboard"
     },

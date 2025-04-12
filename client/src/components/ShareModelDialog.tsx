@@ -133,7 +133,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
         <DialogHeader>
           <DialogTitle>{t('button.share')}</DialogTitle>
           <DialogDescription>
-            {t('message.delete.warning')}
+            {t('message.share.warning')}
           </DialogDescription>
         </DialogHeader>
 
