@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  isAdmin: boolean("is_admin").default(false), // Pole określające, czy użytkownik jest administratorem
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -83,6 +84,12 @@ export const accessSharedModelSchema = z.object({
   password: z.string().optional(),
 });
 
+// Define schema for admin login
+export const adminLoginSchema = z.object({
+  username: z.string().min(1, "Nazwa użytkownika jest wymagana"),
+  password: z.string().min(1, "Hasło jest wymagane"),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Model = typeof models.$inferSelect;
@@ -91,3 +98,4 @@ export type ModelTree = z.infer<typeof modelTreeSchema>;
 export type ModelInfo = z.infer<typeof modelInfoSchema>;
 export type ShareModelRequest = z.infer<typeof shareModelSchema>;
 export type AccessSharedModelRequest = z.infer<typeof accessSharedModelSchema>;
+export type AdminLoginRequest = z.infer<typeof adminLoginSchema>;
