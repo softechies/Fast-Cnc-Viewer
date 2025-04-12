@@ -141,7 +141,53 @@ const translations = {
   
   // Success messages
   sharingSaved: "Sharing settings saved",
-  sharingRemoved: "Sharing has been disabled"
+  sharingRemoved: "Sharing has been disabled",
+  
+  // Admin panel
+  admin: {
+    loginTitle: "Admin Panel Login",
+    loginDescription: "Enter your credentials to access the admin panel",
+    username: "Username",
+    usernamePlaceholder: "admin",
+    password: "Password",
+    loginButton: "Log In",
+    loggingIn: "Logging in...",
+    dashboardTitle: "Admin Dashboard",
+    sharedModelsTitle: "Shared Models",
+    sharedModelsDescription: "Manage all shared model links in the system",
+    refresh: "Refresh",
+    logout: "Log Out",
+    notAuthenticated: "Not Authenticated",
+    pleaseLogin: "Please log in to access the admin panel",
+    loadError: "Error Loading Data",
+    unknownError: "An unknown error occurred",
+    linkCopied: "Link Copied",
+    linkCopiedDescription: "Link has been copied to clipboard",
+    sharingRevoked: "Sharing Revoked",
+    sharingRevokedDescription: "The model sharing has been successfully disabled",
+    revokeError: "Error Revoking Sharing",
+    loggedOut: "Logged Out",
+    loggedOutDescription: "You have been successfully logged out",
+    filename: "Filename",
+    format: "Format",
+    sharedWith: "Shared With",
+    createdDate: "Created",
+    lastAccessed: "Last Accessed",
+    expiryDate: "Expiry Date",
+    password: "Password",
+    actions: "Actions",
+    shareLink: "Link",
+    shareLinkTitle: "Share Link",
+    openLink: "Open Link",
+    revoke: "Revoke",
+    protected: "Protected",
+    notProtected: "Not Protected",
+    noSharedModels: "No shared models found",
+    revokeConfirmTitle: "Confirm Revocation",
+    revokeConfirmDescription: "Are you sure you want to revoke sharing for this model? This action cannot be undone.",
+    cancel: "Cancel",
+    confirmRevoke: "Yes, Revoke"
+  }
 };
 
 export default translations;

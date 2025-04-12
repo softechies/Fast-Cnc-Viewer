@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
       
       toast({
         title: "Pomyślne logowanie",
-        description: "Przekierowuję do panelu administratora",
+        description: "Przekierowuję do panelu administratora"
       });
       
       // Przekieruj do panelu administratora
