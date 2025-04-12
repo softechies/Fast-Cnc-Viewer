@@ -16,7 +16,6 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
-import { hasGetResponseApiKey, sendShareNotificationViaGetResponse, sendSharingRevokedNotificationViaGetResponse } from "./getresponse";
 
 // Funkcja do porównywania haszowanego hasła
 async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
@@ -383,14 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Custom SMTP email service initialized successfully");
       }
     } else {
-      console.warn("No custom SMTP credentials provided, email notifications will use test service or GetResponse");
-    }
-    
-    // Sprawdzamy dostępność GetResponse API
-    if (hasGetResponseApiKey()) {
-      console.log("GetResponse API key detected, email notification service available");
-    } else {
-      console.warn("No GetResponse API key provided, will use other email services as fallback");
+      console.warn("No custom SMTP credentials provided, email notifications will use test service only");
     }
   } catch (error) {
     console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
@@ -912,28 +904,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
           console.log(`Using language for email: ${userLanguage} (${shareData.language ? 'from frontend' : 'from browser header'})`);
           
-          // Wyślij e-mail z powiadomieniem - próbuj GetResponse, potem własny SMTP, a na końcu Nodemailer jako fallback
+          // Wyślij e-mail z powiadomieniem - próbuj własny SMTP, a potem Nodemailer jako fallback
           let emailSent = false;
           
-          // Najpierw spróbuj GetResponse API (jeśli skonfigurowany)
-          if (hasGetResponseApiKey()) {
-            const shareUrl = `${baseUrl}/shared/${updatedModel!.shareId}`;
-            emailSent = await sendShareNotificationViaGetResponse(
-              updatedModel!,
-              shareUrl,
-              shareData.email,
-              userLanguage
-            );
-            
-            if (emailSent) {
-              console.log(`Share notification email sent via GetResponse API to ${shareData.email} in ${userLanguage}`);
-            } else {
-              console.warn("GetResponse API failed, trying SMTP fallback");
-            }
-          }
-          
-          // Jeśli GetResponse nie zadziałał, spróbuj własny serwer SMTP (jeśli skonfigurowany)
-          if (!emailSent && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             emailSent = await sendShareNotificationSmtp(
               updatedModel!, 
               shareData.email, 
@@ -977,30 +952,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (needsRevocationEmail) {
         // Wyślij powiadomienie o wycofaniu udostępnienia
         try {
-          // Próbuj wysłać przez GetResponse, własny SMTP, a potem przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
           console.log(`Using browser language for revocation email: ${userLanguage}`);
           
-          // Najpierw spróbuj GetResponse API (jeśli skonfigurowany)
-          if (hasGetResponseApiKey()) {
-            revocationSent = await sendSharingRevokedNotificationViaGetResponse(
-              model,
-              model.shareEmail!,
-              userLanguage
-            );
-            
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via GetResponse API to ${model.shareEmail} in ${userLanguage}`);
-            } else {
-              console.warn("GetResponse API failed, trying SMTP fallback");
-            }
-          }
-          
-          // Jeśli GetResponse nie zadziałał, spróbuj własny serwer SMTP (jeśli skonfigurowany)
-          if (!revocationSent && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+          // Najpierw spróbuj własny serwer SMTP (jeśli skonfigurowany)
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail!,
@@ -1158,30 +1118,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
       if (model.shareEmail) {
         try {
-          // Próbuj wysłać przez GetResponse, potem własny SMTP, a potem przez Nodemailer
+          // Próbuj wysłać przez własny SMTP, a potem przez Nodemailer
           let revocationSent = false;
           
           // Używamy domyślnego języka z nagłówka przeglądarki
           const userLanguage = detectLanguage(req.headers['accept-language']);
           console.log(`Using browser language for revocation email: ${userLanguage}`);
-          
-          // Najpierw spróbuj GetResponse API (jeśli skonfigurowany)
-          if (hasGetResponseApiKey()) {
-            revocationSent = await sendSharingRevokedNotificationViaGetResponse(
-              model,
-              model.shareEmail,
-              userLanguage
-            );
-            
-            if (revocationSent) {
-              console.log(`Share revocation notification sent via GetResponse API to ${model.shareEmail} in ${userLanguage}`);
-            } else {
-              console.warn("GetResponse API failed, trying SMTP fallback");
-            }
-          }
-          
-          // Jeśli GetResponse nie zadziałał, spróbuj własny serwer SMTP (jeśli skonfigurowany)
-          if (!revocationSent && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail,
@@ -1329,44 +1272,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updatedModel && model.shareEmail) {
         try {
           const language = 'en'; // Domyślny język dla powiadomień administracyjnych
-          let notificationSent = false;
           
-          // Najpierw spróbuj GetResponse API (jeśli skonfigurowany)
-          if (hasGetResponseApiKey()) {
-            notificationSent = await sendSharingRevokedNotificationViaGetResponse(
-              model,
-              model.shareEmail,
-              language
-            );
-            
-            if (notificationSent) {
-              console.log(`Share revocation notification sent via GetResponse API to ${model.shareEmail} from admin panel`);
-            } else {
-              console.warn("GetResponse API failed, trying SMTP fallback");
-            }
-          }
-          
-          // Jeśli GetResponse nie zadziałał, spróbuj własny serwer SMTP
-          if (!notificationSent && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-            notificationSent = await sendSharingRevokedNotificationSmtp(
-              model, 
-              model.shareEmail,
-              language
-            );
-            
-            if (notificationSent) {
-              console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} from admin panel`);
-            } else {
-              console.warn("Custom SMTP email failed, trying Nodemailer fallback");
-            }
-          }
-          
-          // Jako ostatnią opcję, spróbuj Nodemailer
-          if (!notificationSent) {
-            notificationSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
-            if (notificationSent) {
-              console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail} from admin panel`);
-            }
+          // Próbuj użyć niestandardowego SMTP, a jeśli nie zadziała, użyj Nodemailer
+          try {
+            await sendSharingRevokedNotificationSmtp(model, language);
+          } catch (emailError) {
+            console.warn("Custom SMTP notification failed, trying Nodemailer:", emailError);
+            await sendNodemailerRevokedNotification(model, language);
           }
         } catch (notificationError) {
           console.error("Failed to send sharing revocation notification:", notificationError);
