@@ -202,21 +202,21 @@ export default function AdminDashboardPage() {
             </div>
           ) : sharedModels.length === 0 ? (
             <div className="text-center p-8 text-muted-foreground">
-              {t('admin.noSharedModels')}
+              No shared models found
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('admin.filename')}</TableHead>
-                    <TableHead>{t('admin.format')}</TableHead>
-                    <TableHead>{t('admin.sharedWith')}</TableHead>
-                    <TableHead>{t('admin.createdDate')}</TableHead>
-                    <TableHead>{t('admin.lastAccessed')}</TableHead>
-                    <TableHead>{t('admin.expiryDate')}</TableHead>
-                    <TableHead>{t('admin.passwordProtection')}</TableHead>
-                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
+                    <TableHead>Filename</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Shared With</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Last Accessed</TableHead>
+                    <TableHead>Expiry Date</TableHead>
+                    <TableHead>Password</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -251,11 +251,11 @@ export default function AdminDashboardPage() {
                       <TableCell>
                         {model.hasPassword ? (
                           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <Check className="h-3 w-3 mr-1" /> {t('admin.protected')}
+                            <Check className="h-3 w-3 mr-1" /> Protected
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                            <X className="h-3 w-3 mr-1" /> {t('admin.notProtected')}
+                            <X className="h-3 w-3 mr-1" /> Not Protected
                           </Badge>
                         )}
                       </TableCell>
@@ -265,12 +265,12 @@ export default function AdminDashboardPage() {
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm">
                                 <LinkIcon className="h-4 w-4 mr-2" />
-                                {t('admin.shareLink')}
+                                Link
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80">
                               <div className="space-y-2">
-                                <h4 className="font-medium">{t('admin.shareLinkTitle')}</h4>
+                                <h4 className="font-medium">Share Link</h4>
                                 <div className="flex gap-2">
                                   <Input 
                                     readOnly 
@@ -291,7 +291,7 @@ export default function AdminDashboardPage() {
                                   onClick={() => window.open(`/shared/${model.shareId}`, '_blank')}
                                 >
                                   <ExternalLink className="h-4 w-4 mr-2" />
-                                  {t('admin.openLink')}
+                                  Open Link
                                 </Button>
                               </div>
                             </PopoverContent>
@@ -304,18 +304,18 @@ export default function AdminDashboardPage() {
                                 size="sm"
                                 onClick={() => setRevokeModelId(model.id)}
                               >
-                                {t('admin.revoke')}
+                                Revoke
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>{t('admin.revokeConfirmTitle')}</AlertDialogTitle>
+                                <AlertDialogTitle>Confirm Revocation</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  {t('admin.revokeConfirmDescription')}
+                                  Are you sure you want to revoke sharing for this model? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>{t('admin.cancel')}</AlertDialogCancel>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => revokeSharing(model.id)}
                                   disabled={isRevoking}
@@ -323,7 +323,7 @@ export default function AdminDashboardPage() {
                                   {isRevoking && revokeModelId === model.id ? (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                   ) : null}
-                                  {t('admin.confirmRevoke')}
+                                  Yes, Revoke
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
