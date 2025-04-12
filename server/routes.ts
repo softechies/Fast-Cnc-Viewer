@@ -17,6 +17,12 @@ import { initializeEmailService, sendShareNotification as sendNodemailerNotifica
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
 
+// Funkcja pomocnicza do wykrywania środowiska produkcyjnego
+function isProductionEnvironment(host: string): boolean {
+  const productionDomain = process.env.PRODUCTION_DOMAIN || 'viewer.fastcnc.eu';
+  return (process.env.NODE_ENV === 'production') || (host === productionDomain);
+}
+
 // Funkcja do porównywania haszowanego hasła
 async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
   return await bcrypt.compare(plainPassword, hashedPassword);
@@ -919,7 +925,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let emailSent = false;
           
           // Sprawdź, czy jesteśmy w środowisku produkcyjnym - używamy tylko SMTP bez fallbacku
-          const isProduction = host === 'viewer.fastcnc.eu';
+          // Używamy zmiennej NODE_ENV lub sprawdzamy domenę
+          const productionDomain = process.env.PRODUCTION_DOMAIN || 'viewer.fastcnc.eu';
+          const isProduction = (process.env.NODE_ENV === 'production') || (host === productionDomain);
+          
+          console.log(`Environment: ${isProduction ? 'Production' : 'Development'}, Host: ${host}`);
           
           // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
