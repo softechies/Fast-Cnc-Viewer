@@ -24,7 +24,8 @@ const translations = {
   button: {
     upload: "Upload",
     cancel: "Cancel",
-    share: "Share"
+    share: "Share",
+    copy: "Copied"
   },
   
   // Home page
@@ -107,7 +108,18 @@ const translations = {
     },
     loading: "Please wait, processing your file",
     delete: {
-      warning: "Are you sure you want to delete this model? This action cannot be undone."
+      warning: "Are you sure you want to delete this model? This action cannot be undone.",
+      success: "Model deleted successfully"
+    },
+    share: {
+      success: "Model shared successfully",
+      copied: "Share link copied to clipboard"
+    },
+    revocation: {
+      sent: "Email notification sent to"
+    },
+    password: {
+      required: "Password not required"
     }
   },
   
@@ -131,6 +143,14 @@ const translations = {
     footer: "CAD Viewer - © 2025 All rights reserved"
   },
 
+  // Headers
+  header: {
+    error: "Error",
+    shared: {
+      model: "Shared model"
+    }
+  },
+
   // Error messages
   genericError: "Something went wrong",
   connectionError: "Connection error",
@@ -138,6 +158,11 @@ const translations = {
   fileTooLarge: "File is too large",
   invalidPassword: "Invalid password",
   invalidEmail: "Invalid email address",
+  
+  // Specific error messages
+  errors: {
+    share: "Error sharing model"
+  },
   
   // Success messages
   sharingSaved: "Sharing settings saved",
