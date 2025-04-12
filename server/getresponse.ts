@@ -147,13 +147,15 @@ export async function sendShareNotificationViaGetResponse(
     
     // 4. Wysyłanie wiadomości do kontaktu przez API GetResponse
     try {
-      // GetResponse API może nie mieć bezpośredniej metody do wysyłania pojedynczych emaili,
-      // ale możemy dodać tag do kontaktu lub inną metodę dostępną w API
+      // UWAGA: GetResponse API nie oferuje metody do bezpośredniego wysyłania pojedynczych emaili
+      // W pełnej implementacji należałoby użyć kampanii, automatyzacji lub integracji z Zapier
       
-      // Dla celów tej implementacji, logujemy informację o wysłaniu
-      console.log(`Wiadomość o udostępnieniu modelu wysłana przez GetResponse do ${email} w języku ${language}`);
+      // Obecnie tylko dodajemy kontakt do systemu GetResponse
+      console.log(`Kontakt ${email} dodany/zaktualizowany w GetResponse, ale mail nie został wysłany bezpośrednio przez API`);
+      console.log(`Używam innej metody wysyłki emaili jako fallback...`);
       
-      return true;
+      // Przekazujemy false, żeby przejść do następnego mechanizmu wysyłki
+      return false;
     } catch (sendError) {
       console.error('Błąd wysyłania wiadomości przez GetResponse:', sendError);
       return false;
@@ -216,13 +218,15 @@ export async function sendSharingRevokedNotificationViaGetResponse(
     
     // 3. Wysyłanie wiadomości do kontaktu przez API GetResponse
     try {
-      // GetResponse API może nie mieć bezpośredniej metody do wysyłania pojedynczych emaili,
-      // ale możemy dodać tag do kontaktu lub inną metodę dostępną w API
+      // UWAGA: GetResponse API nie oferuje metody do bezpośredniego wysyłania pojedynczych emaili
+      // W pełnej implementacji należałoby użyć kampanii, automatyzacji lub integracji z Zapier
       
-      // Dla celów tej implementacji, logujemy informację o wysłaniu
-      console.log(`Wiadomość o anulowaniu udostępnienia wysłana przez GetResponse do ${email} w języku ${language}`);
+      // Obecnie tylko dodajemy kontakt do systemu GetResponse
+      console.log(`Kontakt ${email} dodany/zaktualizowany w GetResponse, ale mail o anulowaniu nie został wysłany bezpośrednio przez API`);
+      console.log(`Używam innej metody wysyłki emaili jako fallback...`);
       
-      return true;
+      // Przekazujemy false, żeby przejść do następnego mechanizmu wysyłki
+      return false;
     } catch (error) {
       console.error('Błąd wysyłania wiadomości przez GetResponse:', error);
       return false;
