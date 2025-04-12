@@ -18,7 +18,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
           <img 
             src={fastCncLogo} 
             alt="Fast CNC Logo" 
-            className="h-8"
+            className="w-[100px]"
           />
           <h1 className="text-xl font-semibold text-gray-800">{t('applicationName')}</h1>
         </div>

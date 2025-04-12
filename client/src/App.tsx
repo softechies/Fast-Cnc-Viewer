@@ -11,6 +11,7 @@ import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
+import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 
 function App() {
   return (
@@ -39,8 +40,16 @@ function SharedModelLayout() {
         <main className="flex-grow">
           <SharedModelPage />
         </main>
-        <footer className="bg-gray-100 text-center p-2 text-gray-600 text-sm">
-          {t('app.footer')} {t('label.shared.model')}
+        <footer className="bg-gray-100 text-center p-2 text-gray-600 text-sm flex justify-center items-center">
+          <a 
+            href="https://fastcnc.eu" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center hover:opacity-80 transition-opacity"
+          >
+            <img src={fastCncLogo} alt="FastCNC Logo" className="w-[80px]" />
+          </a>
+          <span className="ml-2">{t('label.shared.model')}</span>
         </footer>
       </div>
     );

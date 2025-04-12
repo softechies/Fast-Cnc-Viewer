@@ -128,7 +128,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <div className="flex justify-center mb-2">
-          <img src={fastCncLogo} alt="FastCNC Logo" className="h-10" />
+          <img src={fastCncLogo} alt="FastCNC Logo" className="w-[100px]" />
         </div>
         <DialogHeader>
           <DialogTitle>{t('button.share')}</DialogTitle>
