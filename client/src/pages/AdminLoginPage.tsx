@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Nieudane logowanie');
+        throw new Error(errorData.message || 'Login failed');
       }
 
       const userData = await response.json();
@@ -50,8 +50,8 @@ export default function AdminLoginPage() {
       }));
       
       toast({
-        title: "Pomyślne logowanie",
-        description: "Przekierowuję do panelu administratora"
+        title: "Login Successful",
+        description: "Redirecting to admin dashboard"
       });
       
       // Przekieruj do panelu administratora
@@ -60,8 +60,8 @@ export default function AdminLoginPage() {
       console.error('Login error:', error);
       toast({
         variant: "destructive",
-        title: "Błąd logowania",
-        description: error instanceof Error ? error.message : "Wystąpił nieznany błąd",
+        title: "Login Error",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     } finally {
       setIsLoggingIn(false);
@@ -72,18 +72,18 @@ export default function AdminLoginPage() {
     <div className="flex justify-center items-center min-h-screen bg-slate-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">{t('admin.loginTitle')}</CardTitle>
+          <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
           <CardDescription>
-            {t('admin.loginDescription')}
+            Enter your credentials to access the admin dashboard
           </CardDescription>
         </CardHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">{t('admin.username')}</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder={t('admin.usernamePlaceholder')}
+                placeholder="Enter your username"
                 {...form.register('username')}
               />
               {form.formState.errors.username && (
@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t('admin.password')}</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -108,10 +108,10 @@ export default function AdminLoginPage() {
               {isLoggingIn ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('admin.loggingIn')}
+                  Logging in...
                 </>
               ) : (
-                t('admin.loginButton')
+                "Log in"
               )}
             </Button>
           </CardFooter>
