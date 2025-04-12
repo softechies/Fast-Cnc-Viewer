@@ -16,6 +16,7 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
+import { hasGetResponseApiKey, sendShareNotificationViaGetResponse, sendSharingRevokedNotificationViaGetResponse } from "./getresponse";
 
 // Funkcja do porównywania haszowanego hasła
 async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
