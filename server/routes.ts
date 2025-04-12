@@ -895,10 +895,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Jeśli włączono udostępnianie i podano adres email, wyślij powiadomienie
       if (shareData.enableSharing && shareData.email) {
         try {
-          // Ustal baseUrl na podstawie żądania
-          const protocol = req.headers['x-forwarded-proto'] || 'http';
-          const host = req.headers['host'] || 'localhost:3000';
-          const baseUrl = `${protocol}://${host}`;
+          // Ustal baseUrl na podstawie żądania lub konfiguracji produkcyjnej
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym
+          const isProduction = host === 'viewer.fastcnc.eu' || req.headers['host'] === 'viewer.fastcnc.eu';
+          
+          let baseUrl;
+          if (isProduction) {
+            baseUrl = 'https://viewer.fastcnc.eu';
+            console.log('Using production baseUrl:', baseUrl);
+          } else {
+            const protocol = req.headers['x-forwarded-proto'] || 'http';
+            const host = req.headers['host'] || 'localhost:3000';
+            baseUrl = `${protocol}://${host}`;
+            console.log('Using detected baseUrl:', baseUrl);
+          }
           
           // Użyj języka przekazanego z frontendu lub wykryj na podstawie nagłówka Accept-Language
           const userLanguage = (shareData.language as Language) || detectLanguage(req.headers['accept-language']);
