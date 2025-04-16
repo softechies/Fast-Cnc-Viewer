@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { 
   Card, 
@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2 } from 'lucide-react';
+import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -65,6 +65,11 @@ export default function AdminDashboardPage() {
   const [revokeModelId, setRevokeModelId] = useState<number | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
   const [statsModelId, setStatsModelId] = useState<number | null>(null);
+  
+  // Nowe stany dla wyszukiwania i sortowania
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<'created' | 'shareLastAccessed' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Sprawdź autentykację przy wczytaniu strony
   useEffect(() => {
@@ -174,6 +179,55 @@ export default function AdminDashboardPage() {
       return dateString;
     }
   };
+  
+  // Funkcja sortująca
+  const handleSort = (field: 'created' | 'shareLastAccessed') => {
+    if (sortField === field) {
+      // Jeśli już sortujemy po tym polu, zmień kierunek
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Jeśli sortujemy po nowym polu, ustaw je i domyślny kierunek (od najnowszych)
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+  
+  // Filtruj i sortuj modele
+  const filteredAndSortedModels = useMemo(() => {
+    // Najpierw filtrujemy
+    let result = [...sharedModels];
+    
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(model => 
+        (model.filename && model.filename.toLowerCase().includes(query)) ||
+        (model.shareEmail && model.shareEmail.toLowerCase().includes(query))
+      );
+    }
+    
+    // Następnie sortujemy, jeśli wybrano pole
+    if (sortField) {
+      result.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+        
+        // Obsługa null wartości (umieszczamy je na końcu listy)
+        if (aValue === null && bValue === null) return 0;
+        if (aValue === null) return 1;
+        if (bValue === null) return -1;
+        
+        // Porównanie dat
+        const aDate = new Date(aValue).getTime();
+        const bDate = new Date(bValue).getTime();
+        
+        return sortDirection === 'asc' 
+          ? aDate - bDate 
+          : bDate - aDate;
+      });
+    }
+    
+    return result;
+  }, [sharedModels, searchQuery, sortField, sortDirection]);
 
   return (
     <div className="container p-4 mx-auto max-w-7xl">
@@ -203,6 +257,19 @@ export default function AdminDashboardPage() {
           <CardDescription>
             Manage all shared model links in the system
           </CardDescription>
+          
+          {/* Pole wyszukiwania */}
+          <div className="mt-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by filename or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -213,6 +280,10 @@ export default function AdminDashboardPage() {
             <div className="text-center p-8 text-muted-foreground">
               No shared models found
             </div>
+          ) : filteredAndSortedModels.length === 0 ? (
+            <div className="text-center p-8 text-muted-foreground">
+              No models match your search
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -221,15 +292,39 @@ export default function AdminDashboardPage() {
                     <TableHead>Filename</TableHead>
                     <TableHead>Format</TableHead>
                     <TableHead>Shared With</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Last Accessed</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:text-primary"
+                      onClick={() => handleSort('created')}
+                    >
+                      <div className="flex items-center">
+                        Created
+                        {sortField === 'created' && (
+                          sortDirection === 'asc' 
+                            ? <ArrowUp className="ml-1 h-4 w-4" />
+                            : <ArrowDown className="ml-1 h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:text-primary"
+                      onClick={() => handleSort('shareLastAccessed')}
+                    >
+                      <div className="flex items-center">
+                        Last Accessed
+                        {sortField === 'shareLastAccessed' && (
+                          sortDirection === 'asc' 
+                            ? <ArrowUp className="ml-1 h-4 w-4" />
+                            : <ArrowDown className="ml-1 h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
                     <TableHead>Expiry Date</TableHead>
                     <TableHead>Password</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sharedModels.map((model) => (
+                  {filteredAndSortedModels.map((model) => (
                     <TableRow key={model.id}>
                       <TableCell className="font-medium">
                         {model.filename}
