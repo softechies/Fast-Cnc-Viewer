@@ -33,9 +33,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2, Search, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2, Search, ArrowUp, ArrowDown, Key } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -70,6 +79,15 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<'created' | 'shareLastAccessed' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // Stany dla zarządzania hasłem
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
+  const [selectedModelName, setSelectedModelName] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [isLoadingPassword, setIsLoadingPassword] = useState(false);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
 
   // Sprawdź autentykację przy wczytaniu strony
   useEffect(() => {
@@ -189,6 +207,53 @@ export default function AdminDashboardPage() {
       // Jeśli sortujemy po nowym polu, ustaw je i domyślny kierunek (od najnowszych)
       setSortField(field);
       setSortDirection('desc');
+    }
+  };
+  
+  // Funkcja otwierająca dialog do zmiany hasła
+  const openPasswordDialog = (model: SharedModel) => {
+    setSelectedModelId(model.id);
+    setSelectedModelName(model.filename);
+    setNewPassword('');
+    setPasswordDialogOpen(true);
+  };
+  
+  // Funkcja resetująca/ustawiająca hasło
+  const resetPassword = async () => {
+    if (!selectedModelId || !newPassword.trim()) return;
+    
+    setIsSettingPassword(true);
+    try {
+      const response = await apiRequest('POST', `/api/admin/shared-models/${selectedModelId}/reset-password`, {
+        newPassword: newPassword.trim()
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reset password');
+      }
+      
+      // Aktualizuj lokalny stan z nową informacją o haśle
+      setSharedModels(sharedModels.map(model => 
+        model.id === selectedModelId ? { ...model, hasPassword: true } : model
+      ));
+      
+      toast({
+        title: "Password Updated",
+        description: `Password has been updated for ${selectedModelName}`,
+      });
+      
+      // Zamknij dialog
+      setPasswordDialogOpen(false);
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      toast({
+        variant: "destructive",
+        title: "Error Setting Password",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    } finally {
+      setIsSettingPassword(false);
     }
   };
   
@@ -353,15 +418,25 @@ export default function AdminDashboardPage() {
                         {model.shareExpiryDate ? formatDate(model.shareExpiryDate) : '—'}
                       </TableCell>
                       <TableCell>
-                        {model.hasPassword ? (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <Check className="h-3 w-3 mr-1" /> Protected
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                            <X className="h-3 w-3 mr-1" /> Not Protected
-                          </Badge>
-                        )}
+                        <div className="flex items-center justify-between gap-2">
+                          {model.hasPassword ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              <Check className="h-3 w-3 mr-1" /> Protected
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                              <X className="h-3 w-3 mr-1" /> Not Protected
+                            </Badge>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-6 w-6 rounded-full"
+                            onClick={() => openPasswordDialog(model)}
+                          >
+                            <Key className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -451,6 +526,59 @@ export default function AdminDashboardPage() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Dialog do zarządzania hasłem */}
+      <Dialog 
+        open={passwordDialogOpen} 
+        onOpenChange={setPasswordDialogOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedModelName ? (
+                <>Set Password for: <span className="font-normal">{selectedModelName}</span></>
+              ) : 'Set Password'}
+            </DialogTitle>
+            <DialogDescription>
+              Enter a new password to protect this shared file.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Enter new password" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => setPasswordDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              onClick={resetPassword} 
+              disabled={isSettingPassword || !newPassword.trim()}
+            >
+              {isSettingPassword ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Key className="h-4 w-4 mr-2" />
+              )}
+              Set Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -29,6 +29,7 @@ export const models = pgTable("models", {
   shareId: text("share_id").unique(), // Unikalny identyfikator do udostępniania
   shareEnabled: boolean("share_enabled").default(false), // Czy udostępnianie jest włączone
   sharePassword: text("share_password"), // Opcjonalne hasło do zabezpieczenia pliku (przechowywane jako hash)
+  sharePasswordPlain: text("share_password_plain"), // Niezaszyfrowane hasło - tylko dla administratora
   shareExpiryDate: text("share_expiry_date"), // Data wygaśnięcia udostępniania (opcjonalnie)
   shareEmail: text("share_email"), // Email osoby, której udostępniono model
   shareNotificationSent: boolean("share_notification_sent").default(false), // Czy powiadomienie zostało wysłane

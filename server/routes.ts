@@ -886,6 +886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareId: shareId,
         shareEnabled: shareData.enableSharing,
         sharePassword: sharePassword,
+        sharePasswordPlain: shareData.password || null, // Zapisujemy jawne hasło dla administratora
         shareExpiryDate: shareData.expiryDate
       };
       
@@ -1472,6 +1473,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting model view statistics:", error);
       res.status(500).json({ message: "Failed to get model view statistics" });
+    }
+  });
+  
+  // Ustaw nowe hasło dla udostępnionego modelu (tylko dla administratorów)
+  app.post("/api/admin/shared-models/:id/reset-password", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const modelId = parseInt(id);
+      const { newPassword } = req.body;
+      
+      if (isNaN(modelId)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+      
+      // W prawdziwej aplikacji powinieneś sprawdzić token administratora
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Jeśli podano nowe hasło, zahashuj je
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Aktualizuj model z nowym hasłem
+      const updatedModel = await storage.updateModel(modelId, {
+        sharePassword: hashedPassword,
+        sharePasswordPlain: newPassword // Zapisujemy również niezaszyfrowane hasło
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Password has been updated",
+        modelId,
+        hasPassword: true
+      });
+    } catch (error) {
+      console.error("Error resetting model password:", error);
+      res.status(500).json({ message: "Failed to reset model password" });
+    }
+  });
+  
+  // Pobierz jawne hasło dla udostępnionego modelu (tylko dla administratorów)
+  app.get("/api/admin/shared-models/:id/password", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const modelId = parseInt(id);
+      
+      if (isNaN(modelId)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      // W prawdziwej aplikacji powinieneś sprawdzić token administratora
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Zwróć niezaszyfrowane hasło
+      res.json({ 
+        modelId,
+        hasPassword: !!model.sharePassword,
+        plainPassword: model.sharePasswordPlain || ""
+      });
+    } catch (error) {
+      console.error("Error getting model password:", error);
+      res.status(500).json({ message: "Failed to get model password" });
     }
   });
 
