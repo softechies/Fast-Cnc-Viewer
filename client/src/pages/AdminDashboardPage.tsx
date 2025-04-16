@@ -139,6 +139,17 @@ export default function AdminDashboardPage() {
     });
   };
   
+  // Funkcja kopiująca hasło do schowka
+  const copyPassword = (password: string) => {
+    if (!password) return;
+    
+    navigator.clipboard.writeText(password);
+    toast({
+      title: "Password Copied",
+      description: "Password has been copied to clipboard",
+    });
+  };
+  
   // Funkcja odwołująca udostępnianie
   const revokeSharing = async (id: number) => {
     setIsRevoking(true);
@@ -210,12 +221,47 @@ export default function AdminDashboardPage() {
     }
   };
   
+  // Funkcja pobierająca aktualne hasło modelu
+  const fetchCurrentPassword = async (modelId: number) => {
+    if (!modelId) return;
+    
+    setIsLoadingPassword(true);
+    try {
+      const response = await apiRequest('GET', `/api/admin/shared-models/${modelId}/password`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch password');
+      }
+      
+      const data = await response.json();
+      return data.plainPassword || '';
+    } catch (error) {
+      console.error('Error fetching password:', error);
+      toast({
+        variant: "destructive",
+        title: "Error Fetching Password",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+      return '';
+    } finally {
+      setIsLoadingPassword(false);
+    }
+  };
+  
   // Funkcja otwierająca dialog do zmiany hasła
-  const openPasswordDialog = (model: SharedModel) => {
+  const openPasswordDialog = async (model: SharedModel) => {
     setSelectedModelId(model.id);
     setSelectedModelName(model.filename);
     setNewPassword('');
     setPasswordDialogOpen(true);
+    
+    // Jeśli model ma hasło, pobierz aktualne hasło
+    if (model.hasPassword) {
+      const currentPass = await fetchCurrentPassword(model.id);
+      setCurrentPassword(currentPass);
+    } else {
+      setCurrentPassword('');
+    }
   };
   
   // Funkcja resetująca/ustawiająca hasło
@@ -536,21 +582,51 @@ export default function AdminDashboardPage() {
           <DialogHeader>
             <DialogTitle>
               {selectedModelName ? (
-                <>Set Password for: <span className="font-normal">{selectedModelName}</span></>
-              ) : 'Set Password'}
+                <>
+                  {currentPassword ? 'Manage Password for:' : 'Set Password for:'} 
+                  <span className="font-normal ml-1">{selectedModelName}</span>
+                </>
+              ) : 'Password Management'}
             </DialogTitle>
             <DialogDescription>
-              Enter a new password to protect this shared file.
+              {currentPassword 
+                ? 'View the current password or set a new one to replace it.' 
+                : 'Enter a password to protect this shared file.'}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Aktualne hasło, jeśli istnieje */}
+            {currentPassword && (
+              <div className="space-y-2">
+                <Label>Current Password</Label>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    readOnly 
+                    value={currentPassword}
+                    className="flex-1 font-mono text-xs"
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={() => copyPassword(currentPassword)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This is the current plaintext password that users need to enter to access the file.
+                </p>
+              </div>
+            )}
+            
+            {/* Nowe hasło */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{currentPassword ? 'New Password' : 'Password'}</Label>
               <Input 
                 id="password" 
-                type="password" 
-                placeholder="Enter new password" 
+                type="text" 
+                placeholder={currentPassword ? "Enter new password to change" : "Enter password to protect file"} 
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />

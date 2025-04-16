@@ -886,7 +886,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareId: shareId,
         shareEnabled: shareData.enableSharing,
         sharePassword: sharePassword,
-        sharePasswordPlain: shareData.password || null, // Zapisujemy jawne hasło dla administratora
         shareExpiryDate: shareData.expiryDate
       };
       
@@ -1505,8 +1504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Aktualizuj model z nowym hasłem
       const updatedModel = await storage.updateModel(modelId, {
-        sharePassword: hashedPassword,
-        sharePasswordPlain: newPassword // Zapisujemy również niezaszyfrowane hasło
+        sharePassword: hashedPassword
       });
       
       res.json({ 
@@ -1521,7 +1519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Pobierz jawne hasło dla udostępnionego modelu (tylko dla administratorów)
+  // Endpoint do sprawdzenia czy model ma hasło (tylko dla administratorów)
   app.get("/api/admin/shared-models/:id/password", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -1540,15 +1538,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Zwróć niezaszyfrowane hasło
+      // Zwracamy tylko informację czy model ma hasło
       res.json({ 
         modelId,
         hasPassword: !!model.sharePassword,
-        plainPassword: model.sharePasswordPlain || ""
+        message: "For security reasons, plaintext passwords are not stored or displayed."
       });
     } catch (error) {
-      console.error("Error getting model password:", error);
-      res.status(500).json({ message: "Failed to get model password" });
+      console.error("Error getting model password status:", error);
+      res.status(500).json({ message: "Failed to get model password status" });
     }
   });
 
