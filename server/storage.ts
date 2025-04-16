@@ -166,21 +166,85 @@ export class MemStorage implements IStorage {
   async getModelViewStats(modelId: number): Promise<ModelViewStats> {
     const views = this.modelViews.get(modelId) || [];
     
-    // Count unique IPs
-    const uniqueIps = new Set(views.map(view => view.ipAddress)).size;
-
-    // Format the view details
-    const viewDetails = views.map(view => ({
+    // Sortuj widoki według daty (najnowsze pierwsze)
+    const sortedViews = [...views].sort((a, b) => 
+      new Date(b.viewedAt || new Date()).getTime() - new Date(a.viewedAt || new Date()).getTime()
+    );
+    
+    // Pobierz unikalną listę IP i policz wystąpienia
+    const ipCounts: Record<string, { count: number, lastView?: Date }> = {};
+    const browserCounts: Record<string, number> = {};
+    
+    for (const view of sortedViews) {
+      // Liczenie IP
+      if (!ipCounts[view.ipAddress]) {
+        ipCounts[view.ipAddress] = { count: 0 };
+      }
+      ipCounts[view.ipAddress].count += 1;
+      
+      // Aktualizacja ostatniego widoku dla IP
+      if (!ipCounts[view.ipAddress].lastView || 
+          (view.viewedAt && new Date(view.viewedAt) > new Date(ipCounts[view.ipAddress].lastView!))) {
+        ipCounts[view.ipAddress].lastView = view.viewedAt;
+      }
+      
+      // Liczenie przeglądarek (uproszczone)
+      if (view.userAgent) {
+        const browserName = this.detectBrowser(view.userAgent);
+        browserCounts[browserName] = (browserCounts[browserName] || 0) + 1;
+      }
+    }
+    
+    // Formatowanie szczegółów widoku
+    const viewDetails = sortedViews.map(view => ({
       ipAddress: view.ipAddress,
       userAgent: view.userAgent || undefined,
       viewedAt: view.viewedAt ? view.viewedAt.toISOString() : new Date().toISOString(),
+      authenticated: view.authenticated || false,
     }));
+    
+    // Formatowanie adresów IP
+    const ipAddresses = Object.entries(ipCounts).map(([address, data]) => ({
+      address,
+      count: data.count,
+      lastView: data.lastView ? data.lastView.toISOString() : undefined,
+    }));
+    
+    // Formatowanie statystyk przeglądarek
+    const browserStats = Object.entries(browserCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    // Znajdź pierwszy i ostatni widok
+    const firstView = sortedViews.length > 0 ? 
+      (sortedViews[sortedViews.length - 1].viewedAt || new Date()).toISOString() : 
+      undefined;
+    
+    const lastView = sortedViews.length > 0 ? 
+      (sortedViews[0].viewedAt || new Date()).toISOString() : 
+      undefined;
 
     return {
       totalViews: views.length,
-      uniqueIps,
+      uniqueIPs: Object.keys(ipCounts).length,
+      firstView,
+      lastView,
       viewDetails,
+      ipAddresses,
+      browserStats,
     };
+  }
+  
+  // Pomocnicza funkcja do wykrywania przeglądarki na podstawie userAgent
+  private detectBrowser(userAgent: string): string {
+    userAgent = userAgent.toLowerCase();
+    if (userAgent.includes('firefox')) return 'Firefox';
+    if (userAgent.includes('chrome') && !userAgent.includes('edg')) return 'Chrome';
+    if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'Safari';
+    if (userAgent.includes('edg')) return 'Edge';
+    if (userAgent.includes('opera') || userAgent.includes('opr')) return 'Opera';
+    if (userAgent.includes('msie') || userAgent.includes('trident')) return 'Internet Explorer';
+    return 'Other';
   }
 
   async getModelViewCount(modelId: number): Promise<number> {
@@ -302,26 +366,92 @@ export class PostgresStorage implements IStorage {
       .where(eq(modelViews.modelId, modelId))
       .orderBy(desc(modelViews.viewedAt));
 
+    // Jeśli nie ma wyświetleń, zwróć puste statystyki
+    if (views.length === 0) {
+      return {
+        totalViews: 0,
+        uniqueIPs: 0,
+        viewDetails: [],
+      };
+    }
+
     // Pobierz liczbę unikalnych adresów IP
     const uniqueIpsResult = await db
       .select({ count: sql<number>`count(distinct ${modelViews.ipAddress})` })
       .from(modelViews)
       .where(eq(modelViews.modelId, modelId));
 
-    const uniqueIps = uniqueIpsResult[0]?.count || 0;
+    const uniqueIPsCount = uniqueIpsResult[0]?.count || 0;
+
+    // Pobierz pierwszy i ostatni widok
+    const firstView = views[views.length - 1].viewedAt.toISOString();
+    const lastView = views[0].viewedAt.toISOString();
 
     // Format the view details
     const viewDetails = views.map(view => ({
       ipAddress: view.ipAddress,
       userAgent: view.userAgent || undefined,
       viewedAt: view.viewedAt.toISOString(),
+      authenticated: view.authenticated || false,
     }));
+
+    // Generuj statystyki adresów IP
+    const ipAddressStats = await db
+      .select({
+        address: modelViews.ipAddress,
+        count: sql<number>`count(*)`,
+        lastView: sql<string>`max(${modelViews.viewedAt})`
+      })
+      .from(modelViews)
+      .where(eq(modelViews.modelId, modelId))
+      .groupBy(modelViews.ipAddress);
+
+    const ipAddresses = ipAddressStats.map(ip => ({
+      address: ip.address,
+      count: ip.count,
+      lastView: new Date(ip.lastView).toISOString()
+    }));
+
+    // Generuj statystyki przeglądarek
+    // Uproszczona implementacja - w pełnej wersji można by użyć biblioteki user-agent-parser
+    const browserStats: {name: string, count: number}[] = [];
+    const browserMap: Record<string, number> = {};
+
+    for (const view of views) {
+      if (view.userAgent) {
+        const browserName = this.detectBrowser(view.userAgent);
+        browserMap[browserName] = (browserMap[browserName] || 0) + 1;
+      }
+    }
+
+    for (const [name, count] of Object.entries(browserMap)) {
+      browserStats.push({ name, count });
+    }
+
+    // Sortuj statystyki przeglądarek malejąco według liczby wyświetleń
+    browserStats.sort((a, b) => b.count - a.count);
 
     return {
       totalViews: views.length,
-      uniqueIps,
+      uniqueIPs: uniqueIPsCount,
+      firstView,
+      lastView,
       viewDetails,
+      ipAddresses,
+      browserStats,
     };
+  }
+  
+  // Pomocnicza funkcja do wykrywania przeglądarki na podstawie userAgent
+  private detectBrowser(userAgent: string): string {
+    userAgent = userAgent.toLowerCase();
+    if (userAgent.includes('firefox')) return 'Firefox';
+    if (userAgent.includes('chrome') && !userAgent.includes('edg')) return 'Chrome';
+    if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'Safari';
+    if (userAgent.includes('edg')) return 'Edge';
+    if (userAgent.includes('opera') || userAgent.includes('opr')) return 'Opera';
+    if (userAgent.includes('msie') || userAgent.includes('trident')) return 'Internet Explorer';
+    return 'Other';
   }
 
   async getModelViewCount(modelId: number): Promise<number> {

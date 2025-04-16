@@ -1114,7 +1114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ipAddress,
         userAgent,
         viewedAt: new Date(),
-        authenticated: true  // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
+        authenticated: true as boolean // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
       });
       
       // Aktualizuj datę ostatniego dostępu

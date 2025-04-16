@@ -99,6 +99,7 @@ export const modelViews = pgTable("model_views", {
   ipAddress: text("ip_address").notNull(),
   userAgent: text("user_agent"),
   viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+  authenticated: boolean("authenticated").default(false), // Czy użytkownik przeszedł uwierzytelnienie (np. hasło)
 });
 
 export const insertModelViewSchema = createInsertSchema(modelViews).omit({
@@ -108,12 +109,24 @@ export const insertModelViewSchema = createInsertSchema(modelViews).omit({
 // Schema for view statistics response
 export const modelViewStatsSchema = z.object({
   totalViews: z.number(),
-  uniqueIps: z.number(),
+  uniqueIPs: z.number(),  // Uwaga: zmienione na 'uniqueIPs' dla spójności z UI
+  firstView: z.string().optional(),
+  lastView: z.string().optional(),
   viewDetails: z.array(z.object({
     ipAddress: z.string(),
     userAgent: z.string().optional(),
     viewedAt: z.string(),
+    authenticated: z.boolean().optional(),
   })),
+  ipAddresses: z.array(z.object({
+    address: z.string(),
+    count: z.number(),
+    lastView: z.string().optional(),
+  })).optional(),
+  browserStats: z.array(z.object({
+    name: z.string(),
+    count: z.number(),
+  })).optional(),
 });
 
 export type User = typeof users.$inferSelect;
