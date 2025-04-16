@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
@@ -1365,6 +1365,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error disabling sharing:", error);
       res.status(500).json({ message: "Failed to disable sharing" });
+    }
+  });
+
+  // Get model view statistics
+  app.get("/api/admin/shared-models/:id/stats", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if model exists
+      const model = await storage.getModel(id);
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Get view statistics for the model
+      const stats = await storage.getModelViewStats(id);
+      
+      // Validate with schema
+      const validatedStats = modelViewStatsSchema.parse(stats);
+      
+      res.json(validatedStats);
+    } catch (error) {
+      console.error("Error getting model view statistics:", error);
+      res.status(500).json({ message: "Failed to get model view statistics" });
     }
   });
 
