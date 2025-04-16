@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -91,12 +91,40 @@ export const adminLoginSchema = z.object({
   password: z.string().min(1, "Hasło jest wymagane"),
 });
 
+// Define table for model view statistics
+export const modelViews = pgTable("model_views", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").references(() => models.id).notNull(),
+  shareId: text("share_id"), // Może być null jeśli wyświetlenie nastąpiło przez standardowy dostęp
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+
+export const insertModelViewSchema = createInsertSchema(modelViews).omit({
+  id: true,
+});
+
+// Schema for view statistics response
+export const modelViewStatsSchema = z.object({
+  totalViews: z.number(),
+  uniqueIps: z.number(),
+  viewDetails: z.array(z.object({
+    ipAddress: z.string(),
+    userAgent: z.string().optional(),
+    viewedAt: z.string(),
+  })),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Model = typeof models.$inferSelect;
 export type InsertModel = z.infer<typeof insertModelSchema>;
+export type ModelView = typeof modelViews.$inferSelect;
+export type InsertModelView = z.infer<typeof insertModelViewSchema>;
 export type ModelTree = z.infer<typeof modelTreeSchema>;
 export type ModelInfo = z.infer<typeof modelInfoSchema>;
 export type ShareModelRequest = z.infer<typeof shareModelSchema>;
 export type AccessSharedModelRequest = z.infer<typeof accessSharedModelSchema>;
 export type AdminLoginRequest = z.infer<typeof adminLoginSchema>;
+export type ModelViewStats = z.infer<typeof modelViewStatsSchema>;

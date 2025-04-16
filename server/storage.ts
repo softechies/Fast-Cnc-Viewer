@@ -1,5 +1,10 @@
-import { users, type User, type InsertUser, models, type Model, type InsertModel } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { 
+  users, type User, type InsertUser, 
+  models, type Model, type InsertModel,
+  modelViews, type ModelView, type InsertModelView,
+  type ModelViewStats
+} from "@shared/schema";
+import { eq, sql, and, desc } from "drizzle-orm";
 import { db } from "./db";
 
 // Interface for storage operations
@@ -15,25 +20,34 @@ export interface IStorage {
   getModelsByUserId(userId: number): Promise<Model[]>;
   updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined>;
   deleteModel(id: number): Promise<boolean>;
-  getModels(): Promise<Model[]>; // Dodana metoda do pobierania wszystkich modeli
+  getModels(): Promise<Model[]>;
   
   // Share operations
-  getModelByShareId(shareId: string): Promise<Model | undefined>; // Znajdź model po identyfikatorze udostępniania
-  getSharedModels(): Promise<Model[]>; // Pobierz wszystkie udostępnione modele
+  getModelByShareId(shareId: string): Promise<Model | undefined>;
+  getSharedModels(): Promise<Model[]>;
+  
+  // View statistics operations
+  recordModelView(viewData: InsertModelView): Promise<ModelView>;
+  getModelViewStats(modelId: number): Promise<ModelViewStats>;
+  getModelViewCount(modelId: number): Promise<number>;
 }
 
 // In-memory storage implementation
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private models: Map<number, Model>;
+  private modelViews: Map<number, ModelView[]>;
   private userIdCounter: number;
   private modelIdCounter: number;
+  private viewIdCounter: number;
 
   constructor() {
     this.users = new Map();
     this.models = new Map();
+    this.modelViews = new Map();
     this.userIdCounter = 1;
     this.modelIdCounter = 1;
+    this.viewIdCounter = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -125,6 +139,53 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, ...updates };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  async recordModelView(viewData: InsertModelView): Promise<ModelView> {
+    const id = this.viewIdCounter++;
+    const view: ModelView = {
+      ...viewData,
+      id,
+      shareId: viewData.shareId || null,
+      userAgent: viewData.userAgent || null,
+      viewedAt: viewData.viewedAt || new Date(),
+    };
+
+    // Initialize array for the model if it doesn't exist
+    if (!this.modelViews.has(viewData.modelId)) {
+      this.modelViews.set(viewData.modelId, []);
+    }
+
+    // Add the view to the array
+    const views = this.modelViews.get(viewData.modelId)!;
+    views.push(view);
+
+    return view;
+  }
+
+  async getModelViewStats(modelId: number): Promise<ModelViewStats> {
+    const views = this.modelViews.get(modelId) || [];
+    
+    // Count unique IPs
+    const uniqueIps = new Set(views.map(view => view.ipAddress)).size;
+
+    // Format the view details
+    const viewDetails = views.map(view => ({
+      ipAddress: view.ipAddress,
+      userAgent: view.userAgent || undefined,
+      viewedAt: view.viewedAt ? view.viewedAt.toISOString() : new Date().toISOString(),
+    }));
+
+    return {
+      totalViews: views.length,
+      uniqueIps,
+      viewDetails,
+    };
+  }
+
+  async getModelViewCount(modelId: number): Promise<number> {
+    const views = this.modelViews.get(modelId) || [];
+    return views.length;
   }
 }
 
@@ -226,6 +287,51 @@ export class PostgresStorage implements IStorage {
       .returning();
     
     return result[0];
+  }
+
+  async recordModelView(viewData: InsertModelView): Promise<ModelView> {
+    const result = await db.insert(modelViews).values(viewData).returning();
+    return result[0];
+  }
+
+  async getModelViewStats(modelId: number): Promise<ModelViewStats> {
+    // Pobierz wszystkie wyświetlenia dla danego modelu, sortowane od najnowszych
+    const views = await db
+      .select()
+      .from(modelViews)
+      .where(eq(modelViews.modelId, modelId))
+      .orderBy(desc(modelViews.viewedAt));
+
+    // Pobierz liczbę unikalnych adresów IP
+    const uniqueIpsResult = await db
+      .select({ count: sql<number>`count(distinct ${modelViews.ipAddress})` })
+      .from(modelViews)
+      .where(eq(modelViews.modelId, modelId));
+
+    const uniqueIps = uniqueIpsResult[0]?.count || 0;
+
+    // Format the view details
+    const viewDetails = views.map(view => ({
+      ipAddress: view.ipAddress,
+      userAgent: view.userAgent || undefined,
+      viewedAt: view.viewedAt.toISOString(),
+    }));
+
+    return {
+      totalViews: views.length,
+      uniqueIps,
+      viewDetails,
+    };
+  }
+
+  async getModelViewCount(modelId: number): Promise<number> {
+    // Pobierz liczbę wyświetleń dla danego modelu
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(modelViews)
+      .where(eq(modelViews.modelId, modelId));
+
+    return countResult[0]?.count || 0;
   }
 }
 
