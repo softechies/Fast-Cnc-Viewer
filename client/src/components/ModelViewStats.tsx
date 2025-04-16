@@ -156,7 +156,7 @@ export default function ModelViewStats({ modelId, isOpen, onClose }: ModelViewSt
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {stats.ipAddresses.map((ip, index) => (
+                      {stats.ipAddresses.map((ip: {address: string, count: number, lastView?: string}, index: number) => (
                         <TableRow key={index}>
                           <TableCell>{ip.address}</TableCell>
                           <TableCell className="text-right">{ip.count}</TableCell>
@@ -186,12 +186,12 @@ export default function ModelViewStats({ modelId, isOpen, onClose }: ModelViewSt
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {stats.viewDetails.map((view, index) => (
+                      {stats.viewDetails.map((view: {viewedAt: string, ipAddress: string, userAgent?: string | undefined}, index: number) => (
                         <TableRow key={index}>
                           <TableCell>{formatDate(view.viewedAt)}</TableCell>
                           <TableCell>{view.ipAddress}</TableCell>
                           <TableCell>
-                            <div className="truncate max-w-[250px]" title={view.userAgent}>
+                            <div className="truncate max-w-[250px]" title={view.userAgent || ''}>
                               {view.userAgent}
                             </div>
                           </TableCell>

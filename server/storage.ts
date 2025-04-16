@@ -144,11 +144,13 @@ export class MemStorage implements IStorage {
   async recordModelView(viewData: InsertModelView): Promise<ModelView> {
     const id = this.viewIdCounter++;
     const view: ModelView = {
-      ...viewData,
       id,
+      modelId: viewData.modelId,
+      ipAddress: viewData.ipAddress,
       shareId: viewData.shareId || null,
       userAgent: viewData.userAgent || null,
       viewedAt: viewData.viewedAt || new Date(),
+      authenticated: viewData.authenticated === undefined ? null : viewData.authenticated,
     };
 
     // Initialize array for the model if it doesn't exist
