@@ -1104,6 +1104,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Rejestruj dostęp do modelu (faktyczne wyświetlenie po weryfikacji hasła)
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      await storage.recordModelView({
+        modelId: model.id,
+        shareId,
+        ipAddress,
+        userAgent,
+        viewedAt: new Date(),
+        authenticated: true  // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
+      });
+      
+      // Aktualizuj datę ostatniego dostępu
+      await storage.updateModel(model.id, {
+        shareLastAccessed: new Date().toISOString()
+      });
+      
       // Zwróć podstawowe dane modelu po weryfikacji
       res.json({
         id: model.id,
@@ -1143,6 +1161,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "This shared link has expired" });
         }
       }
+      
+      // Rejestruj wyświetlenie modelu
+      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      
+      await storage.recordModelView({
+        modelId: model.id,
+        shareId,
+        ipAddress,
+        userAgent,
+        viewedAt: new Date()
+      });
+      
+      // Aktualizuj datę ostatniego dostępu
+      await storage.updateModel(model.id, {
+        shareLastAccessed: new Date().toISOString()
+      });
       
       // Sprawdź czy model jest chroniony hasłem
       const requiresPassword = !!model.sharePassword;

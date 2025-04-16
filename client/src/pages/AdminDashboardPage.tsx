@@ -35,10 +35,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink } from 'lucide-react';
+import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import ModelViewStats from '@/components/ModelViewStats';
 
 interface SharedModel {
   id: number;
