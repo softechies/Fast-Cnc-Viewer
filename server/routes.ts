@@ -1108,14 +1108,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
       const userAgent = req.headers['user-agent'] || 'unknown';
       
-      await storage.recordModelView({
-        modelId: model.id,
-        shareId,
-        ipAddress,
-        userAgent,
-        viewedAt: new Date(),
-        authenticated: true as boolean // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
-      });
+      try {
+        await storage.recordModelView({
+          modelId: model.id,
+          shareId,
+          ipAddress,
+          userAgent,
+          viewedAt: new Date(),
+          authenticated: true as boolean // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
+        });
+      } catch (viewError) {
+        console.error("Error accessing shared model:", viewError);
+        // Ignorujemy błąd - aplikacja dalej działa
+      }
       
       // Aktualizuj datę ostatniego dostępu
       await storage.updateModel(model.id, {
