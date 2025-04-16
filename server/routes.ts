@@ -1166,13 +1166,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
       const userAgent = req.headers['user-agent'] || 'unknown';
       
-      await storage.recordModelView({
-        modelId: model.id,
-        shareId,
-        ipAddress,
-        userAgent,
-        viewedAt: new Date()
-      });
+      try {
+        await storage.recordModelView({
+          modelId: model.id,
+          shareId,
+          ipAddress,
+          userAgent,
+          viewedAt: new Date()
+        });
+      } catch (viewError) {
+        console.error("Failed to record model view:", viewError);
+        // Nie zwracamy błędu, kontynuujemy działanie
+      }
       
       // Aktualizuj datę ostatniego dostępu
       await storage.updateModel(model.id, {
@@ -1414,13 +1419,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Get view statistics for the model
-      const stats = await storage.getModelViewStats(id);
-      
-      // Validate with schema
-      const validatedStats = modelViewStatsSchema.parse(stats);
-      
-      res.json(validatedStats);
+      try {
+        // Get view statistics for the model
+        const stats = await storage.getModelViewStats(id);
+        
+        // Validate with schema
+        const validatedStats = modelViewStatsSchema.parse(stats);
+        
+        res.json(validatedStats);
+      } catch (statsError) {
+        console.error("Error getting model view stats (table may not exist):", statsError);
+        // Jeśli tabela nie istnieje, zwróć puste statystyki
+        res.json({
+          totalViews: 0,
+          uniqueIPs: 0,
+          viewDetails: [],
+          ipAddresses: [],
+          browserStats: []
+        });
+      }
     } catch (error) {
       console.error("Error getting model view statistics:", error);
       res.status(500).json({ message: "Failed to get model view statistics" });
