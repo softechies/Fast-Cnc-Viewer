@@ -377,13 +377,11 @@ export class PostgresStorage implements IStorage {
       };
     }
 
-    // Oblicz unikalne adresy IP analizując pierwszy adres IP z każdego wpisu
-    // (ip_address zawiera listę adresów, ale pierwszy to zawsze adres klienta)
+    // Oblicz unikalne adresy IP
+    // Adresy IP są już prawidłowo zapisane w bazie danych jako jeden adres klienta
     const uniqueClientIPs = new Set();
     for (const view of views) {
-      // Z przecinkami oddzielającej wiele adresów IP, weź pierwszą wartość
-      const clientIP = view.ipAddress.split(',')[0].trim();
-      uniqueClientIPs.add(clientIP);
+      uniqueClientIPs.add(view.ipAddress);
     }
     
     const uniqueIPsCount = uniqueClientIPs.size;
@@ -400,22 +398,21 @@ export class PostgresStorage implements IStorage {
       authenticated: view.authenticated || false,
     }));
 
-    // Generuj statystyki adresów IP, ale analizuj tylko pierwszy adres IP klienta
-    // Zamiast używania grupowania przez SQL, robimy to ręcznie, aby móc prawidłowo obsłużyć
-    // pierwszy adres IP z każdego wpisu w kolumnie ip_address
+    // Generuj statystyki adresów IP
+    // Adresy IP są już prawidłowo zapisane w bazie danych jako jeden adres klienta
     const ipAddressMap: Record<string, { count: number, lastView: Date }> = {};
     
     for (const view of views) {
-      const clientIP = view.ipAddress.split(',')[0].trim();
-      if (!ipAddressMap[clientIP]) {
-        ipAddressMap[clientIP] = { count: 0, lastView: view.viewedAt };
+      const ipAddress = view.ipAddress;
+      if (!ipAddressMap[ipAddress]) {
+        ipAddressMap[ipAddress] = { count: 0, lastView: view.viewedAt };
       }
       
-      ipAddressMap[clientIP].count += 1;
+      ipAddressMap[ipAddress].count += 1;
       
       // Aktualizuj lastView jeśli ten widok jest nowszy
-      if (view.viewedAt > ipAddressMap[clientIP].lastView) {
-        ipAddressMap[clientIP].lastView = view.viewedAt;
+      if (view.viewedAt > ipAddressMap[ipAddress].lastView) {
+        ipAddressMap[ipAddress].lastView = view.viewedAt;
       }
     }
     
