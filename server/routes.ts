@@ -1108,9 +1108,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Robimy to tylko jeśli model wymaga hasła, w przeciwnym razie
       // statystyki zostały już zapisane w poprzednim żądaniu
       if (model.sharePassword) {
-        const rawIpAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
-        // Pobierz tylko pierwszy adres IP z listy (to adres klienta)
-        const ipAddress = rawIpAddress.split(',')[0].trim();
+        // Obsługa adresu IP - weź tylko pierwszy adres IP z nagłówka X-Forwarded-For (rzeczywisty adres klienta)
+        let ipAddress = 'unknown';
+        if (req.headers['x-forwarded-for']) {
+          // Pobierz pierwszy adres IP z listy (adres rzeczywistego klienta)
+          const forwarded = String(req.headers['x-forwarded-for']).split(',')[0].trim();
+          if (forwarded) {
+            ipAddress = forwarded;
+          }
+        } else if (req.socket.remoteAddress) {
+          ipAddress = req.socket.remoteAddress;
+        }
         const userAgent = req.headers['user-agent'] || 'unknown';
         
         try {
@@ -1176,9 +1184,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Rejestruj wyświetlenie modelu, ale tylko jeśli jest to pierwszy dostęp (bez hasła)
       if (!model.sharePassword) {
         try {
-          const rawIpAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
-          // Pobierz tylko pierwszy adres IP z listy (to adres klienta)
-          const ipAddress = rawIpAddress.split(',')[0].trim();
+          // Obsługa adresu IP - weź tylko pierwszy adres IP z nagłówka X-Forwarded-For (rzeczywisty adres klienta)
+          let ipAddress = 'unknown';
+          if (req.headers['x-forwarded-for']) {
+            // Pobierz pierwszy adres IP z listy (adres rzeczywistego klienta)
+            const forwarded = String(req.headers['x-forwarded-for']).split(',')[0].trim();
+            if (forwarded) {
+              ipAddress = forwarded;
+            }
+          } else if (req.socket.remoteAddress) {
+            ipAddress = req.socket.remoteAddress;
+          }
           const userAgent = req.headers['user-agent'] || 'unknown';
           
           await storage.recordModelView({
