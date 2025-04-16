@@ -108,8 +108,8 @@ export const insertModelViewSchema = createInsertSchema(modelViews).omit({
 
 // Schema for view statistics response
 export const modelViewStatsSchema = z.object({
-  totalViews: z.number(),
-  uniqueIPs: z.number(),  // Uwaga: zmienione na 'uniqueIPs' dla spójności z UI
+  totalViews: z.union([z.number(), z.string()]).transform(val => Number(val)),
+  uniqueIPs: z.union([z.number(), z.string()]).transform(val => Number(val)),  // Uwaga: zmienione na 'uniqueIPs' dla spójności z UI
   firstView: z.string().optional(),
   lastView: z.string().optional(),
   viewDetails: z.array(z.object({
@@ -120,12 +120,12 @@ export const modelViewStatsSchema = z.object({
   })),
   ipAddresses: z.array(z.object({
     address: z.string(),
-    count: z.number(),
+    count: z.union([z.number(), z.string()]).transform(val => Number(val)),
     lastView: z.string().optional(),
   })).optional(),
   browserStats: z.array(z.object({
     name: z.string(),
-    count: z.number(),
+    count: z.union([z.number(), z.string()]).transform(val => Number(val)),
   })).optional(),
 });
 
