@@ -377,13 +377,16 @@ export class PostgresStorage implements IStorage {
       };
     }
 
-    // Pobierz liczbę unikalnych adresów IP
-    const uniqueIpsResult = await db
-      .select({ count: sql<number>`count(distinct ${modelViews.ipAddress})` })
-      .from(modelViews)
-      .where(eq(modelViews.modelId, modelId));
-
-    const uniqueIPsCount = uniqueIpsResult[0]?.count || 0;
+    // Oblicz unikalne adresy IP analizując pierwszy adres IP z każdego wpisu
+    // (ip_address zawiera listę adresów, ale pierwszy to zawsze adres klienta)
+    const uniqueClientIPs = new Set();
+    for (const view of views) {
+      // Z przecinkami oddzielającej wiele adresów IP, weź pierwszą wartość
+      const clientIP = view.ipAddress.split(',')[0].trim();
+      uniqueClientIPs.add(clientIP);
+    }
+    
+    const uniqueIPsCount = uniqueClientIPs.size;
 
     // Pobierz pierwszy i ostatni widok
     const firstView = views[views.length - 1].viewedAt.toISOString();
@@ -397,21 +400,29 @@ export class PostgresStorage implements IStorage {
       authenticated: view.authenticated || false,
     }));
 
-    // Generuj statystyki adresów IP
-    const ipAddressStats = await db
-      .select({
-        address: modelViews.ipAddress,
-        count: sql<number>`count(*)`,
-        lastView: sql<string>`max(${modelViews.viewedAt})`
-      })
-      .from(modelViews)
-      .where(eq(modelViews.modelId, modelId))
-      .groupBy(modelViews.ipAddress);
-
-    const ipAddresses = ipAddressStats.map(ip => ({
-      address: ip.address,
-      count: ip.count,
-      lastView: new Date(ip.lastView).toISOString()
+    // Generuj statystyki adresów IP, ale analizuj tylko pierwszy adres IP klienta
+    // Zamiast używania grupowania przez SQL, robimy to ręcznie, aby móc prawidłowo obsłużyć
+    // pierwszy adres IP z każdego wpisu w kolumnie ip_address
+    const ipAddressMap: Record<string, { count: number, lastView: Date }> = {};
+    
+    for (const view of views) {
+      const clientIP = view.ipAddress.split(',')[0].trim();
+      if (!ipAddressMap[clientIP]) {
+        ipAddressMap[clientIP] = { count: 0, lastView: view.viewedAt };
+      }
+      
+      ipAddressMap[clientIP].count += 1;
+      
+      // Aktualizuj lastView jeśli ten widok jest nowszy
+      if (view.viewedAt > ipAddressMap[clientIP].lastView) {
+        ipAddressMap[clientIP].lastView = view.viewedAt;
+      }
+    }
+    
+    const ipAddresses = Object.entries(ipAddressMap).map(([address, data]) => ({
+      address,
+      count: data.count,
+      lastView: data.lastView.toISOString()
     }));
 
     // Generuj statystyki przeglądarek

@@ -1105,21 +1105,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Rejestruj dostęp do modelu (faktyczne wyświetlenie po weryfikacji hasła)
-      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
-      const userAgent = req.headers['user-agent'] || 'unknown';
-      
-      try {
-        await storage.recordModelView({
-          modelId: model.id,
-          shareId,
-          ipAddress,
-          userAgent,
-          viewedAt: new Date(),
-          authenticated: true as boolean // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
-        });
-      } catch (viewError) {
-        console.error("Error accessing shared model:", viewError);
-        // Ignorujemy błąd - aplikacja dalej działa
+      // Robimy to tylko jeśli model wymaga hasła, w przeciwnym razie
+      // statystyki zostały już zapisane w poprzednim żądaniu
+      if (model.sharePassword) {
+        const rawIpAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+        // Pobierz tylko pierwszy adres IP z listy (to adres klienta)
+        const ipAddress = rawIpAddress.split(',')[0].trim();
+        const userAgent = req.headers['user-agent'] || 'unknown';
+        
+        try {
+          await storage.recordModelView({
+            modelId: model.id,
+            shareId,
+            ipAddress,
+            userAgent,
+            viewedAt: new Date(),
+            authenticated: true // To oznacza, że dostęp został uwierzytelniony (jeśli było hasło)
+          });
+        } catch (viewError) {
+          console.error("Error accessing shared model:", viewError);
+          // Ignorujemy błąd - aplikacja dalej działa
+        }
       }
       
       // Aktualizuj datę ostatniego dostępu
@@ -1167,21 +1173,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Rejestruj wyświetlenie modelu
-      const ipAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
-      const userAgent = req.headers['user-agent'] || 'unknown';
-      
-      try {
-        await storage.recordModelView({
-          modelId: model.id,
-          shareId,
-          ipAddress,
-          userAgent,
-          viewedAt: new Date()
-        });
-      } catch (viewError) {
-        console.error("Failed to record model view:", viewError);
-        // Nie zwracamy błędu, kontynuujemy działanie
+      // Rejestruj wyświetlenie modelu, ale tylko jeśli jest to pierwszy dostęp (bez hasła)
+      if (!model.sharePassword) {
+        try {
+          const rawIpAddress = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown';
+          // Pobierz tylko pierwszy adres IP z listy (to adres klienta)
+          const ipAddress = rawIpAddress.split(',')[0].trim();
+          const userAgent = req.headers['user-agent'] || 'unknown';
+          
+          await storage.recordModelView({
+            modelId: model.id,
+            shareId,
+            ipAddress,
+            userAgent,
+            viewedAt: new Date()
+          });
+        } catch (viewError) {
+          console.error("Failed to record model view:", viewError);
+          // Nie zwracamy błędu, kontynuujemy działanie
+        }
       }
       
       // Aktualizuj datę ostatniego dostępu
