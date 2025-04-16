@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ModelViewStats } from '@shared/schema';
+import { ModelViewStats as ModelViewStatsType } from '@shared/schema';
 import { 
   Dialog, 
   DialogContent, 
@@ -31,7 +31,7 @@ interface ModelViewStatsProps {
 export default function ModelViewStats({ modelId, isOpen, onClose }: ModelViewStatsProps) {
   const [activeTab, setActiveTab] = useState<string>('overview');
   
-  const { data: stats, isLoading, error } = useQuery<ModelViewStats>({
+  const { data: stats, isLoading, error } = useQuery<ModelViewStatsType>({
     queryKey: ['/api/admin/shared-models', modelId, 'stats'],
     queryFn: async ({ queryKey }) => {
       const id = queryKey[1];
@@ -129,7 +129,7 @@ export default function ModelViewStats({ modelId, isOpen, onClose }: ModelViewSt
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {stats.browserStats.map((browser, index) => (
+                        {stats.browserStats.map((browser: {name: string, count: number}, index: number) => (
                           <TableRow key={index}>
                             <TableCell>{browser.name}</TableCell>
                             <TableCell className="text-right">{browser.count}</TableCell>

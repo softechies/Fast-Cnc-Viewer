@@ -64,6 +64,7 @@ export default function AdminDashboardPage() {
   const [sharedModels, setSharedModels] = useState<SharedModel[]>([]);
   const [revokeModelId, setRevokeModelId] = useState<number | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [statsModelId, setStatsModelId] = useState<number | null>(null);
 
   // Sprawdź autentykację przy wczytaniu strony
   useEffect(() => {
@@ -189,6 +190,13 @@ export default function AdminDashboardPage() {
         </div>
       </div>
       
+      {/* Okno dialogowe statystyk */}
+      <ModelViewStats 
+        modelId={statsModelId}
+        isOpen={statsModelId !== null}
+        onClose={() => setStatsModelId(null)}
+      />
+      
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle>Shared Models</CardTitle>
@@ -262,6 +270,15 @@ export default function AdminDashboardPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setStatsModelId(model.id)}
+                          >
+                            <BarChart2 className="h-4 w-4 mr-2" />
+                            Stats
+                          </Button>
+                          
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm">
