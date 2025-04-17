@@ -154,7 +154,7 @@ export default function AdminDashboardPage() {
       
       // Wykonaj zapytanie do API z tokenem administratora w nagłówku
       const response = await apiRequest('POST', `/api/admin/shared-models/${modelId}/access`, {}, {
-        'Authorization': `Bearer ${adminToken}`
+        headers: { 'Authorization': `Bearer ${adminToken}` }
       });
       
       if (!response.ok) {
