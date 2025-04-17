@@ -36,6 +36,19 @@ export default function SharedModelPage() {
   const [modelId, setModelId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAdminAccess, setIsAdminAccess] = useState(false);
+  
+  // Sprawdzenie, czy dostęp jest w trybie administratora
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const adminParam = searchParams.get('admin');
+    setIsAdminAccess(adminParam === 'true');
+    
+    // Jeśli mamy tryb administratora, zapewniamy automatyczne ominięcie hasła
+    if (adminParam === 'true') {
+      setModelAccessed(true);
+    }
+  }, []);
 
   // Pobierz podstawowe informacje o udostępnionym modelu
   useEffect(() => {
