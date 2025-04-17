@@ -36,89 +36,10 @@ export default function SharedModelPage() {
   const [modelId, setModelId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isAdminAccess, setIsAdminAccess] = useState(false);
-  
-  // Sprawdzenie, czy dostęp jest w trybie administratora
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const adminParam = searchParams.get('admin');
-    const isAdmin = adminParam === 'true';
-    setIsAdminAccess(isAdmin);
-    
-    // Jeśli mamy tryb administratora i znamy shareId, uzyskujemy dostęp automatycznie
-    if (isAdmin && shareId) {
-      // Pobieramy podstawowe informacje o modelu w trybie administratora
-      const fetchAdminModelInfo = async () => {
-        try {
-          setIsLoading(true);
-          
-          // Pobierz token administratora
-          const adminToken = localStorage.getItem('adminToken');
-          if (!adminToken) {
-            setError("Administrator authentication required");
-            return;
-          }
-          
-          // Najpierw pobieramy podstawowe informacje o modelu
-          const infoResponse = await apiRequest(
-            "GET",
-            `/api/shared/${shareId}`,
-            undefined,
-            {
-              on401: "throw"
-            }
-          );
-          
-          const modelInfo = await infoResponse.json();
-          setModelInfo(modelInfo);
-          
-          // Następnie uzyskujemy dostęp administratorski
-          // Szukamy ID modelu w odpowiedzi
-          const modelId = modelInfo.modelId || modelInfo.id;
-          
-          if (!modelId) {
-            setError("Model ID not found");
-            return;
-          }
-          
-          // Wywołujemy endpoint administratorski
-          const response = await apiRequest(
-            "POST",
-            `/api/admin/shared-models/${modelId}/access`,
-            {},
-            {
-              headers: { 'Authorization': `Bearer ${adminToken}` }
-            }
-          );
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to access model as admin');
-          }
-          
-          const adminAccessData = await response.json();
-          // Ustawiamy ID modelu
-          setModelId(adminAccessData.id);
-          // Oznaczamy, że model został pomyślnie otwarty
-          setModelAccessed(true);
-          setRequiresPassword(false);
-          
-        } catch (error) {
-          console.error("Błąd podczas uzyskiwania dostępu administratorskiego:", error);
-          setError(error instanceof Error ? error.message : "Wystąpił błąd podczas uzyskiwania dostępu administratorskiego");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      fetchAdminModelInfo();
-    }
-  }, [shareId]);
 
-  // Pobierz podstawowe informacje o udostępnionym modelu (tylko dla zwykłych użytkowników)
+  // Pobierz podstawowe informacje o udostępnionym modelu
   useEffect(() => {
-    // Nie wykonuj tego efektu, jeśli jesteśmy w trybie administratora lub brakuje shareId
-    if (!shareId || isAdminAccess) return;
+    if (!shareId) return;
     
     const fetchSharedModelInfo = async () => {
       try {
@@ -153,7 +74,7 @@ export default function SharedModelPage() {
     };
     
     fetchSharedModelInfo();
-  }, [shareId, isAdminAccess]);
+  }, [shareId]);
 
   // Funkcja do uzyskania dostępu do modelu (z hasłem lub bez)
   const accessSharedModel = async () => {
