@@ -1308,7 +1308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Wyślij powiadomienie o usunięciu udostępnienia, jeśli jest adres email
       if (model.shareEmail) {
         try {
-          await sendSharingRevokedNotificationSmtp(model, model.shareEmail);
+          // Ustal bazowy URL na podstawie źródła żądania
+          const host = req.headers['host'] || 'localhost:5000';
+          const protocol = host.includes('localhost') ? 'http' : 'https';
+          const baseUrl = `${protocol}://${host}`;
+          
+          await sendSharingRevokedNotificationSmtp(model, model.shareEmail, undefined, baseUrl);
           console.log(`Wysłano powiadomienie o usunięciu udostępnienia do ${model.shareEmail}`);
         } catch (emailError) {
           console.error("Błąd podczas wysyłania powiadomienia o usunięciu udostępnienia:", emailError);

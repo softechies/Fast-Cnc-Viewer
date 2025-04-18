@@ -70,6 +70,11 @@ export async function sendShareNotificationSmtp(
     
     const shareUrl = `${baseUrl}/shared/${model.shareId}`;
     
+    // Link do usunięcia udostępnienia
+    const deleteUrl = model.shareDeleteToken 
+      ? `${baseUrl}/revoke-share/${model.shareId}/${model.shareDeleteToken}`
+      : null;
+    
     // Pobierz tłumaczenia dla danego języka
     const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;
     
@@ -113,6 +118,12 @@ export async function sendShareNotificationSmtp(
         </a></p>
         ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }) : ''}
         <p>${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}</p>
+        ${deleteUrl ? `
+        <p style="margin-top: 20px;">${translations.deleteInstruction}</p>
+        <p><a href="${deleteUrl}" style="padding: 8px 16px; background-color: #6b7280; color: white; text-decoration: none; border-radius: 5px;">
+          ${translations.deleteAction}
+        </a></p>
+        ` : ''}
         <hr />
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
           <p style="color: #333; margin-bottom: 10px;">
@@ -141,6 +152,11 @@ export async function sendShareNotificationSmtp(
         
         ${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}
         
+        ${deleteUrl ? `
+        ${translations.deleteInstruction}
+        ${deleteUrl}
+        ` : ''}
+        
         ${translations.promoMessage}
         ${translations.visitWebsite}
         
@@ -163,10 +179,14 @@ export async function sendShareNotificationSmtp(
 export async function sendSharingRevokedNotificationSmtp(
   model: Model,
   recipient: string,
-  language?: Language
+  language?: Language,
+  baseUrl?: string
 ): Promise<boolean> {
   // Default to English if no language is provided
   const emailLanguage: Language = language || 'en';
+  
+  // Default base URL jeśli nie jest podany
+  const effectiveBaseUrl = baseUrl || (process.env.NODE_ENV === 'production' ? 'https://viewer.fastcnc.eu' : 'http://localhost:5000');
   
   if (!customSmtpTransporter) {
     console.error('Custom SMTP email service not initialized');
