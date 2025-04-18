@@ -16,6 +16,7 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
+import { setupAuth, comparePasswords } from "./auth";
 
 // Funkcja pomocnicza do wykrywania środowiska produkcyjnego
 function isProductionEnvironment(host: string): boolean {
@@ -371,6 +372,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Obsługa statycznych plików z folderu public
   const staticMiddleware = express.static('public');
   app.use(staticMiddleware);
+  
+  // Konfigurujemy autoryzację i endpointy logowania/rejestracji
+  setupAuth(app);
+  
   // Inicjalizacja usług e-mail
   try {
     // Inicjalizujemy podstawowy serwis Nodemailer (Ethereal) - tylko do testów
