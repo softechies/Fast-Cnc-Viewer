@@ -9,7 +9,11 @@ interface LanguageContextType {
   t: (key: string, params?: Record<string, string>) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType>({
+  language: 'en',
+  setLanguage: () => {},
+  t: (key) => key
+});
 
 // Helper function to get a nested value from an object using a dot-separated path
 function getNestedValue(obj: any, path: string): any {
@@ -93,10 +97,4 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 }
 
 // Custom hook to access language context
-export function useLanguage() {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-}
+export const useLanguage = () => useContext(LanguageContext);

@@ -171,6 +171,7 @@ const translations = {
     title: "Fehler",
     share: "Fehler beim Teilen des Modells",
     password_required: "Passwort erforderlich",
+    required: "ist erforderlich",
     model: {
       fetch: "Modellinformationen konnten nicht abgerufen werden",
       access: "Zugriff auf das Modell nicht möglich",

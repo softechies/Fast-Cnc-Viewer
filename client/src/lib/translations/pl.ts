@@ -190,6 +190,7 @@ const translations = {
     title: "Błąd",
     share: "Błąd podczas udostępniania modelu",
     password_required: "Wymagane hasło",
+    required: "jest wymagane",
     model: {
       fetch: "Nie udało się pobrać informacji o modelu",
       access: "Nie udało się uzyskać dostępu do modelu",

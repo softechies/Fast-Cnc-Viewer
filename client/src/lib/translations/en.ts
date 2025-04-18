@@ -203,6 +203,7 @@ const translations = {
     title: "Error",
     share: "Error sharing model",
     password_required: "Password required",
+    required: "is required",
     model: {
       fetch: "Failed to fetch model information",
       access: "Failed to access the model",
