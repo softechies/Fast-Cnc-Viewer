@@ -13,7 +13,7 @@ const translations = {
   cancel: "Abbrechen",
   save: "Speichern",
   back: "Zurück",
-  loading: "Laden...",
+  loadingGeneric: "Laden...",
   refresh: "Aktualisieren",
   error: "Fehler",
   success: "Erfolg",
@@ -100,6 +100,18 @@ const translations = {
   viewSharedModel: "Geteiltes Modell anzeigen",
   modelSharedBy: "Modell geteilt von",
   
+  // Shared page texts
+  shared: {
+    protected_model: {
+      title: "Geschütztes Modell",
+      description: "Dieses Modell ist passwortgeschützt.",
+      password_placeholder: "Passwort für das Modell eingeben"
+    },
+    model_info: {
+      shared_status: "Geteiltes Modell"
+    }
+  },
+  
   // Messages
   message: {
     no: {
@@ -138,6 +150,31 @@ const translations = {
   fileTooLarge: "Datei ist zu groß",
   invalidPassword: "Ungültiges Passwort",
   invalidEmail: "Ungültige E-Mail-Adresse",
+  
+  // Specific error messages
+  errors: {
+    title: "Fehler",
+    share: "Fehler beim Teilen des Modells",
+    password_required: "Passwort erforderlich",
+    model: {
+      fetch: "Modellinformationen konnten nicht abgerufen werden",
+      access: "Zugriff auf das Modell nicht möglich",
+      display_failed: "Modell kann nicht angezeigt werden"
+    }
+  },
+  
+  // Loading states
+  loadingState: {
+    shared_model: "Geteiltes Modell wird geladen..."
+  },
+  
+  // Actions
+  actions: {
+    back_to_home: "Zurück zur Startseite",
+    access: "Zugriff erhalten",
+    verifying: "Überprüfung...",
+    go_to_app: "Zur Anwendung"
+  },
   
   // Success messages
   sharingSaved: "Freigabeeinstellungen gespeichert",

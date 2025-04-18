@@ -13,7 +13,7 @@ const translations = {
   cancel: "Annuler",
   save: "Enregistrer",
   back: "Retour",
-  loading: "Chargement...",
+  loadingGeneric: "Chargement...",
   refresh: "Actualiser",
   error: "Erreur",
   success: "Succès",

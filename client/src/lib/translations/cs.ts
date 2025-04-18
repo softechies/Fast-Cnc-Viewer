@@ -13,7 +13,7 @@ const translations = {
   cancel: "Zrušit",
   save: "Uložit",
   back: "Zpět",
-  loading: "Načítání...",
+  loadingGeneric: "Načítání...",
   refresh: "Obnovit",
   error: "Chyba",
   success: "Úspěch",
@@ -100,6 +100,18 @@ const translations = {
   viewSharedModel: "Zobrazit sdílený model",
   modelSharedBy: "Model sdílen uživatelem",
   
+  // Shared page texts
+  shared: {
+    protected_model: {
+      title: "Chráněný model",
+      description: "Tento model je chráněn heslem.",
+      password_placeholder: "Zadejte heslo k modelu"
+    },
+    model_info: {
+      shared_status: "Sdílený model"
+    }
+  },
+  
   // Messages
   message: {
     no: {
@@ -138,6 +150,31 @@ const translations = {
   fileTooLarge: "Soubor je příliš velký",
   invalidPassword: "Neplatné heslo",
   invalidEmail: "Neplatná e-mailová adresa",
+  
+  // Specific error messages
+  errors: {
+    title: "Chyba",
+    share: "Chyba při sdílení modelu",
+    password_required: "Požadováno heslo",
+    model: {
+      fetch: "Nepodařilo se načíst informace o modelu",
+      access: "Nepodařilo se získat přístup k modelu",
+      display_failed: "Nelze zobrazit model"
+    }
+  },
+  
+  // Loading states
+  loadingState: {
+    shared_model: "Načítání sdíleného modelu..."
+  },
+  
+  // Actions
+  actions: {
+    back_to_home: "Zpět na hlavní stránku",
+    access: "Získat přístup",
+    verifying: "Ověřování...",
+    go_to_app: "Přejít do aplikace"
+  },
   
   // Success messages
   sharingSaved: "Nastavení sdílení uloženo",
