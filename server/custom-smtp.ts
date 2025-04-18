@@ -97,7 +97,7 @@ export async function sendShareNotificationSmtp(
       <div style="margin-bottom: 20px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
           <g fill="none" fill-rule="evenodd">
-            <path fill="#D91C5C" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
+            <path fill="#DB1D37" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
             <path fill="#000000" d="M40,9 L55,9 L55,13 L45,13 L45,16.5 L54,16.5 L54,20.5 L45,20.5 L45,28 L40,28 L40,9 Z M57,9 L62,9 L67,19 L72,9 L77,9 L69,24 L65,24 L57,9 Z M84,9 L89,9 L99,28 L93.5,28 L92,24.5 L81,24.5 L79.5,28 L74,28 L84,9 Z M86.5,14 L83.5,20.5 L89.5,20.5 L86.5,14 Z M102,9 L107,9 L107,24 L117,24 L117,28 L102,28 L102,9 Z M40,31 L45,31 L45,35 L49,35 L49,39 L45,39 L45,46 L40,46 L40,31 Z M52,31 L67,31 L67,35 L57,35 L57,36.5 L66,36.5 L66,45 L52,45 L52,41 L61,41 L61,39.5 L52,39.5 L52,31 Z M72,31 L76,31 L76,45 L72,45 L72,31 Z M80,31 L95,31 L95,45 L90,45 L90,35 L85,35 L85,45 L80,45 L80,31 Z"></path>
           </g>
         </svg>
@@ -113,7 +113,7 @@ export async function sendShareNotificationSmtp(
         <h2>${translations.shareTitle}</h2>
         <p>${replaceTemplateVariables(translations.shareText, { filename: model.filename })}</p>
         <p>${translations.viewInstructions}</p>
-        <p><a href="${shareUrl}" style="padding: 10px 20px; background-color: #D91C5C; color: white; text-decoration: none; border-radius: 5px;">
+        <p><a href="${shareUrl}" style="padding: 10px 20px; background-color: #DB1D37; color: white; text-decoration: none; border-radius: 5px;">
           ${translations.shareAction}
         </a></p>
         ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }) : ''}
@@ -130,7 +130,7 @@ export async function sendShareNotificationSmtp(
             <strong>${translations.promoMessage}</strong>
           </p>
           <p style="color: #555;">
-            <a href="https://fastcnc.eu" style="color: #D91C5C; text-decoration: none;">
+            <a href="https://fastcnc.eu" style="color: #DB1D37; text-decoration: none;">
               ${translations.visitWebsite}
             </a>
           </p>
@@ -222,7 +222,7 @@ export async function sendSharingRevokedNotificationSmtp(
       <div style="margin-bottom: 20px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
           <g fill="none" fill-rule="evenodd">
-            <path fill="#D91C5C" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
+            <path fill="#DB1D37" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
             <path fill="#000000" d="M40,9 L55,9 L55,13 L45,13 L45,16.5 L54,16.5 L54,20.5 L45,20.5 L45,28 L40,28 L40,9 Z M57,9 L62,9 L67,19 L72,9 L77,9 L69,24 L65,24 L57,9 Z M84,9 L89,9 L99,28 L93.5,28 L92,24.5 L81,24.5 L79.5,28 L74,28 L84,9 Z M86.5,14 L83.5,20.5 L89.5,20.5 L86.5,14 Z M102,9 L107,9 L107,24 L117,24 L117,28 L102,28 L102,9 Z M40,31 L45,31 L45,35 L49,35 L49,39 L45,39 L45,46 L40,46 L40,31 Z M52,31 L67,31 L67,35 L57,35 L57,36.5 L66,36.5 L66,45 L52,45 L52,41 L61,41 L61,39.5 L52,39.5 L52,31 Z M72,31 L76,31 L76,45 L72,45 L72,31 Z M80,31 L95,31 L95,45 L90,45 L90,35 L85,35 L85,45 L80,45 L80,31 Z"></path>
           </g>
         </svg>
@@ -244,7 +244,7 @@ export async function sendSharingRevokedNotificationSmtp(
             <strong>${translations.promoMessage}</strong>
           </p>
           <p style="color: #555;">
-            <a href="https://fastcnc.eu" style="color: #D91C5C; text-decoration: none;">
+            <a href="https://fastcnc.eu" style="color: #DB1D37; text-decoration: none;">
               ${translations.visitWebsite}
             </a>
           </p>
