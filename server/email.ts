@@ -43,6 +43,9 @@ export const EMAIL_TRANSLATIONS = {
     revokeTitle: 'CAD Model sharing has been cancelled',
     revokeText: 'The sharing of CAD model <strong>{filename}</strong> has been cancelled by the owner.',
     revokeInfo: 'The link you previously received will no longer work.',
+    // Sharing management
+    deleteInstruction: 'If you want to cancel the sharing at any time, you can use the link below:',
+    deleteAction: 'Cancel Sharing',
     // Promotional message
     promoMessage: 'Thank you for using our application. Try sharing your own model or use our CNC services.',
     visitWebsite: 'Visit our website: https://fastcnc.eu'
@@ -63,6 +66,9 @@ export const EMAIL_TRANSLATIONS = {
     revokeTitle: 'Udostępnianie modelu CAD zostało anulowane',
     revokeText: 'Udostępnianie modelu CAD <strong>{filename}</strong> zostało anulowane przez właściciela.',
     revokeInfo: 'Link, który wcześniej otrzymałeś, nie będzie już działał.',
+    // Sharing management
+    deleteInstruction: 'Jeśli chcesz anulować udostępnianie w dowolnym momencie, możesz użyć poniższego linku:',
+    deleteAction: 'Anuluj udostępnianie',
     // Promotional message
     promoMessage: 'Dziękujemy za korzystanie z naszej aplikacji. Spróbuj udostępnić własny model lub skorzystać z naszych usług CNC.',
     visitWebsite: 'Odwiedź naszą stronę: https://fastcnc.eu'
@@ -83,6 +89,9 @@ export const EMAIL_TRANSLATIONS = {
     revokeTitle: 'Die Freigabe des CAD-Modells wurde aufgehoben',
     revokeText: 'Die Freigabe des CAD-Modells <strong>{filename}</strong> wurde vom Eigentümer aufgehoben.',
     revokeInfo: 'Der Link, den Sie zuvor erhalten haben, funktioniert nicht mehr.',
+    // Sharing management
+    deleteInstruction: 'Wenn Sie die Freigabe jederzeit aufheben möchten, können Sie den folgenden Link verwenden:',
+    deleteAction: 'Freigabe aufheben',
     // Promotional message
     promoMessage: 'Vielen Dank für die Nutzung unserer Anwendung. Versuchen Sie, Ihr eigenes Modell zu teilen oder nutzen Sie unsere CNC-Dienstleistungen.',
     visitWebsite: 'Besuchen Sie unsere Website: https://fastcnc.eu'
@@ -103,6 +112,9 @@ export const EMAIL_TRANSLATIONS = {
     revokeTitle: 'Le partage du modèle CAO a été annulé',
     revokeText: 'Le partage du modèle CAO <strong>{filename}</strong> a été annulé par le propriétaire.',
     revokeInfo: 'Le lien que vous avez reçu précédemment ne fonctionnera plus.',
+    // Sharing management
+    deleteInstruction: 'Si vous souhaitez annuler le partage à tout moment, vous pouvez utiliser le lien ci-dessous:',
+    deleteAction: 'Annuler le partage',
     // Promotional message
     promoMessage: 'Merci d\'utiliser notre application. Essayez de partager votre propre modèle ou utilisez nos services CNC.',
     visitWebsite: 'Visitez notre site web: https://fastcnc.eu'
@@ -123,6 +135,9 @@ export const EMAIL_TRANSLATIONS = {
     revokeTitle: 'Sdílení CAD modelu bylo zrušeno',
     revokeText: 'Sdílení CAD modelu <strong>{filename}</strong> bylo zrušeno vlastníkem.',
     revokeInfo: 'Odkaz, který jste dříve obdrželi, již nebude funkční.',
+    // Sharing management
+    deleteInstruction: 'Pokud chcete kdykoli zrušit sdílení, můžete použít následující odkaz:',
+    deleteAction: 'Zrušit sdílení',
     // Promotional message
     promoMessage: 'Děkujeme, že používáte naši aplikaci. Vyzkoušejte sdílení vlastního modelu nebo využijte našich služeb CNC.',
     visitWebsite: 'Navštivte naše webové stránky: https://fastcnc.eu'
@@ -221,6 +236,11 @@ export async function sendShareNotification(
     const shareUrl = `${baseUrl}/shared/${model.shareId}`;
     const translations = EMAIL_TRANSLATIONS[language] || EMAIL_TRANSLATIONS.en;
     
+    // Link do usunięcia udostępnienia
+    const deleteUrl = model.shareDeleteToken 
+      ? `${baseUrl}/api/shared/${model.shareId}/${model.shareDeleteToken}`
+      : null;
+    
     // Przygotuj zmienne do szablonu
     const expiryInfo = model.shareExpiryDate 
       ? replaceTemplateVariables(translations.expiryDate, { date: model.shareExpiryDate })
@@ -252,6 +272,12 @@ export async function sendShareNotification(
         </a></p>
         ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }) : ''}
         <p>${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}</p>
+        ${deleteUrl ? `
+        <p style="margin-top: 20px;">${translations.deleteInstruction}</p>
+        <p><a href="${deleteUrl}" style="padding: 8px 16px; background-color: #6b7280; color: white; text-decoration: none; border-radius: 5px;">
+          ${translations.deleteAction}
+        </a></p>
+        ` : ''}
         <hr />
         <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
           <p style="color: #333; margin-bottom: 10px;">
@@ -279,6 +305,11 @@ export async function sendShareNotification(
         ${password ? replaceTemplateVariables(translations.passwordInstructions, { password }).replace(/<[^>]*>/g, '') : ''}
         
         ${replaceTemplateVariables(translations.expiryInfo, { expiryInfo })}
+        
+        ${deleteUrl ? `
+        ${translations.deleteInstruction}
+        ${deleteUrl}
+        ` : ''}
         
         ${translations.promoMessage}
         ${translations.visitWebsite}
