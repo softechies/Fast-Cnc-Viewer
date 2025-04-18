@@ -19,6 +19,20 @@ const translations = {
   success: "Úspěch",
   close: "Zavřít",
   confirm: "Potvrdit",
+  
+  // Authentication
+  login: "Přihlásit se",
+  register: "Registrovat se",
+  create_account_sharing: "Vytvořte si účet pro správu souborů",
+  account_created: "Váš účet byl úspěšně vytvořen. Nyní jste přihlášeni.",
+  enter_credentials: "Zadejte své přihlašovací údaje",
+  username: "Uživatelské jméno",
+  password: "Heslo",
+  create_account: "Vytvořit nový účet",
+  email: "Email",
+  full_name: "Celé jméno",
+  company: "Společnost",
+  client_dashboard: "Panel klienta",
 
   // Buttons
   button: {
