@@ -1406,10 +1406,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            // Ustal bazowy URL na podstawie źródła żądania
+            const baseUrl = `${req.protocol}://${req.headers['host']}`;
+            
             const revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail,
-              userLanguage // Przekazujemy wykryty język użytkownika
+              userLanguage, // Przekazujemy wykryty język użytkownika
+              baseUrl
             );
             
             if (revocationSent) {
@@ -1488,10 +1492,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Jeśli jest skonfigurowany serwer SMTP
           if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            // Ustal bazowy URL na podstawie źródła żądania
+            const baseUrl = `${req.protocol}://${req.headers['host']}`;
+            
             revocationSent = await sendSharingRevokedNotificationSmtp(
               model, 
               model.shareEmail,
-              userLanguage // Przekazujemy wykryty język użytkownika
+              userLanguage, // Przekazujemy wykryty język użytkownika
+              baseUrl
             );
             
             if (revocationSent) {
@@ -1649,7 +1657,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Próbuj użyć niestandardowego SMTP, a jeśli nie zadziała, użyj Nodemailer
           try {
-            await sendSharingRevokedNotificationSmtp(model, language);
+            // Ustal bazowy URL na podstawie źródła żądania
+            const host = req.headers['host'] || 'localhost:5000';
+            const protocol = host.includes('localhost') ? 'http' : 'https';
+            const baseUrl = `${protocol}://${host}`;
+            
+            await sendSharingRevokedNotificationSmtp(model, model.shareEmail, language, baseUrl);
           } catch (emailError) {
             console.warn("Custom SMTP notification failed, trying Nodemailer:", emailError);
             await sendNodemailerRevokedNotification(model, language);

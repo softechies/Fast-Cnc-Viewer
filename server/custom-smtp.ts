@@ -200,6 +200,11 @@ export async function sendSharingRevokedNotificationSmtp(
     // Import funkcji i stałych z email.ts
     const emailModule = await import('./email');
     
+    // Link do usunięcia udostępnienia (jeśli model ma token)
+    const deleteUrl = model.shareDeleteToken 
+      ? `${effectiveBaseUrl}/revoke-share/${model.shareId}/${model.shareDeleteToken}`
+      : null;
+    
     // Pobierz tłumaczenia dla danego języka
     const translations = emailModule.EMAIL_TRANSLATIONS[emailLanguage] || emailModule.EMAIL_TRANSLATIONS.en;
     
