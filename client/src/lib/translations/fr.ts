@@ -100,6 +100,18 @@ const translations = {
   viewSharedModel: "Voir le modèle partagé",
   modelSharedBy: "Modèle partagé par",
   
+  // Shared page texts
+  shared: {
+    protected_model: {
+      title: "Modèle protégé",
+      description: "Ce modèle est protégé par mot de passe.",
+      password_placeholder: "Entrez le mot de passe du modèle"
+    },
+    model_info: {
+      shared_status: "Modèle partagé"
+    }
+  },
+  
   // Messages
   message: {
     no: {
@@ -138,6 +150,31 @@ const translations = {
   fileTooLarge: "Le fichier est trop volumineux",
   invalidPassword: "Mot de passe invalide",
   invalidEmail: "Adresse e-mail invalide",
+  
+  // Specific error messages
+  errors: {
+    title: "Erreur",
+    share: "Erreur lors du partage du modèle",
+    password_required: "Mot de passe requis",
+    model: {
+      fetch: "Impossible de récupérer les informations du modèle",
+      access: "Impossible d'accéder au modèle",
+      display_failed: "Impossible d'afficher le modèle"
+    }
+  },
+  
+  // Loading states
+  loadingState: {
+    shared_model: "Chargement du modèle partagé..."
+  },
+  
+  // Actions
+  actions: {
+    back_to_home: "Retour à l'accueil",
+    access: "Accéder",
+    verifying: "Vérification...",
+    go_to_app: "Aller à l'application"
+  },
   
   // Success messages
   sharingSaved: "Paramètres de partage enregistrés",
