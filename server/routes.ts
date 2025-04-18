@@ -875,6 +875,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareId = nanoid(10); // Generuj 10-znakowy identyfikator
       }
       
+      // Generuj unikalny token do usuwania udostępnienia
+      let deleteToken = model.shareDeleteToken;
+      if (shareData.enableSharing && !deleteToken) {
+        deleteToken = nanoid(32); // 32-znakowy token dla bezpieczeństwa
+      }
+      
       // Hashowanie hasła, jeśli zostało podane
       let sharePassword = null;
       if (shareData.password) {
@@ -886,7 +892,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareId: shareId,
         shareEnabled: shareData.enableSharing,
         sharePassword: sharePassword,
-        shareExpiryDate: shareData.expiryDate
+        shareExpiryDate: shareData.expiryDate,
+        shareDeleteToken: deleteToken
       };
       
       // Jeśli podano adres email, zapisz go
@@ -1053,6 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasPassword: !!sharePassword,
         shareUrl: shareData.enableSharing ? `/shared/${shareId}` : null,
         expiryDate: updatedModel?.shareExpiryDate,
+        shareDeleteToken: updatedModel?.shareDeleteToken,
         emailSent: shareData.enableSharing && shareData.email
       });
     } catch (error) {
@@ -1231,7 +1239,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Endpoint do usuwania udostępnienia modelu
+  // Endpoint do usuwania udostępnienia modelu za pomocą tokenu bezpieczeństwa
+  app.delete("/api/shared/:shareId/:token", async (req: Request, res: Response) => {
+    try {
+      const { shareId, token } = req.params;
+      
+      // Znajdź model po ID udostępnienia
+      const model = await storage.getModelByShareId(shareId);
+      
+      // Jeśli nie znaleziono modelu lub udostępnianie jest już wyłączone
+      if (!model || !model.shareEnabled) {
+        return res.status(404).json({ message: "Shared model not found" });
+      }
+      
+      // Weryfikacja tokenu bezpieczeństwa
+      if (!model.shareDeleteToken || model.shareDeleteToken !== token) {
+        return res.status(403).json({ message: "Invalid security token" });
+      }
+      
+      // Wysyłka powiadomienia email o usunięciu udostępnienia, jeśli adres email istnieje
+      if (model.shareEmail) {
+        try {
+          // Używamy domyślnego języka z nagłówka przeglądarki
+          const userLanguage = detectLanguage(req.headers['accept-language']);
+          console.log(`Using browser language for revocation email: ${userLanguage}`);
+          
+          // Sprawdź, czy jesteśmy w środowisku produkcyjnym - używamy tylko SMTP bez fallbacku
+          const host = req.headers['host'] || 'localhost:3000';
+          const isProduction = host === 'viewer.fastcnc.eu';
+          
+          // Jeśli jest skonfigurowany serwer SMTP
+          if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+            const revocationSent = await sendSharingRevokedNotificationSmtp(
+              model, 
+              model.shareEmail,
+              userLanguage // Przekazujemy wykryty język użytkownika
+            );
+            
+            if (revocationSent) {
+              console.log(`Share revocation notification sent via custom SMTP to ${model.shareEmail} in ${userLanguage}`);
+            } else if (!isProduction) {
+              // Tylko w środowisku deweloperskim próbujemy użyć Nodemailer jako fallback
+              console.warn("Custom SMTP revocation email failed, trying Nodemailer fallback (dev environment only)");
+              
+              const nodemailerSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
+              if (nodemailerSent) {
+                console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+              } else {
+                console.error(`Failed to send share revocation email to ${model.shareEmail}`);
+              }
+            } else {
+              console.error(`Failed to send share revocation email via SMTP to ${model.shareEmail} in production environment`);
+            }
+          } else if (!isProduction) {
+            // Tylko w środowisku deweloperskim użyj Nodemailer, jeśli SMTP nie jest skonfigurowany
+            const nodemailerSent = await sendNodemailerRevokedNotification(model, model.shareEmail);
+            if (nodemailerSent) {
+              console.log(`Share revocation notification sent via Nodemailer to ${model.shareEmail}`);
+            } else {
+              console.error(`Failed to send share revocation email to ${model.shareEmail}`);
+            }
+          } else {
+            console.error(`SMTP not configured in production environment, unable to send revocation email to ${model.shareEmail}`);
+          }
+        } catch (emailError) {
+          console.error("Error sending share revocation email:", emailError);
+          // Kontynuuj usuwanie udostępnienia nawet jeśli email nie mógł zostać wysłany
+        }
+      }
+      
+      // Wyłącz udostępnianie modelu
+      await storage.updateModel(model.id, {
+        shareEnabled: false
+      });
+      
+      res.status(200).json({ 
+        message: "Sharing has been revoked",
+        modelId: model.id
+      });
+    } catch (error) {
+      console.error("Error revoking shared model:", error);
+      res.status(500).json({ message: "Failed to revoke shared model" });
+    }
+  });
+  
+  // Endpoint do usuwania udostępnienia modelu (tylko dla administratorów)
   app.delete("/api/shared/:shareId", async (req: Request, res: Response) => {
     try {
       const { shareId } = req.params;
