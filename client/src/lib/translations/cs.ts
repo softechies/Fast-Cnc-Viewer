@@ -164,6 +164,7 @@ const translations = {
   fileTooLarge: "Soubor je příliš velký",
   invalidPassword: "Neplatné heslo",
   invalidEmail: "Neplatná e-mailová adresa",
+  email_already_exists: "Tento e-mail je již registrován. Prosím, přihlaste se.",
   
   // Specific error messages
   errors: {

@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
-import { Clipboard, Calendar, Copy, Check, Link2, Mail, UserPlus } from "lucide-react";
+import { Clipboard, Calendar, Copy, Check, Link2, LogIn, Mail, UserPlus } from "lucide-react";
+import { useNavigate } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -301,24 +302,39 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                     required
                   />
                   {emailExists && (
-                    <p className="text-xs text-orange-500 mt-1">
-                      {t('email_already_exists')}
-                    </p>
+                    <div className="flex flex-col space-y-2 mt-1">
+                      <p className="text-xs text-orange-500">
+                        {t('email_already_exists')}
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs h-8 w-full"
+                        onClick={() => {
+                          handleClose();
+                          navigate('/auth');
+                        }}
+                      >
+                        <LogIn className="mr-2 h-3 w-3" />
+                        {t('login')}
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
               
-              {!user && (
+              {!user && !emailExists && (
                 <>
                   <div className="flex items-center space-x-2 mt-1 ml-[calc(25%+8px)]">
                     <Checkbox 
                       id="create-account" 
                       checked={createAccount}
                       onCheckedChange={(checked) => setCreateAccount(checked === true)}
+                      disabled={emailExists}
                     />
                     <Label 
                       htmlFor="create-account" 
-                      className="text-sm flex items-center cursor-pointer"
+                      className={`text-sm flex items-center ${emailExists ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}`}
                     >
                       <UserPlus className="h-4 w-4 mr-1 text-muted-foreground" />
                       {t('create_account_sharing')}

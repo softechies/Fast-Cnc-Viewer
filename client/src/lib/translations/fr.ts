@@ -165,6 +165,7 @@ const translations = {
   fileTooLarge: "Le fichier est trop volumineux",
   invalidPassword: "Mot de passe invalide",
   invalidEmail: "Adresse e-mail invalide",
+  email_already_exists: "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
   
   // Specific error messages
   errors: {
