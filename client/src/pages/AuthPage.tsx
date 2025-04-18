@@ -16,7 +16,7 @@ export default function AuthPage() {
   
   // Dane formularza logowania
   const [loginData, setLoginData] = useState({
-    username: "",
+    email: "",
     password: ""
   });
   
@@ -58,8 +58,8 @@ export default function AuthPage() {
     return <Redirect to="/" />;
   }
   
-  const isLoginDisabled = !loginData.username || !loginData.password || loginMutation.isPending;
-  const isRegisterDisabled = !registerData.username || !registerData.password || 
+  const isLoginDisabled = !loginData.email || !loginData.password || loginMutation.isPending;
+  const isRegisterDisabled = !registerData.password || 
                             !registerData.email || !registerData.fullName || registerMutation.isPending;
   
   return (
@@ -91,11 +91,12 @@ export default function AuthPage() {
                   <form onSubmit={handleLogin}>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="username">{t('username')}</Label>
+                        <Label htmlFor="email">{t('email')}</Label>
                         <Input 
-                          id="username" 
-                          name="username" 
-                          value={loginData.username} 
+                          id="email" 
+                          name="email"
+                          type="email"
+                          value={loginData.email} 
                           onChange={handleLoginChange} 
                           required 
                         />
@@ -137,14 +138,14 @@ export default function AuthPage() {
                   <form onSubmit={handleRegister}>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="reg-username">{t('username')} *</Label>
+                        <Label htmlFor="reg-username">{t('username')}</Label>
                         <Input 
                           id="reg-username" 
                           name="username" 
                           value={registerData.username} 
-                          onChange={handleRegisterChange} 
-                          required 
+                          onChange={handleRegisterChange}
                         />
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('username_optional')}</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="reg-email">{t('email')} *</Label>
