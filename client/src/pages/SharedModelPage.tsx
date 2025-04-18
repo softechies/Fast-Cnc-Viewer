@@ -35,7 +35,6 @@ export default function SharedModelPage() {
   const [modelAccessed, setModelAccessed] = useState(false);
   const [modelId, setModelId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pobierz podstawowe informacje o udostępnionym modelu
   useEffect(() => {
@@ -128,47 +127,6 @@ export default function SharedModelPage() {
     accessSharedModel();
   };
   
-  // Funkcja do usuwania udostępnienia modelu
-  const handleDeleteSharing = async () => {
-    if (!shareId) return;
-    
-    try {
-      setIsDeleting(true);
-      
-      const response = await apiRequest(
-        "DELETE",
-        `/api/shared/${shareId}`,
-        undefined,
-        {
-          on401: "throw"
-        }
-      );
-      
-      toast({
-        title: "Sukces",
-        description: "Udostępnienie modelu zostało anulowane",
-        variant: "default",
-        duration: 3000
-      });
-      
-      // Przekieruj do strony głównej po udanym usunięciu
-      setTimeout(() => {
-        setLocation('/');
-      }, 1000);
-      
-    } catch (error) {
-      console.error("Błąd podczas usuwania udostępnienia:", error);
-      toast({
-        title: "Błąd",
-        description: error instanceof Error ? error.message : "Wystąpił błąd podczas usuwania udostępnienia",
-        variant: "destructive",
-        duration: 5000
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -259,41 +217,6 @@ export default function SharedModelPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  disabled={isDeleting}
-                  className="flex items-center gap-1"
-                >
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Usuwanie...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Usuń udostępnienie
-                    </>
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Czy na pewno chcesz usunąć udostępnienie?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Ta operacja jest nieodwracalna. Link do modelu przestanie działać, a jeśli podano adres email, zostanie wysłane powiadomienie o anulowaniu dostępu.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteSharing}>Usuń udostępnienie</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
             <Button
               variant="outline"
               size="sm"
