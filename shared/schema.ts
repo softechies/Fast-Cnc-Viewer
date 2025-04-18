@@ -7,13 +7,40 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").unique(),
+  fullName: text("full_name"),
+  company: text("company"),
   isAdmin: boolean("is_admin").default(false), // Pole określające, czy użytkownik jest administratorem
+  isClient: boolean("is_client").default(false), // Pole określające, czy użytkownik jest klientem
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+  resetToken: text("reset_token"), // Token do resetowania hasła
+  resetTokenExpiry: timestamp("reset_token_expiry"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
+  fullName: true,
+  company: true,
   isAdmin: true,
+  isClient: true,
+});
+
+// Schema for client registration
+export const clientRegistrationSchema = z.object({
+  username: z.string().min(3, "Nazwa użytkownika musi mieć co najmniej 3 znaki"),
+  password: z.string().min(6, "Hasło musi mieć co najmniej 6 znaków"),
+  email: z.string().email("Nieprawidłowy adres email"),
+  fullName: z.string().min(1, "Imię i nazwisko są wymagane"),
+  company: z.string().optional(),
+});
+
+// Schema for client login
+export const clientLoginSchema = z.object({
+  username: z.string().min(1, "Nazwa użytkownika jest wymagana"),
+  password: z.string().min(1, "Hasło jest wymagane"),
 });
 
 // Define models table for storing model information
@@ -131,10 +158,38 @@ export const modelViewStatsSchema = z.object({
   })).optional(),
 });
 
+// Define schemas for client functionality
+export const clientPasswordChangeSchema = z.object({
+  oldPassword: z.string().min(1, "Aktualne hasło jest wymagane"),
+  newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
+});
+
+export const resetPasswordRequestSchema = z.object({
+  email: z.string().email("Nieprawidłowy adres email"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string(),
+  newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
+});
+
+// Define schema for changing shared model settings
+export const updateSharedModelSchema = z.object({
+  modelId: z.number(),
+  password: z.string().optional(),
+  expiryDate: z.string().optional(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type ClientRegistration = z.infer<typeof clientRegistrationSchema>;
+export type ClientLogin = z.infer<typeof clientLoginSchema>;
+export type ClientPasswordChange = z.infer<typeof clientPasswordChangeSchema>;
+export type ResetPasswordRequest = z.infer<typeof resetPasswordRequestSchema>;
+export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type Model = typeof models.$inferSelect;
 export type InsertModel = z.infer<typeof insertModelSchema>;
+export type UpdateSharedModel = z.infer<typeof updateSharedModelSchema>;
 export type ModelView = typeof modelViews.$inferSelect;
 export type InsertModelView = z.infer<typeof insertModelViewSchema>;
 export type ModelTree = z.infer<typeof modelTreeSchema>;

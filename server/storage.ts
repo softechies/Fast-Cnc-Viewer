@@ -4,20 +4,24 @@ import {
   modelViews, type ModelView, type InsertModelView,
   type ModelViewStats
 } from "@shared/schema";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, or, like, ilike } from "drizzle-orm";
 import { db } from "./db";
 
 // Interface for storage operations
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  searchUsers(query: string): Promise<User[]>;
   
   // Model operations
   createModel(model: InsertModel): Promise<Model>;
   getModel(id: number): Promise<Model | undefined>;
   getModelsByUserId(userId: number): Promise<Model[]>;
+  getModelsByEmail(email: string): Promise<Model[]>;
   updateModel(id: number, updates: Partial<Model>): Promise<Model | undefined>;
   deleteModel(id: number): Promise<boolean>;
   getModels(): Promise<Model[]>;
@@ -25,6 +29,8 @@ export interface IStorage {
   // Share operations
   getModelByShareId(shareId: string): Promise<Model | undefined>;
   getSharedModels(): Promise<Model[]>;
+  getModelsByClientId(clientId: number): Promise<Model[]>;
+  getSharedModelsByEmail(email: string): Promise<Model[]>;
   
   // View statistics operations
   recordModelView(viewData: InsertModelView): Promise<ModelView>;
@@ -59,13 +65,61 @@ export class MemStorage implements IStorage {
       (user) => user.username === username,
     );
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email,
+    );
+  }
+  
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.resetToken === token,
+    );
+  }
+  
+  async searchUsers(query: string): Promise<User[]> {
+    const lowercaseQuery = query.toLowerCase();
+    return Array.from(this.users.values()).filter(
+      (user) => 
+        (user.username && user.username.toLowerCase().includes(lowercaseQuery)) ||
+        (user.email && user.email.toLowerCase().includes(lowercaseQuery)) ||
+        (user.fullName && user.fullName.toLowerCase().includes(lowercaseQuery))
+    );
+  }
+  
+  async getModelsByEmail(email: string): Promise<Model[]> {
+    return Array.from(this.models.values()).filter(
+      (model) => model.shareEmail === email
+    );
+  }
+  
+  async getModelsByClientId(clientId: number): Promise<Model[]> {
+    return Array.from(this.models.values()).filter(
+      (model) => model.userId === clientId
+    );
+  }
+  
+  async getSharedModelsByEmail(email: string): Promise<Model[]> {
+    return Array.from(this.models.values()).filter(
+      (model) => model.shareEmail === email && model.shareEnabled === true
+    );
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const user: User = { 
       ...insertUser, 
       id,
-      isAdmin: insertUser.isAdmin ?? false 
+      isAdmin: insertUser.isAdmin ?? false,
+      isClient: insertUser.isClient ?? false,
+      email: insertUser.email ?? null,
+      fullName: insertUser.fullName ?? null,
+      company: insertUser.company ?? null,
+      createdAt: new Date(),
+      lastLogin: null,
+      resetToken: null,
+      resetTokenExpiry: null
     };
     this.users.set(id, user);
     return user;
@@ -265,6 +319,50 @@ export class PostgresStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
     return result[0];
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+  
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const result = await db.select().from(users)
+      .where(eq(users.resetToken, token))
+      .limit(1);
+    return result[0];
+  }
+  
+  async searchUsers(query: string): Promise<User[]> {
+    const result = await db.select().from(users)
+      .where(
+        or(
+          ilike(users.username, `%${query}%`),
+          ilike(users.email, `%${query}%`),
+          ilike(users.fullName, `%${query}%`)
+        )
+      );
+    return result;
+  }
+  
+  async getModelsByEmail(email: string): Promise<Model[]> {
+    return await db.select().from(models)
+      .where(eq(models.shareEmail, email));
+  }
+  
+  async getModelsByClientId(clientId: number): Promise<Model[]> {
+    return await db.select().from(models)
+      .where(eq(models.userId, clientId));
+  }
+  
+  async getSharedModelsByEmail(email: string): Promise<Model[]> {
+    return await db.select().from(models)
+      .where(
+        and(
+          eq(models.shareEmail, email),
+          eq(models.shareEnabled, true)
+        )
+      );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
