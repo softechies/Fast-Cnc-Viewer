@@ -12,6 +12,7 @@ const translations = {
   login: "Log In",
   register: "Register",
   create_account_sharing: "Create an account to manage your files",
+  account_created: "Your account has been created successfully. You are now logged in.",
   enter_credentials: "Enter your credentials to log in",
   username: "Username",
   password: "Password",

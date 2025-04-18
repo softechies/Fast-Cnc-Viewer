@@ -939,7 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const password = shareData.password || nanoid(10);
             
             // Hashuj hasło
-            const hashedPassword = await hashPassword(password);
+            const hashedPassword = await bcrypt.hash(password, 10);
             
             // Utwórz użytkownika
             const newUser = await storage.createUser({

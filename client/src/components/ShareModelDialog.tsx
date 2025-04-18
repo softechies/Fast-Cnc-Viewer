@@ -107,7 +107,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       
       // Jeśli utworzono konto, dodaj informację o tym
       if (responseData.accountCreated) {
-        description += " " + t('create_account');
+        description += " " + t('account_created');
       }
       
       toast({
