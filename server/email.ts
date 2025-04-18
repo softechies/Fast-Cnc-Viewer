@@ -238,7 +238,7 @@ export async function sendShareNotification(
     
     // Link do usunięcia udostępnienia
     const deleteUrl = model.shareDeleteToken 
-      ? `${baseUrl}/api/shared/${model.shareId}/${model.shareDeleteToken}`
+      ? `${baseUrl}/revoke-share/${model.shareId}/${model.shareDeleteToken}`
       : null;
     
     // Przygotuj zmienne do szablonu

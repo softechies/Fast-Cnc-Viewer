@@ -1239,7 +1239,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Endpoint do usuwania udostępnienia modelu za pomocą tokenu bezpieczeństwa
+  // Endpoint HTML dla usuwania udostępnienia poprzez kliknięcie w link z maila (metoda GET)
+  app.get("/revoke-share/:shareId/:token", async (req: Request, res: Response) => {
+    try {
+      const { shareId, token } = req.params;
+      
+      // Pobierz model aby sprawdzić token bezpieczeństwa
+      const model = await storage.getModelByShareId(shareId);
+      if (!model) {
+        return res.status(404).send(`
+          <html>
+            <head>
+              <title>Error - Share Not Found</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+                .container { max-width: 600px; margin: 0 auto; }
+                .error { color: #e53e3e; }
+                .btn { display: inline-block; background-color: #3182ce; color: white; padding: 10px 20px; 
+                      text-decoration: none; border-radius: 5px; margin-top: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1 class="error">Error</h1>
+                <p>The shared model was not found or has already been deleted.</p>
+                <a href="/" class="btn">Go to Homepage</a>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+      
+      // Weryfikuj token bezpieczeństwa
+      if (!model.shareDeleteToken || model.shareDeleteToken !== token) {
+        return res.status(403).send(`
+          <html>
+            <head>
+              <title>Error - Invalid Token</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+                .container { max-width: 600px; margin: 0 auto; }
+                .error { color: #e53e3e; }
+                .btn { display: inline-block; background-color: #3182ce; color: white; padding: 10px 20px; 
+                      text-decoration: none; border-radius: 5px; margin-top: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1 class="error">Invalid Security Token</h1>
+                <p>The security token you provided is invalid or has expired.</p>
+                <a href="/" class="btn">Go to Homepage</a>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+      
+      // Dezaktywuj udostępnianie
+      await storage.updateModel(model.id, {
+        shareEnabled: false,
+        shareId: null,
+        sharePassword: null,
+        shareEmail: null,
+        shareExpiryDate: null,
+        shareDeleteToken: null
+      });
+      
+      // Wyślij powiadomienie o usunięciu udostępnienia, jeśli jest adres email
+      if (model.shareEmail) {
+        try {
+          await sendSharingRevokedNotificationSmtp(model, model.shareEmail);
+          console.log(`Wysłano powiadomienie o usunięciu udostępnienia do ${model.shareEmail}`);
+        } catch (emailError) {
+          console.error("Błąd podczas wysyłania powiadomienia o usunięciu udostępnienia:", emailError);
+        }
+      }
+      
+      // Wyświetl stronę powodzenia
+      res.status(200).send(`
+        <html>
+          <head>
+            <title>Share Revocation Successful</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+              .container { max-width: 600px; margin: 0 auto; }
+              .success { color: #38a169; }
+              .logo { max-width: 120px; margin-bottom: 20px; }
+              .btn { display: inline-block; background-color: #3182ce; color: white; padding: 10px 20px; 
+                    text-decoration: none; border-radius: 5px; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" class="logo">
+                <g fill="none" fill-rule="evenodd">
+                  <path fill="#D91C5C" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
+                  <path fill="#000000" d="M40,9 L55,9 L55,13 L45,13 L45,16.5 L54,16.5 L54,20.5 L45,20.5 L45,28 L40,28 L40,9 Z M57,9 L62,9 L67,19 L72,9 L77,9 L69,24 L65,24 L57,9 Z M84,9 L89,9 L99,28 L93.5,28 L92,24.5 L81,24.5 L79.5,28 L74,28 L84,9 Z M86.5,14 L83.5,20.5 L89.5,20.5 L86.5,14 Z M102,9 L107,9 L107,24 L117,24 L117,28 L102,28 L102,9 Z M40,31 L45,31 L45,35 L49,35 L49,39 L45,39 L45,46 L40,46 L40,31 Z M52,31 L67,31 L67,35 L57,35 L57,36.5 L66,36.5 L66,45 L52,45 L52,41 L61,41 L61,39.5 L52,39.5 L52,31 Z M72,31 L76,31 L76,45 L72,45 L72,31 Z M80,31 L95,31 L95,45 L90,45 L90,35 L85,35 L85,45 L80,45 L80,31 Z"></path>
+                </g>
+              </svg>
+              <h1 class="success">Share Revocation Successful</h1>
+              <p>The shared model "${model.filename}" has been successfully unshared and is no longer accessible.</p>
+              <a href="/" class="btn">Go to Homepage</a>
+            </div>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error revoking share with token:", error);
+      res.status(500).send(`
+        <html>
+          <head>
+            <title>Error</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+              .container { max-width: 600px; margin: 0 auto; }
+              .error { color: #e53e3e; }
+              .btn { display: inline-block; background-color: #3182ce; color: white; padding: 10px 20px; 
+                    text-decoration: none; border-radius: 5px; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1 class="error">Error</h1>
+              <p>An error occurred while processing your request. Please try again later.</p>
+              <a href="/" class="btn">Go to Homepage</a>
+            </div>
+          </body>
+        </html>
+      `);
+    }
+  });
+  
+  // Endpoint do usuwania udostępnienia modelu za pomocą tokenu bezpieczeństwa (metoda API DELETE)
   app.delete("/api/shared/:shareId/:token", async (req: Request, res: Response) => {
     try {
       const { shareId, token } = req.params;
