@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
@@ -368,6 +368,9 @@ function generateModelTree(filename: string, filePath?: string): any {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Obsługa statycznych plików z folderu public
+  const staticMiddleware = express.static('public');
+  app.use(staticMiddleware);
   // Inicjalizacja usług e-mail
   try {
     // Inicjalizujemy podstawowy serwis Nodemailer (Ethereal) - tylko do testów
@@ -1336,12 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </head>
           <body>
             <div class="container">
-              <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" class="logo">
-                <g fill="none" fill-rule="evenodd">
-                  <path fill="#D91C5C" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
-                  <path fill="#000000" d="M40,9 L55,9 L55,13 L45,13 L45,16.5 L54,16.5 L54,20.5 L45,20.5 L45,28 L40,28 L40,9 Z M57,9 L62,9 L67,19 L72,9 L77,9 L69,24 L65,24 L57,9 Z M84,9 L89,9 L99,28 L93.5,28 L92,24.5 L81,24.5 L79.5,28 L74,28 L84,9 Z M86.5,14 L83.5,20.5 L89.5,20.5 L86.5,14 Z M102,9 L107,9 L107,24 L117,24 L117,28 L102,28 L102,9 Z M40,31 L45,31 L45,35 L49,35 L49,39 L45,39 L45,46 L40,46 L40,31 Z M52,31 L67,31 L67,35 L57,35 L57,36.5 L66,36.5 L66,45 L52,45 L52,41 L61,41 L61,39.5 L52,39.5 L52,31 Z M72,31 L76,31 L76,45 L72,45 L72,31 Z M80,31 L95,31 L95,45 L90,45 L90,35 L85,35 L85,45 L80,45 L80,31 Z"></path>
-                </g>
-              </svg>
+              <img src="/assets/cropped-Fast-Cnc-scaled-e1723725217643.jpg" alt="FastCNC logo" class="logo" style="max-width: 200px; height: auto; margin-bottom: 20px;">
               <h1 class="success">Share Revocation Successful</h1>
               <p>The shared model "${model.filename}" has been successfully unshared and is no longer accessible.</p>
               <a href="/" class="btn">Go to Homepage</a>
@@ -1365,6 +1363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </head>
           <body>
             <div class="container">
+              <img src="/assets/cropped-Fast-Cnc-scaled-e1723725217643.jpg" alt="FastCNC logo" class="logo" style="max-width: 200px; height: auto; margin-bottom: 20px;">
               <h1 class="error">Error</h1>
               <p>An error occurred while processing your request. Please try again later.</p>
               <a href="/" class="btn">Go to Homepage</a>
