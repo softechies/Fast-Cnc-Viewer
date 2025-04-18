@@ -36,7 +36,7 @@ export default function ModelInfo({ isLoading, modelInfo, modelId }: ModelInfoPr
   if (!modelInfo) {
     return (
       <div className="flex-grow overflow-y-auto p-4 text-center text-gray-500">
-        <p>{t('loading')}</p>
+        <p>{t('loadingGeneric')}</p>
       </div>
     );
   }

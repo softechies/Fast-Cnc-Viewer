@@ -4,6 +4,8 @@ const translations = {
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",
+  cad_viewer: "CAD Viewer",
+  powered_by: "Powered by",
   home: "Home",
   upload: "Upload",
   uploadModel: "Upload Model",

@@ -88,7 +88,7 @@ export default function Home() {
       </main>
       
       <FooterBar 
-        modelName={modelInfo?.filename || t('loading')} 
+        modelName={modelInfo?.filename || t('loadingGeneric')} 
         partCount={modelInfo?.parts || 0} 
         entityCount={(modelInfo?.surfaces || 0) + (modelInfo?.solids || 0)}
       />
