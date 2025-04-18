@@ -27,6 +27,7 @@ const translations = {
   account_created: "Votre compte a été créé avec succès. Vous êtes maintenant connecté.",
   enter_credentials: "Entrez vos identifiants",
   username: "Nom d'utilisateur",
+  username_optional: "Le nom d'utilisateur est facultatif",
   password: "Mot de passe",
   create_account: "Créer un nouveau compte",
   email: "Email",
