@@ -20,6 +20,20 @@ const translations = {
   close: "Fermer",
   confirm: "Confirmer",
   
+  // Authentication
+  login: "Se connecter",
+  register: "S'inscrire",
+  create_account_sharing: "Créer un compte pour gérer vos fichiers",
+  account_created: "Votre compte a été créé avec succès. Vous êtes maintenant connecté.",
+  enter_credentials: "Entrez vos identifiants",
+  username: "Nom d'utilisateur",
+  password: "Mot de passe",
+  create_account: "Créer un nouveau compte",
+  email: "Email",
+  full_name: "Nom complet",
+  company: "Entreprise",
+  client_dashboard: "Tableau de bord client",
+  
   // Buttons
   button: {
     upload: "Télécharger",
