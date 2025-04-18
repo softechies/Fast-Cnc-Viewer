@@ -16,8 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -35,10 +36,13 @@ export default function ClientDashboardPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [selectedModel, setSelectedModel] = useState<ClientModel | null>(null);
   const [password, setPassword] = useState("");
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [shareLink, setShareLink] = useState("");
 
   // Pobieranie modeli klienta
   const { data: models, isLoading, refetch } = useQuery<ClientModel[]>({
@@ -124,6 +128,38 @@ export default function ClientDashboardPage() {
       deleteModelMutation.mutate(selectedModel.id);
     }
   };
+  
+  // Generuje link do udostępnionego modelu
+  const handleShowLink = (model: ClientModel) => {
+    if (model.shareId && model.shareEnabled) {
+      const baseUrl = window.location.origin;
+      const shareLink = `${baseUrl}/shared/${model.shareId}`;
+      setShareLink(shareLink);
+      setSelectedModel(model);
+      setLinkDialogOpen(true);
+    } else {
+      toast({
+        title: t('link_error'),
+        description: t('model_not_shared'),
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Kopiuje link do schowka
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareLink).then(() => {
+      toast({
+        title: t('link_copied'),
+        description: t('link_copied_to_clipboard'),
+      });
+    });
+  };
+  
+  // Otwiera link w nowej karcie
+  const handleOpenLink = () => {
+    window.open(shareLink, '_blank');
+  };
 
   if (isLoading) {
     return (
@@ -189,6 +225,16 @@ export default function ClientDashboardPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
+                        {model.shareEnabled && model.shareId && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleShowLink(model)}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            <span className="sr-only">{t('open_link')}</span>
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="icon"
@@ -301,6 +347,41 @@ export default function ClientDashboardPage() {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
               {t('delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog z linkiem do udostępnionego modelu */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('share_link')}</DialogTitle>
+            <DialogDescription>
+              {selectedModel?.filename}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex space-x-2 items-center">
+              <Input value={shareLink} readOnly className="flex-1" />
+              <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            {selectedModel?.hasPassword && (
+              <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                <Lock className="mr-2 h-4 w-4" />
+                {t('model_is_password_protected')}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setLinkDialogOpen(false)}>
+              {t('close')}
+            </Button>
+            <Button onClick={handleOpenLink}>
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {t('open_in_browser')}
             </Button>
           </DialogFooter>
         </DialogContent>
