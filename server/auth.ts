@@ -61,18 +61,50 @@ export function setupAuth(app: Express): void {
   app.use(passport.session());
 
   // Strategia logowania lokalnego
-  passport.use(new LocalStrategy(async (username, password, done) => {
+  passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, async (email, password, done) => {
     try {
-      const user = await storage.getUserByUsername(username);
+      // Próbujemy znaleźć użytkownika po emailu
+      const user = await storage.getUserByEmail(email);
       
       if (!user) {
-        return done(null, false, { message: "Nieprawidłowa nazwa użytkownika lub hasło" });
+        // Jeśli nie znaleziono użytkownika po emailu, sprawdzamy czy to nie jest logowanie przez nazwę użytkownika (dla administratora)
+        const adminUser = await storage.getUserByUsername(email);
+        
+        if (!adminUser) {
+          return done(null, false, { message: "Nieprawidłowy email lub hasło" });
+        }
+        
+        // Sprawdzamy hasło dla administratora logującego się przez nazwę użytkownika
+        const isMatch = await comparePasswords(password, adminUser.password);
+        
+        if (!isMatch) {
+          return done(null, false, { message: "Nieprawidłowy email lub hasło" });
+        }
+        
+        // Aktualizacja daty ostatniego logowania dla admina
+        await storage.updateUser(adminUser.id, {
+          lastLogin: new Date()
+        });
+        
+        return done(null, {
+          id: adminUser.id,
+          username: adminUser.username,
+          email: adminUser.email,
+          fullName: adminUser.fullName,
+          company: adminUser.company,
+          isAdmin: Boolean(adminUser.isAdmin),
+          isClient: Boolean(adminUser.isClient)
+        });
       }
       
+      // Sprawdzamy hasło dla użytkownika logującego się przez email
       const isMatch = await comparePasswords(password, user.password);
       
       if (!isMatch) {
-        return done(null, false, { message: "Nieprawidłowa nazwa użytkownika lub hasło" });
+        return done(null, false, { message: "Nieprawidłowy email lub hasło" });
       }
       
       // Aktualizacja daty ostatniego logowania
@@ -151,17 +183,22 @@ export function setupAuth(app: Express): void {
     try {
       const { username, password, email, fullName, company } = req.body;
       
-      // Sprawdź czy użytkownik o takiej nazwie już istnieje
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ error: "Użytkownik o takiej nazwie już istnieje" });
+      // Email jest teraz głównym identyfikatorem i jest wymagany
+      if (!email) {
+        return res.status(400).json({ error: "Email jest wymagany" });
+      }
+
+      // Sprawdź czy email jest już użyty
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email jest już używany" });
       }
       
-      // Sprawdź czy email jest już użyty
-      if (email) {
-        const existingEmail = await storage.getUserByEmail(email);
-        if (existingEmail) {
-          return res.status(400).json({ error: "Email jest już używany" });
+      // Sprawdź czy użytkownik o takiej nazwie już istnieje (opcjonalne)
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser) {
+          return res.status(400).json({ error: "Użytkownik o takiej nazwie już istnieje" });
         }
       }
       
@@ -169,9 +206,9 @@ export function setupAuth(app: Express): void {
       const hashedPassword = await hashPassword(password);
       
       const user = await storage.createUser({
-        username,
+        email, // Email jest teraz głównym identyfikatorem
+        username, // Username jest opcjonalny
         password: hashedPassword,
-        email,
         fullName,
         company,
         isAdmin: false,
