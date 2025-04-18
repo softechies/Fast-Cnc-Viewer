@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Test3D from "@/pages/Test3D"; 
 import FileUploadTest from "@/pages/FileUploadTest";
 import SharedModelPage from "@/pages/SharedModelPage";
+import DeleteSharePage from "@/pages/DeleteSharePage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
@@ -75,6 +76,7 @@ function Router() {
           <Route path="/upload" component={FileUploadTest} />
           <Route path="/test3d" component={Test3D} />
           <Route path="/shared/:shareId" component={SharedModelPage} />
+          <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
           <Route path="/admin/login" component={AdminLoginPage} />
           <Route path="/admin/dashboard">
             <AdminProtectedRoute>

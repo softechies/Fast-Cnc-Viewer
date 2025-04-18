@@ -1,19 +1,13 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { LanguageContext } from '@/lib/LanguageContext';
+import { useLanguage } from '@/lib/LanguageContext';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
 export default function DeleteSharePage() {
-  const context = useContext(LanguageContext);
-  
-  if (!context) {
-    throw new Error('DeleteSharePage must be used within a LanguageProvider');
-  }
-  
-  const { t } = context;
+  const { t } = useLanguage();
   const [location, setLocation] = useLocation();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
