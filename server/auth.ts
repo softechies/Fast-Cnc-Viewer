@@ -333,9 +333,31 @@ export function setupAuth(app: Express): void {
   // Endpointy dla klienta
   app.get("/api/client/models", isClient, async (req, res) => {
     try {
-      // Pobierz modele klienta
-      const models = await storage.getModelsByClientId(req.user.id);
-      res.json(models);
+      // Pobierz modele klienta (po userId)
+      const modelsById = await storage.getModelsByClientId(req.user.id);
+      
+      // Pobierz również modele udostępnione na adres email zalogowanego użytkownika
+      const modelsByEmail = await storage.getSharedModelsByEmail(req.user.email);
+      
+      // Połącz oba zestawy modeli (unikając duplikatów)
+      const modelIds = new Set();
+      const allModels = [];
+      
+      // Dodaj najpierw modele według userId
+      for (const model of modelsById) {
+        modelIds.add(model.id);
+        allModels.push(model);
+      }
+      
+      // Dodaj modele według adresu email, ale tylko te, których nie dodaliśmy już wcześniej
+      for (const model of modelsByEmail) {
+        if (!modelIds.has(model.id)) {
+          modelIds.add(model.id);
+          allModels.push(model);
+        }
+      }
+      
+      res.json(allModels);
     } catch (error) {
       console.error("Błąd pobierania modeli klienta:", error);
       res.status(500).json({ error: "Błąd serwera podczas pobierania modeli" });
@@ -354,8 +376,8 @@ export function setupAuth(app: Express): void {
         return res.status(404).json({ error: "Model nie znaleziony" });
       }
       
-      // Sprawdź czy model należy do zalogowanego klienta
-      if (model.userId !== req.user.id) {
+      // Sprawdź czy model należy do zalogowanego klienta lub jest mu udostępniony
+      if (model.userId !== req.user.id && (model.shareEmail !== req.user.email || !model.shareEnabled)) {
         return res.status(403).json({ error: "Brak dostępu do tego modelu" });
       }
       
@@ -382,8 +404,8 @@ export function setupAuth(app: Express): void {
         return res.status(404).json({ error: "Model nie znaleziony" });
       }
       
-      // Sprawdź czy model należy do zalogowanego klienta
-      if (model.userId !== req.user.id) {
+      // Sprawdź czy model należy do zalogowanego klienta lub jest mu udostępniony
+      if (model.userId !== req.user.id && (model.shareEmail !== req.user.email || !model.shareEnabled)) {
         return res.status(403).json({ error: "Brak dostępu do tego modelu" });
       }
       
