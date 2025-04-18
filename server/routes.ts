@@ -920,23 +920,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const existingUser = await storage.getUserByEmail(shareData.email);
           
           if (!existingUser) {
-            // Generuj losową nazwę użytkownika na podstawie adresu email
-            const emailParts = shareData.email.split('@');
-            const baseUsername = emailParts[0];
-            let username = baseUsername;
-            let suffix = 1;
+            // Jeśli mamy dane użytkownika z formularza, użyj ich
+            const userData = shareData.userData || {};
             
-            // Sprawdź, czy nazwa użytkownika jest unikalna
-            let userWithUsername = await storage.getUserByUsername(username);
-            while (userWithUsername) {
-              // Jeśli nazwa użytkownika jest zajęta, dodaj liczbę do nazwy
-              username = `${baseUsername}${suffix}`;
-              suffix++;
-              userWithUsername = await storage.getUserByUsername(username);
+            // Ustal nazwę użytkownika - użyj podanej lub wygeneruj na podstawie emaila
+            let username = userData.username || '';
+            
+            // Jeśli nie podano nazwy użytkownika, wygeneruj ją na podstawie adresu email
+            if (!username) {
+              const emailParts = shareData.email.split('@');
+              const baseUsername = emailParts[0];
+              username = baseUsername;
+              let suffix = 1;
+              
+              // Sprawdź, czy nazwa użytkownika jest unikalna
+              let userWithUsername = await storage.getUserByUsername(username);
+              while (userWithUsername) {
+                // Jeśli nazwa użytkownika jest zajęta, dodaj liczbę do nazwy
+                username = `${baseUsername}${suffix}`;
+                suffix++;
+                userWithUsername = await storage.getUserByUsername(username);
+              }
             }
             
-            // Wygeneruj losowe hasło lub użyj hasła udostępniania, jeśli zostało podane
-            const password = shareData.password || nanoid(10);
+            // Ustal hasło - użyj hasła z formularza, hasła udostępniania lub wygeneruj losowe
+            const password = userData.password || shareData.password || nanoid(10);
             
             // Hashuj hasło
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -946,8 +954,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               username,
               password: hashedPassword,
               email: shareData.email,
-              fullName: null,
-              company: null,
+              fullName: userData.fullName || null,
+              company: userData.company || null,
               isAdmin: false,
               isClient: true
             });

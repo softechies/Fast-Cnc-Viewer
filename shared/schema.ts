@@ -98,6 +98,15 @@ export const modelInfoSchema = z.object({
   shareDeleteToken: z.string().optional(),
 });
 
+// Schemat danych użytkownika do rejestracji podczas udostępniania
+export const userDataSchema = z.object({
+  username: z.string().optional(),
+  password: z.string().optional(),
+  fullName: z.string().optional(),
+  company: z.string().optional(),
+  email: z.string().email("Nieprawidłowy adres email").optional(),
+});
+
 // Define schema for share model request
 export const shareModelSchema = z.object({
   modelId: z.number(),
@@ -107,6 +116,7 @@ export const shareModelSchema = z.object({
   email: z.string().email("Nieprawidłowy adres email").optional(),
   language: z.string().optional(), // Język używany do wiadomości e-mail
   createAccount: z.boolean().optional(), // Czy utworzyć konto podczas udostępniania
+  userData: userDataSchema.optional(), // Dane użytkownika do rejestracji podczas udostępniania
 });
 
 // Define schema for accessing shared model with password
@@ -199,3 +209,4 @@ export type ShareModelRequest = z.infer<typeof shareModelSchema>;
 export type AccessSharedModelRequest = z.infer<typeof accessSharedModelSchema>;
 export type AdminLoginRequest = z.infer<typeof adminLoginSchema>;
 export type ModelViewStats = z.infer<typeof modelViewStatsSchema>;
+export type UserData = z.infer<typeof userDataSchema>;
