@@ -1,18 +1,13 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-import { 
-  clientRegistrationSchema, 
-  clientLoginSchema, 
-  clientPasswordChangeSchema,
-  resetPasswordRequestSchema,
-  resetPasswordSchema
-} from "@shared/schema";
+import { compareSync, hashSync, genSaltSync } from "bcryptjs";
 import { storage } from "./storage";
-import MemoryStore from "memorystore";
+import { User } from "@shared/schema";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
+import { nanoid } from "nanoid";
 
 declare global {
   namespace Express {
@@ -28,324 +23,330 @@ declare global {
   }
 }
 
-const scryptAsync = promisify(scrypt);
+const SALT_ROUNDS = 10;
 
-// Funkcja do hashowania hasła
-export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+export async function hashPassword(password: string): Promise<string> {
+  const salt = genSaltSync(SALT_ROUNDS);
+  return hashSync(password, salt);
 }
 
-// Funkcja do porównywania hasła z hashem
-export async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+export async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
+  return compareSync(supplied, stored);
 }
 
-export function setupAuth(app: Express) {
-  const MemStore = MemoryStore(session);
+export function setupAuth(app: Express): void {
+  // Użyj PostgreSQL do przechowywania sesji
+  const PostgresSessionStore = connectPg(session);
   
-  // Konfiguracja sesji
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "super-secret-key-for-dev-only",
+    secret: process.env.SESSION_SECRET || nanoid(), // Używaj zmiennej środowiskowej lub generuj losowy sekret
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000 // 24 godziny
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dni
+      sameSite: 'lax'
     },
-    store: new MemStore({
-      checkPeriod: 86400000 // wyczyść wygasłe sesje co 24h
+    store: new PostgresSessionStore({
+      pool,
+      tableName: 'session', // Tabela automatycznie utworzona przez connect-pg-simple
+      createTableIfMissing: true
     })
   };
 
-  app.set("trust proxy", 1);
+  // Konfiguracja sesji
   app.use(session(sessionSettings));
+  
+  // Inicjalizacja Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Strategia uwierzytelniania lokalna (username + password)
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
-          // Aktualizuj datę ostatniego logowania
-          await storage.updateUser(user.id, { lastLogin: new Date() });
-          return done(null, user);
-        }
-      } catch (err) {
-        return done(err);
+  // Strategia logowania lokalnego
+  passport.use(new LocalStrategy(async (username, password, done) => {
+    try {
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user) {
+        return done(null, false, { message: "Nieprawidłowa nazwa użytkownika lub hasło" });
       }
-    }),
-  );
+      
+      const isMatch = await comparePasswords(password, user.password);
+      
+      if (!isMatch) {
+        return done(null, false, { message: "Nieprawidłowa nazwa użytkownika lub hasło" });
+      }
+      
+      // Aktualizacja daty ostatniego logowania
+      await storage.updateUser(user.id, { 
+        lastLogin: new Date() 
+      });
+      
+      return done(null, {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        company: user.company,
+        isAdmin: Boolean(user.isAdmin),
+        isClient: Boolean(user.isClient)
+      });
+    } catch (error) {
+      return done(error);
+    }
+  }));
 
   // Serializacja i deserializacja użytkownika
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
-    } catch (err) {
-      done(err);
+      if (!user) {
+        return done(null, false);
+      }
+      
+      return done(null, {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        company: user.company,
+        isAdmin: Boolean(user.isAdmin),
+        isClient: Boolean(user.isClient)
+      });
+    } catch (error) {
+      return done(error);
     }
   });
 
-  // Endpoint rejestracji
-  app.post("/api/register", async (req, res, next) => {
+  // Middleware do sprawdzania czy użytkownik jest zalogowany
+  function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    return res.status(401).json({ error: "Niezalogowany" });
+  }
+
+  // Middleware do sprawdzania czy użytkownik jest adminem
+  function isAdmin(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.isAdmin) {
+      return next();
+    }
+    return res.status(403).json({ error: "Brak dostępu" });
+  }
+
+  // Middleware do sprawdzania czy użytkownik jest klientem
+  function isClient(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.isClient) {
+      return next();
+    }
+    return res.status(403).json({ error: "Brak dostępu" });
+  }
+
+  // Rejestracja endpointów autentykacji
+  
+  // Endpoint rejestracji użytkownika
+  app.post("/api/register", async (req, res) => {
     try {
-      // Walidacja danych
-      const validatedData = clientRegistrationSchema.parse(req.body);
+      const { username, password, email, fullName, company } = req.body;
       
-      // Sprawdź czy nazwa użytkownika istnieje
-      const existingUsername = await storage.getUserByUsername(validatedData.username);
-      if (existingUsername) {
-        return res.status(400).json({ error: "Nazwa użytkownika już istnieje" });
+      // Sprawdź czy użytkownik o takiej nazwie już istnieje
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Użytkownik o takiej nazwie już istnieje" });
       }
       
-      // Sprawdź czy email istnieje
-      if (validatedData.email) {
-        const existingEmail = await storage.getUserByEmail(validatedData.email);
+      // Sprawdź czy email jest już użyty
+      if (email) {
+        const existingEmail = await storage.getUserByEmail(email);
         if (existingEmail) {
           return res.status(400).json({ error: "Email jest już używany" });
         }
       }
-
-      // Utwórz nowego użytkownika
+      
+      // Hashuj hasło i twórz użytkownika
+      const hashedPassword = await hashPassword(password);
+      
       const user = await storage.createUser({
-        ...validatedData,
-        password: await hashPassword(validatedData.password),
-        isClient: true,
-        isAdmin: false
+        username,
+        password: hashedPassword,
+        email,
+        fullName,
+        company,
+        isAdmin: false,
+        isClient: true
       });
-
-      // Automatycznie zaloguj po rejestracji
-      req.login(user, (err) => {
-        if (err) return next(err);
+      
+      // Zaloguj użytkownika po rejestracji
+      req.login({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        company: user.company,
+        isAdmin: Boolean(user.isAdmin),
+        isClient: Boolean(user.isClient)
+      }, err => {
+        if (err) {
+          return res.status(500).json({ error: "Błąd logowania po rejestracji" });
+        }
         return res.status(201).json({
           id: user.id,
           username: user.username,
           email: user.email,
           fullName: user.fullName,
-          isClient: user.isClient
+          isAdmin: Boolean(user.isAdmin),
+          isClient: Boolean(user.isClient)
         });
       });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
-      }
-      next(error);
+    } catch (error) {
+      console.error("Błąd rejestracji:", error);
+      return res.status(500).json({ error: "Błąd serwera podczas rejestracji" });
     }
   });
-
+  
   // Endpoint logowania
   app.post("/api/login", (req, res, next) => {
-    try {
-      // Walidacja danych
-      clientLoginSchema.parse(req.body);
-      
-      passport.authenticate('local', (err, user, info) => {
-        if (err) return next(err);
-        if (!user) {
-          return res.status(401).json({ error: "Niepoprawna nazwa użytkownika lub hasło" });
-        }
-        
-        req.login(user, (err) => {
-          if (err) return next(err);
-          return res.json({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            fullName: user.fullName,
-            isClient: user.isClient,
-            isAdmin: user.isAdmin
-          });
-        });
-      })(req, res, next);
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return next(err);
       }
-      next(error);
-    }
+      if (!user) {
+        return res.status(401).json({ error: info?.message || "Błąd logowania" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.json(user);
+      });
+    })(req, res, next);
   });
-
+  
   // Endpoint wylogowania
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
+  app.post("/api/logout", (req, res) => {
+    req.logout(err => {
+      if (err) {
+        return res.status(500).json({ error: "Błąd wylogowania" });
+      }
+      res.json({ message: "Wylogowano pomyślnie" });
     });
   });
-
-  // Endpoint informacji o aktualnie zalogowanym użytkowniku
+  
+  // Endpoint zwracający informacje o aktualnie zalogowanym użytkowniku
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Niezalogowany" });
     }
-    
-    const user = req.user;
-    return res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      isClient: user.isClient,
-      isAdmin: user.isAdmin
-    });
+    res.json(req.user);
   });
-
+  
   // Endpoint zmiany hasła
-  app.post("/api/user/change-password", async (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Niezalogowany" });
-    }
-
+  app.post("/api/user/change-password", isAuthenticated, async (req, res) => {
     try {
-      const { oldPassword, newPassword } = clientPasswordChangeSchema.parse(req.body);
+      const { currentPassword, newPassword } = req.body;
+      
+      // Pobierz użytkownika z bazy
       const user = await storage.getUser(req.user.id);
-
       if (!user) {
         return res.status(404).json({ error: "Użytkownik nie znaleziony" });
       }
-
-      // Weryfikuj stare hasło
-      if (!(await comparePasswords(oldPassword, user.password))) {
-        return res.status(400).json({ error: "Niepoprawne aktualne hasło" });
+      
+      // Sprawdź czy aktualne hasło jest poprawne
+      const isMatch = await comparePasswords(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ error: "Aktualne hasło jest niepoprawne" });
       }
-
-      // Aktualizuj hasło
+      
+      // Hashuj nowe hasło
       const hashedPassword = await hashPassword(newPassword);
+      
+      // Aktualizuj hasło w bazie
       await storage.updateUser(user.id, { password: hashedPassword });
-
-      res.status(200).json({ message: "Hasło zostało zmienione" });
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
-      }
-      next(error);
+      
+      res.json({ message: "Hasło zostało zmienione" });
+    } catch (error) {
+      console.error("Błąd zmiany hasła:", error);
+      res.status(500).json({ error: "Błąd serwera podczas zmiany hasła" });
     }
   });
-
-  // Funkcja pomocnicza do sprawdzania czy użytkownik jest zalogowany
-  app.use('/api/client', (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Niezalogowany" });
-    }
-    if (!req.user.isClient && !req.user.isAdmin) {
-      return res.status(403).json({ error: "Brak uprawnień" });
-    }
-    next();
-  });
-
-  // Pobierz modele klienta
-  app.get("/api/client/models", async (req, res, next) => {
+  
+  // Endpointy dla klienta
+  app.get("/api/client/models", isClient, async (req, res) => {
     try {
-      // Pobierz modele dla zalogowanego klienta
+      // Pobierz modele klienta
       const models = await storage.getModelsByClientId(req.user.id);
-      
-      // Dodaj modele udostępnione przez email
-      if (req.user.email) {
-        const sharedModels = await storage.getModelsByEmail(req.user.email);
-        // Połącz i usuń duplikaty
-        const allModels = [...models];
-        for (const model of sharedModels) {
-          if (!allModels.some(m => m.id === model.id)) {
-            allModels.push(model);
-          }
-        }
-        return res.json(allModels);
-      }
-      
-      return res.json(models);
+      res.json(models);
     } catch (error) {
-      next(error);
+      console.error("Błąd pobierania modeli klienta:", error);
+      res.status(500).json({ error: "Błąd serwera podczas pobierania modeli" });
     }
   });
-
-  // Aktualizacja modelu klienta
-  app.patch("/api/client/models/:id", async (req, res, next) => {
+  
+  // Zmiana hasła udostępnionego modelu
+  app.post("/api/client/shared-models/:id/password", isClient, async (req, res) => {
     try {
-      const modelId = parseInt(req.params.id, 10);
+      const modelId = parseInt(req.params.id);
+      const { password } = req.body;
       
-      // Pobierz model
+      // Sprawdź czy model istnieje i należy do tego klienta
       const model = await storage.getModel(modelId);
       if (!model) {
-        return res.status(404).json({ error: "Model nie istnieje" });
+        return res.status(404).json({ error: "Model nie znaleziony" });
       }
       
-      // Sprawdź uprawnienia
-      if (model.userId !== req.user.id && model.shareEmail !== req.user.email) {
-        return res.status(403).json({ error: "Brak uprawnień do edycji modelu" });
+      // Sprawdź czy model należy do zalogowanego klienta
+      if (model.userId !== req.user.id) {
+        return res.status(403).json({ error: "Brak dostępu do tego modelu" });
       }
       
-      // Aktualizuj model
-      const updatedModel = await storage.updateModel(modelId, req.body);
-      return res.json(updatedModel);
+      // Aktualizuj hasło (lub usuń jeśli puste)
+      const updatedModel = await storage.updateModel(modelId, { 
+        sharePassword: password ? await hashPassword(password) : null 
+      });
+      
+      res.json({ message: "Hasło modelu zaktualizowane", hasPassword: !!password });
     } catch (error) {
-      next(error);
+      console.error("Błąd aktualizacji hasła modelu:", error);
+      res.status(500).json({ error: "Błąd serwera podczas aktualizacji hasła" });
     }
   });
-
-  // Usunięcie modelu klienta
-  app.delete("/api/client/models/:id", async (req, res, next) => {
+  
+  // Usuwanie modelu klienta
+  app.delete("/api/client/models/:id", isClient, async (req, res) => {
     try {
-      const modelId = parseInt(req.params.id, 10);
+      const modelId = parseInt(req.params.id);
       
-      // Pobierz model
+      // Sprawdź czy model istnieje i należy do tego klienta
       const model = await storage.getModel(modelId);
       if (!model) {
-        return res.status(404).json({ error: "Model nie istnieje" });
+        return res.status(404).json({ error: "Model nie znaleziony" });
       }
       
-      // Sprawdź uprawnienia
-      if (model.userId !== req.user.id && model.shareEmail !== req.user.email) {
-        return res.status(403).json({ error: "Brak uprawnień do usunięcia modelu" });
+      // Sprawdź czy model należy do zalogowanego klienta
+      if (model.userId !== req.user.id) {
+        return res.status(403).json({ error: "Brak dostępu do tego modelu" });
       }
       
       // Usuń model
-      await storage.deleteModel(modelId);
-      return res.status(200).json({ message: "Model został usunięty" });
+      const result = await storage.deleteModel(modelId);
+      
+      if (result) {
+        res.json({ message: "Model został usunięty" });
+      } else {
+        res.status(500).json({ error: "Błąd usuwania modelu" });
+      }
     } catch (error) {
-      next(error);
+      console.error("Błąd usuwania modelu:", error);
+      res.status(500).json({ error: "Błąd serwera podczas usuwania modelu" });
     }
   });
-
-  // Zmiana hasła udostępnionego modelu
-  app.post("/api/client/shared-models/:id/password", async (req, res, next) => {
-    try {
-      const modelId = parseInt(req.params.id, 10);
-      const { password } = req.body;
-      
-      // Pobierz model
-      const model = await storage.getModel(modelId);
-      if (!model) {
-        return res.status(404).json({ error: "Model nie istnieje" });
-      }
-      
-      // Sprawdź uprawnienia
-      if (model.userId !== req.user.id && model.shareEmail !== req.user.email) {
-        return res.status(403).json({ error: "Brak uprawnień do zmiany hasła modelu" });
-      }
-      
-      // Haszuj hasło jeśli podano
-      let sharePassword = null;
-      if (password) {
-        sharePassword = await hashPassword(password);
-      }
-      
-      // Aktualizuj model
-      const updatedModel = await storage.updateModel(modelId, { sharePassword });
-      return res.json({
-        id: updatedModel.id,
-        hasPassword: !!sharePassword
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+  
+  // Eksportujemy middleware do użycia w innych plikach
+  app.locals.auth = {
+    isAuthenticated,
+    isAdmin,
+    isClient
+  };
 }

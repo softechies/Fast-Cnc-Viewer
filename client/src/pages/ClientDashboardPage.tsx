@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslations } from "@/lib/LanguageContext";
+import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit } from "lucide-react";
@@ -32,7 +32,7 @@ interface ClientModel {
 }
 
 export default function ClientDashboardPage() {
-  const { t } = useTranslations();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedModel, setSelectedModel] = useState<ClientModel | null>(null);

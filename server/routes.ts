@@ -369,12 +369,12 @@ function generateModelTree(filename: string, filePath?: string): any {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Konfiguracja autoryzacji i endpointów logowania/rejestracji
+  setupAuth(app);
+  
   // Obsługa statycznych plików z folderu public
   const staticMiddleware = express.static('public');
   app.use(staticMiddleware);
-  
-  // Konfigurujemy autoryzację i endpointy logowania/rejestracji
-  setupAuth(app);
   
   // Inicjalizacja usług e-mail
   try {

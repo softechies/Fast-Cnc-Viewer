@@ -10,16 +10,22 @@ import SharedModelPage from "@/pages/SharedModelPage";
 import DeleteSharePage from "@/pages/DeleteSharePage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
+import AuthPage from "@/pages/AuthPage";
+import ClientDashboardPage from "@/pages/ClientDashboardPage";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
+import { AuthProvider } from "@/hooks/useAuth";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <AppContent />
-        <Toaster />
+        <AuthProvider>
+          <AppContent />
+          <Toaster />
+        </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
@@ -73,6 +79,12 @@ function Router() {
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/client/dashboard">
+            <ProtectedRoute allowClient={true} allowAdmin={false}>
+              <ClientDashboardPage />
+            </ProtectedRoute>
+          </Route>
           <Route path="/upload" component={FileUploadTest} />
           <Route path="/test3d" component={Test3D} />
           <Route path="/shared/:shareId" component={SharedModelPage} />

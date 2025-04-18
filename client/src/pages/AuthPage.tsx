@@ -5,12 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
-import { useTranslations } from "@/lib/LanguageContext";
+import { useLanguage } from "@/lib/LanguageContext";
 import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 
 export default function AuthPage() {
-  const { t } = useTranslations();
+  const { t } = useLanguage();
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
   
