@@ -11,6 +11,7 @@ const translations = {
   // Authentication
   login: "Log In",
   register: "Register",
+  create_account_sharing: "Create an account to manage your files",
   enter_credentials: "Enter your credentials to log in",
   username: "Username",
   password: "Password",

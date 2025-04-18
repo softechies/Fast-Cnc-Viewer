@@ -8,9 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
-import { Clipboard, Calendar, Copy, Check, Link2, Mail } from "lucide-react";
+import { Clipboard, Calendar, Copy, Check, Link2, Mail, UserPlus } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ShareModelDialogProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface ShareModelDialogProps {
 export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }: ShareModelDialogProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [enableSharing, setEnableSharing] = useState(modelInfo?.shareEnabled || false);
   const [password, setPassword] = useState("");
@@ -30,6 +33,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const [shareUrl, setShareUrl] = useState<string>("");
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [createAccount, setCreateAccount] = useState(false);
 
   // Resetuj stan po zamknięciu okna dialogowego
   const handleClose = () => {
@@ -57,43 +61,58 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     try {
       setIsSharing(true);
       
+      // Dane do wysłania do API
+      const shareData = {
+        modelId,
+        enableSharing,
+        password: password.length > 0 ? password : undefined,
+        expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
+        email: email.trim() !== "" ? email.trim() : undefined,
+        language: language, // Przesyłanie aktualnie wybranego języka
+        createAccount: !user && createAccount ? true : undefined // Dodaj flagę tworzenia konta
+      };
+      
       const response = await apiRequest(
         "POST",
         `/api/models/${modelId}/share`,
-        {
-          modelId,
-          enableSharing,
-          password: password.length > 0 ? password : undefined,
-          expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
-          email: email.trim() !== "" ? email.trim() : undefined,
-          language: language // Przesyłanie aktualnie wybranego języka
-        },
+        shareData,
         {
           on401: "throw"
         }
       );
 
-      const shareData = await response.json();
+      const responseData = await response.json();
       
       // Ustaw URL udostępniania do wyświetlenia
-      if (shareData.shareEnabled && shareData.shareUrl) {
+      if (responseData.shareEnabled && responseData.shareUrl) {
         // Użyj pełnego URL, w tym hosta
         const baseUrl = window.location.origin;
-        setShareUrl(`${baseUrl}${shareData.shareUrl}`);
+        setShareUrl(`${baseUrl}${responseData.shareUrl}`);
       } else {
         setShareUrl("");
       }
       
-      // Odśwież dane modelu
+      // Odśwież dane modelu i dane użytkownika (jeśli utworzono konto)
       queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/info`] });
+      if (createAccount) {
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      }
+      
+      // Pokaż odpowiedni komunikat
+      let description = enableSharing 
+        ? (responseData.emailSent 
+          ? `${t('message.share.success')}. ${t('message.revocation.sent')}: ${email}.` 
+          : `${t('message.share.success')}. ${t('message.share.copied')}.`)
+        : t('message.delete.success');
+      
+      // Jeśli utworzono konto, dodaj informację o tym
+      if (responseData.accountCreated) {
+        description += " " + t('create_account');
+      }
       
       toast({
         title: t('message.share.success'),
-        description: enableSharing 
-          ? (shareData.emailSent 
-            ? `${t('message.share.success')}. ${t('message.revocation.sent')}: ${email}.` 
-            : `${t('message.share.success')}. ${t('message.share.copied')}.`)
-          : t('message.delete.success'),
+        description: description,
         variant: "default"
       });
     } catch (error) {
@@ -194,6 +213,23 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                   required
                 />
               </div>
+              
+              {!user && (
+                <div className="flex items-center space-x-2 mt-1 ml-[calc(25%+8px)]">
+                  <Checkbox 
+                    id="create-account" 
+                    checked={createAccount}
+                    onCheckedChange={(checked) => setCreateAccount(checked === true)}
+                  />
+                  <Label 
+                    htmlFor="create-account" 
+                    className="text-sm flex items-center cursor-pointer"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1 text-muted-foreground" />
+                    {t('create_account_sharing')}
+                  </Label>
+                </div>
+              )}
 
               {modelInfo?.shareEnabled && modelInfo?.shareId && (
                 <div className="mt-2 p-3 border rounded-lg bg-secondary/20">
