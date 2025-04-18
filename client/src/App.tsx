@@ -78,11 +78,7 @@ function Router() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         <Switch>
-          <Route path="/">
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          </Route>
+          <Route path="/" component={Home} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/client/dashboard">
             <ProtectedRoute allowClient={true} allowAdmin={false}>
