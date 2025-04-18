@@ -34,12 +34,33 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createAccount, setCreateAccount] = useState(false);
+  
+  // Dane formularza rejestracji
+  const [registerData, setRegisterData] = useState({
+    username: "",
+    password: "",
+    fullName: "",
+    company: ""
+  });
+
+  // Obsługa zmiany pól formularza rejestracji
+  const handleRegisterDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setRegisterData(prev => ({ ...prev, [name]: value }));
+  };
 
   // Resetuj stan po zamknięciu okna dialogowego
   const handleClose = () => {
     setPassword("");
     setExpiryDate("");
     setEmail("");
+    setCreateAccount(false);
+    setRegisterData({
+      username: "",
+      password: "",
+      fullName: "",
+      company: ""
+    });
     setCopied(false);
     onClose();
   };
@@ -57,6 +78,18 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
       });
       return;
     }
+    
+    // Jeśli zaznaczono checkbox tworzenia konta, sprawdź czy wymagane pola są wypełnione
+    if (!user && createAccount) {
+      if (!registerData.fullName) {
+        toast({
+          title: t('full_name'),
+          description: t('full_name') + " " + t('errors.required'),
+          variant: "destructive"
+        });
+        return;
+      }
+    }
 
     try {
       setIsSharing(true);
@@ -69,7 +102,15 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
         expiryDate: expiryDate.length > 0 ? expiryDate : undefined,
         email: email.trim() !== "" ? email.trim() : undefined,
         language: language, // Przesyłanie aktualnie wybranego języka
-        createAccount: !user && createAccount ? true : undefined // Dodaj flagę tworzenia konta
+        createAccount: !user && createAccount ? true : undefined, // Dodaj flagę tworzenia konta
+        // Dodaj dane rejestracji, jeśli zaznaczono checkbox
+        userData: !user && createAccount ? {
+          username: registerData.username,
+          password: registerData.password || password, // Używamy hasła z formularza rejestracji lub hasła udostępniania
+          fullName: registerData.fullName,
+          company: registerData.company,
+          email: email // Używamy email z głównego formularza
+        } : undefined
       };
       
       const response = await apiRequest(
@@ -215,20 +256,84 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
               </div>
               
               {!user && (
-                <div className="flex items-center space-x-2 mt-1 ml-[calc(25%+8px)]">
-                  <Checkbox 
-                    id="create-account" 
-                    checked={createAccount}
-                    onCheckedChange={(checked) => setCreateAccount(checked === true)}
-                  />
-                  <Label 
-                    htmlFor="create-account" 
-                    className="text-sm flex items-center cursor-pointer"
-                  >
-                    <UserPlus className="h-4 w-4 mr-1 text-muted-foreground" />
-                    {t('create_account_sharing')}
-                  </Label>
-                </div>
+                <>
+                  <div className="flex items-center space-x-2 mt-1 ml-[calc(25%+8px)]">
+                    <Checkbox 
+                      id="create-account" 
+                      checked={createAccount}
+                      onCheckedChange={(checked) => setCreateAccount(checked === true)}
+                    />
+                    <Label 
+                      htmlFor="create-account" 
+                      className="text-sm flex items-center cursor-pointer"
+                    >
+                      <UserPlus className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {t('create_account_sharing')}
+                    </Label>
+                  </div>
+                  
+                  {/* Formularz rejestracji rozwijany po zaznaczeniu checkboxa */}
+                  {createAccount && (
+                    <div className="border rounded-md p-4 mt-2 bg-secondary/10">
+                      <h4 className="font-medium text-sm mb-3">{t('create_account')}</h4>
+                      
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="reg-username" className="text-sm">{t('username')}</Label>
+                          <Input 
+                            id="reg-username" 
+                            name="username" 
+                            value={registerData.username} 
+                            onChange={handleRegisterDataChange}
+                            className="h-8 text-sm"
+                          />
+                          <p className="text-xs text-muted-foreground">{t('username_optional')}</p>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <Label htmlFor="reg-password" className="text-sm">{t('password')} *</Label>
+                          <Input 
+                            id="reg-password" 
+                            name="password" 
+                            type="password" 
+                            value={registerData.password} 
+                            onChange={handleRegisterDataChange}
+                            className="h-8 text-sm"
+                            placeholder={!registerData.password ? t('sharePassword') + ' ' + t('username_optional') : ''}
+                          />
+                          {!registerData.password && (
+                            <p className="text-xs text-muted-foreground">
+                              {t('label.password.share.placeholder')}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <Label htmlFor="reg-fullName" className="text-sm">{t('full_name')} *</Label>
+                          <Input 
+                            id="reg-fullName" 
+                            name="fullName" 
+                            value={registerData.fullName} 
+                            onChange={handleRegisterDataChange}
+                            className="h-8 text-sm"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <Label htmlFor="reg-company" className="text-sm">{t('company')}</Label>
+                          <Input 
+                            id="reg-company" 
+                            name="company" 
+                            value={registerData.company} 
+                            onChange={handleRegisterDataChange}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {modelInfo?.shareEnabled && modelInfo?.shareId && (
