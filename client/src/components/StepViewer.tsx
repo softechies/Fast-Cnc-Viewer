@@ -105,11 +105,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     axesHelper.name = "AxesHelper";
     scene.add(axesHelper);
     
-    // Dodaj siatkę pomocniczą pod modelem - widoczna ale subtelna
-    const mainGridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xdddddd);
-    mainGridHelper.position.y = -0.01; // Lekko pod modelem
-    mainGridHelper.name = "GridHelper";
-    scene.add(mainGridHelper);
+    // Siatka pomocnicza została usunięta, ponieważ przeszkadzała w oglądaniu modelu
     
     // Handle window resize
     const handleResize = () => {
@@ -443,11 +439,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     // Dodaj osie pomocnicze
     const axesHelper = new THREE.AxesHelper(5);
     group.add(axesHelper);
-    
-    // Dodaj siatkę podłoża
-    const gridHelper = new THREE.GridHelper(10, 10);
-    gridHelper.position.y = -0.1;
-    group.add(gridHelper);
     
     return group;
   }
