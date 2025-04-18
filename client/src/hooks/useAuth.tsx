@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Rejestracja zakończona sukcesem",
-        description: `Konto ${user.username} zostało utworzone i zalogowane`,
+        description: `Konto ${user.fullName || user.email} zostało utworzone i zalogowane`,
       });
     },
     onError: (error: Error) => {
