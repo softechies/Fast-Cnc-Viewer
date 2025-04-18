@@ -169,6 +169,23 @@ const translations = {
   sharingSaved: "Sharing settings saved",
   sharingRemoved: "Sharing has been disabled",
   
+  // Delete share page
+  deleteShare: {
+    title: "Delete Model Sharing",
+    description: "Confirm deletion of shared model link",
+    confirmMessage: "Are you sure you want to delete this shared model link? This action cannot be undone and the model will no longer be accessible to others.",
+    confirm: "Delete Share",
+    cancel: "Cancel",
+    deleting: "Deleting...",
+    successTitle: "Sharing Deleted",
+    successMessage: "The shared model link has been successfully deleted and is no longer accessible.",
+    errorTitle: "Deletion Failed",
+    unknownError: "An unknown error occurred during deletion.",
+    connectionError: "Connection error. Please try again later.",
+    invalidToken: "Invalid or expired security token.",
+    backToHome: "Back to Home"
+  },
+  
   // Admin panel
   admin: {
     loginTitle: "Admin Panel Login",
