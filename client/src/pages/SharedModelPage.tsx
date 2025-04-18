@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ModelViewer from "@/components/ModelViewer";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useLanguage } from "@/lib/LanguageContext";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 import {
   AlertDialog,
@@ -26,6 +28,7 @@ export default function SharedModelPage() {
   const shareId = params?.shareId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +69,7 @@ export default function SharedModelPage() {
         }
       } catch (error) {
         console.error("Błąd podczas pobierania informacji o modelu:", error);
-        setError(error instanceof Error ? error.message : "Wystąpił błąd podczas pobierania informacji o modelu");
+        setError(error instanceof Error ? error.message : t("errors.model.fetch"));
       } finally {
         setIsLoading(false);
       }
@@ -97,7 +100,7 @@ export default function SharedModelPage() {
       
       if (modelData.requiresPassword) {
         setRequiresPassword(true);
-        throw new Error("Wymagane hasło");
+        throw new Error(t("errors.password_required"));
       }
       
       setModelId(modelData.id);
@@ -106,12 +109,12 @@ export default function SharedModelPage() {
       
     } catch (error) {
       console.error("Błąd podczas uzyskiwania dostępu do modelu:", error);
-      if (error instanceof Error && error.message === "Wymagane hasło") {
+      if (error instanceof Error && error.message === t("errors.password_required")) {
         setRequiresPassword(true);
       } else {
         toast({
-          title: "Błąd",
-          description: error instanceof Error ? error.message : "Wystąpił błąd podczas uzyskiwania dostępu do modelu",
+          title: t("errors.title"),
+          description: error instanceof Error ? error.message : t("errors.model.access"),
           variant: "destructive",
           duration: 5000
         });
@@ -131,7 +134,7 @@ export default function SharedModelPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Wczytywanie udostępnionego modelu...</p>
+        <p className="text-muted-foreground">{t("loading.shared_model")}</p>
       </div>
     );
   }
@@ -154,8 +157,9 @@ export default function SharedModelPage() {
     return (
       <div className="container mx-auto py-8 px-4 flex justify-center">
         <Card className="w-full max-w-md">
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-between items-center px-4 mt-4">
             <img src={fastCncLogo} alt="FastCNC Logo" className="h-12" />
+            <LanguageSelector />
           </div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -217,6 +221,7 @@ export default function SharedModelPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSelector />
             <Button
               variant="outline"
               size="sm"
@@ -224,7 +229,7 @@ export default function SharedModelPage() {
               className="flex items-center gap-1"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Przejdź do aplikacji
+              <span className="hidden sm:inline">Przejdź do aplikacji</span>
             </Button>
           </div>
         </div>
