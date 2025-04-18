@@ -5,9 +5,9 @@ import { z } from "zod";
 // Define users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(), // Email jest teraz wymagany i używany do logowania
+  username: text("username").unique(), // Username jest teraz opcjonalny 
   password: text("password").notNull(),
-  email: text("email").unique(),
   fullName: text("full_name"),
   company: text("company"),
   isAdmin: boolean("is_admin").default(false), // Pole określające, czy użytkownik jest administratorem
@@ -30,16 +30,16 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 // Schema for client registration
 export const clientRegistrationSchema = z.object({
-  username: z.string().min(3, "Nazwa użytkownika musi mieć co najmniej 3 znaki"),
-  password: z.string().min(6, "Hasło musi mieć co najmniej 6 znaków"),
   email: z.string().email("Nieprawidłowy adres email"),
+  password: z.string().min(6, "Hasło musi mieć co najmniej 6 znaków"),
   fullName: z.string().min(1, "Imię i nazwisko są wymagane"),
   company: z.string().optional(),
+  username: z.string().min(3, "Nazwa użytkownika musi mieć co najmniej 3 znaki").optional(),
 });
 
 // Schema for client login
 export const clientLoginSchema = z.object({
-  username: z.string().min(1, "Nazwa użytkownika jest wymagana"),
+  email: z.string().email("Nieprawidłowy adres email"),
   password: z.string().min(1, "Hasło jest wymagane"),
 });
 
