@@ -34,6 +34,8 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createAccount, setCreateAccount] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   
   // Dane formularza rejestracji
   const [registerData, setRegisterData] = useState({
@@ -42,6 +44,49 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
     fullName: "",
     company: ""
   });
+
+  // Sprawdzanie czy email już istnieje w systemie
+  const checkEmailExists = async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes('@')) return;
+    
+    try {
+      setCheckingEmail(true);
+      const response = await apiRequest(
+        "GET", 
+        `/api/check-email/${encodeURIComponent(emailToCheck)}`,
+        undefined,
+        { on401: "returnNull" }
+      );
+      
+      const data = await response.json();
+      setEmailExists(data.exists);
+      
+      // Jeśli email istnieje, wyłącz opcję tworzenia konta
+      if (data.exists) {
+        setCreateAccount(false);
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+  
+  // Wywołaj sprawdzenie emaila po opuszczeniu pola
+  const handleEmailBlur = () => {
+    if (email && !user) {
+      checkEmailExists(email);
+    }
+  };
+  
+  // Obsługa zmiany pola email
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Resetuj stan istnienia emaila przy zmianie
+    if (emailExists) setEmailExists(false);
+  };
 
   // Obsługa zmiany pól formularza rejestracji
   const handleRegisterDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,15 +289,23 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                   <Mail className="h-4 w-4" />
                   {t('label.email')}
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={t('label.email.placeholder')}
-                  className="col-span-3"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <div className="col-span-3">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t('label.email.placeholder')}
+                    className={emailExists ? "border-orange-400" : ""}
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
+                    required
+                  />
+                  {emailExists && (
+                    <p className="text-xs text-orange-500 mt-1">
+                      {t('email_already_exists')}
+                    </p>
+                  )}
+                </div>
               </div>
               
               {!user && (

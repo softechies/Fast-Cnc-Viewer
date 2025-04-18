@@ -279,6 +279,27 @@ export function setupAuth(app: Express): void {
     res.json(req.user);
   });
   
+  // Endpoint do sprawdzania, czy email istnieje
+  app.get("/api/check-email/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      
+      // Walidacja emaila
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ exists: false, error: "Nieprawidłowy adres email" });
+      }
+      
+      // Sprawdź, czy użytkownik o podanym adresie email już istnieje
+      const existingUser = await storage.getUserByEmail(email);
+      
+      // Zwróć tylko informację o istnieniu, bez żadnych danych użytkownika
+      res.json({ exists: !!existingUser });
+    } catch (error) {
+      console.error("Error checking email:", error);
+      res.status(500).json({ exists: false, error: "Wystąpił błąd podczas sprawdzania adresu email" });
+    }
+  });
+  
   // Endpoint zmiany hasła
   app.post("/api/user/change-password", isAuthenticated, async (req, res) => {
     try {

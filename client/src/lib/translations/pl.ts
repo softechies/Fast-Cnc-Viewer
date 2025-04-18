@@ -186,6 +186,7 @@ const translations = {
   fileTooLarge: "Plik jest zbyt duży",
   invalidPassword: "Nieprawidłowe hasło",
   invalidEmail: "Nieprawidłowy adres e-mail",
+  email_already_exists: "Ten adres email jest już zarejestrowany. Proszę się zalogować.",
   errors: {
     title: "Błąd",
     share: "Błąd podczas udostępniania modelu",
