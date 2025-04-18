@@ -16,7 +16,7 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
-import { setupAuth, comparePasswords } from "./auth";
+import { setupAuth, comparePasswords, hashPassword } from "./auth";
 
 // Funkcja pomocnicza do wykrywania środowiska produkcyjnego
 function isProductionEnvironment(host: string): boolean {
@@ -913,6 +913,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.shareNotificationSent = false; // Reset statusu powiadomienia
       }
       
+      // Jeśli użytkownik chce założyć konto
+      if (shareData.createAccount && shareData.email) {
+        try {
+          // Sprawdź, czy użytkownik o podanym adresie email już istnieje
+          const existingUser = await storage.getUserByEmail(shareData.email);
+          
+          if (!existingUser) {
+            // Generuj losową nazwę użytkownika na podstawie adresu email
+            const emailParts = shareData.email.split('@');
+            const baseUsername = emailParts[0];
+            let username = baseUsername;
+            let suffix = 1;
+            
+            // Sprawdź, czy nazwa użytkownika jest unikalna
+            let userWithUsername = await storage.getUserByUsername(username);
+            while (userWithUsername) {
+              // Jeśli nazwa użytkownika jest zajęta, dodaj liczbę do nazwy
+              username = `${baseUsername}${suffix}`;
+              suffix++;
+              userWithUsername = await storage.getUserByUsername(username);
+            }
+            
+            // Wygeneruj losowe hasło lub użyj hasła udostępniania, jeśli zostało podane
+            const password = shareData.password || nanoid(10);
+            
+            // Hashuj hasło
+            const hashedPassword = await hashPassword(password);
+            
+            // Utwórz użytkownika
+            const newUser = await storage.createUser({
+              username,
+              password: hashedPassword,
+              email: shareData.email,
+              fullName: null,
+              company: null,
+              isAdmin: false,
+              isClient: true
+            });
+            
+            // Zaloguj użytkownika
+            req.login({
+              id: newUser.id,
+              username: newUser.username,
+              email: newUser.email,
+              fullName: newUser.fullName,
+              company: newUser.company,
+              isAdmin: Boolean(newUser.isAdmin),
+              isClient: Boolean(newUser.isClient)
+            }, (err) => {
+              if (err) {
+                console.error("Error logging in new user:", err);
+              }
+            });
+            
+            // Zaktualizuj flagę utworzenia konta
+            accountCreated = true;
+            
+            // Przypisz model do nowego użytkownika
+            updateData.userId = newUser.id;
+            
+            console.log(`Created new user account for ${shareData.email} with username ${username}`);
+          } else {
+            console.log(`User with email ${shareData.email} already exists, skipping account creation`);
+          }
+        } catch (accountError) {
+          console.error("Error creating user account:", accountError);
+          // Nie przerywamy procesu, jeśli tworzenie konta nie powiedzie się
+        }
+      }
+      
       // Aktualizacja modelu
       const updatedModel = await storage.updateModel(id, updateData);
       
@@ -1072,7 +1142,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareUrl: shareData.enableSharing ? `/shared/${shareId}` : null,
         expiryDate: updatedModel?.shareExpiryDate,
         shareDeleteToken: updatedModel?.shareDeleteToken,
-        emailSent: shareData.enableSharing && shareData.email
+        emailSent: shareData.enableSharing && shareData.email,
+        accountCreated // Dodajemy informację o utworzeniu konta
       });
     } catch (error) {
       console.error("Error sharing model:", error);
