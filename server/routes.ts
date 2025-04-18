@@ -870,6 +870,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
+      // Zmienna do śledzenia, czy utworzono konto
+      let accountCreated = false;
+      
       // Generowanie unikalnego ID udostępniania
       let shareId = model.shareId;
       
