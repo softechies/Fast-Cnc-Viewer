@@ -13,7 +13,7 @@ const translations = {
   cancel: "Anuluj",
   save: "Zapisz",
   back: "Powrót",
-  loading: "Ładowanie...",
+  loadingGeneric: "Ładowanie...",
   refresh: "Odśwież",
   error: "Błąd",
   success: "Sukces",
@@ -101,6 +101,18 @@ const translations = {
   viewSharedModel: "Zobacz udostępniony model",
   modelSharedBy: "Model udostępniony przez",
   
+  // Shared page texts
+  shared: {
+    protected_model: {
+      title: "Chroniony model",
+      description: "Ten model jest chroniony hasłem.",
+      password_placeholder: "Wprowadź hasło do modelu"
+    },
+    model_info: {
+      shared_status: "Udostępniony model"
+    }
+  },
+  
   // Messages
   message: {
     no: {
@@ -160,7 +172,27 @@ const translations = {
   invalidPassword: "Nieprawidłowe hasło",
   invalidEmail: "Nieprawidłowy adres e-mail",
   errors: {
-    share: "Błąd podczas udostępniania modelu"
+    title: "Błąd",
+    share: "Błąd podczas udostępniania modelu",
+    password_required: "Wymagane hasło",
+    model: {
+      fetch: "Nie udało się pobrać informacji o modelu",
+      access: "Nie udało się uzyskać dostępu do modelu",
+      display_failed: "Nie można wyświetlić modelu"
+    }
+  },
+  
+  // Loading states
+  loadingState: {
+    shared_model: "Ładowanie udostępnionego modelu..."
+  },
+  
+  // Actions
+  actions: {
+    back_to_home: "Powrót do strony głównej",
+    access: "Uzyskaj dostęp",
+    verifying: "Weryfikacja...",
+    go_to_app: "Przejdź do aplikacji"
   },
   
   // Success messages

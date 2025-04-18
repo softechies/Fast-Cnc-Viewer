@@ -134,7 +134,7 @@ export default function SharedModelPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">{t("loading.shared_model")}</p>
+        <p className="text-muted-foreground">{t("loadingState.shared_model")}</p>
       </div>
     );
   }

@@ -101,6 +101,18 @@ const translations = {
   viewSharedModel: "View shared model",
   modelSharedBy: "Model shared by",
   
+  // Shared page texts
+  shared: {
+    protected_model: {
+      title: "Protected Model",
+      description: "This model is password protected.",
+      password_placeholder: "Enter model password"
+    },
+    model_info: {
+      shared_status: "Shared model"
+    }
+  },
+  
   // Messages
   message: {
     no: {
