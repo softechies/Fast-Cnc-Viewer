@@ -13,7 +13,7 @@ const translations = {
   cancel: "Cancel",
   save: "Save",
   back: "Back",
-  loading: "Loading...",
+  loadingGeneric: "Loading...",
   refresh: "Refresh",
   error: "Error",
   success: "Success",
@@ -162,7 +162,27 @@ const translations = {
   
   // Specific error messages
   errors: {
-    share: "Error sharing model"
+    title: "Error",
+    share: "Error sharing model",
+    password_required: "Password required",
+    model: {
+      fetch: "Failed to fetch model information",
+      access: "Failed to access the model",
+      display_failed: "Cannot display the model"
+    }
+  },
+  
+  // Loading states
+  loadingState: {
+    shared_model: "Loading shared model..."
+  },
+  
+  // Actions
+  actions: {
+    back_to_home: "Back to home page",
+    access: "Access",
+    verifying: "Verifying...",
+    go_to_app: "Go to application"
   },
   
   // Success messages

@@ -143,10 +143,10 @@ export default function SharedModelPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] max-w-md mx-auto text-center">
         <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-xl font-bold mb-2">Nie można wyświetlić modelu</h2>
+        <h2 className="text-xl font-bold mb-2">{t("errors.model.display_failed")}</h2>
         <p className="text-muted-foreground mb-4">{error}</p>
         <Button variant="outline" onClick={() => window.location.href = "/"}>
-          Wróć do strony głównej
+          {t("actions.back_to_home")}
         </Button>
       </div>
     );
@@ -164,10 +164,10 @@ export default function SharedModelPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LockIcon className="h-5 w-5" />
-              Chroniony model
+              {t("shared.protected_model.title")}
             </CardTitle>
             <CardDescription>
-              Ten model jest chroniony hasłem.
+              {t("shared.protected_model.description")}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmitPassword}>
@@ -177,11 +177,11 @@ export default function SharedModelPage() {
                   <FileIcon className="h-4 w-4" />
                   <span>{modelInfo?.filename}</span>
                 </div>
-                <Label htmlFor="password">Hasło</Label>
+                <Label htmlFor="password">{t("label.password")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Wprowadź hasło do modelu"
+                  placeholder={t("shared.protected_model.password_placeholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1"
@@ -194,10 +194,10 @@ export default function SharedModelPage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Weryfikacja...
+                    {t("actions.verifying")}
                   </>
                 ) : (
-                  "Uzyskaj dostęp"
+                  t("actions.access")
                 )}
               </Button>
             </CardFooter>
@@ -217,7 +217,7 @@ export default function SharedModelPage() {
             <FileIcon className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{modelInfo?.filename}</span>
             <span className="text-xs text-muted-foreground">
-              (Udostępniony model)
+              ({t("shared.model_info.shared_status")})
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default function SharedModelPage() {
               className="flex items-center gap-1"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Przejdź do aplikacji</span>
+              <span className="hidden sm:inline">{t("actions.go_to_app")}</span>
             </Button>
           </div>
         </div>
