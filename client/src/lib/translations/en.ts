@@ -7,6 +7,27 @@ const translations = {
   cad_viewer: "CAD Viewer",
   powered_by: "Powered by",
   home: "Home",
+  
+  // Authentication
+  login: "Log In",
+  register: "Register",
+  enter_credentials: "Enter your credentials to log in",
+  username: "Username",
+  password: "Password",
+  create_account: "Create a new account",
+  email: "Email",
+  full_name: "Full Name",
+  company: "Company",
+  client_dashboard: "Client Dashboard",
+  
+  // Auth Page
+  app_description: "A comprehensive web application for advanced 3D CAD file analysis and visualization",
+  feature_1_title: "Advanced Visualization",
+  feature_1_desc: "View and analyze 3D models with precision and detail",
+  feature_2_title: "Secure Sharing",
+  feature_2_desc: "Share your models securely with clients and collaborators",
+  feature_3_title: "Cross-Format Support",
+  feature_3_desc: "Support for STEP, IGES, STL, DXF, and DWG formats",
   upload: "Upload",
   uploadModel: "Upload Model",
   view: "View",
