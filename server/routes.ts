@@ -1877,6 +1877,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint do sprawdzania, czy email istnieje w systemie
+  app.get("/api/check-email/:email", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.params;
+      
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+      
+      // Sprawdź czy użytkownik z podanym emailem istnieje
+      const user = await storage.getUserByEmail(email);
+      
+      // Zwróć tylko informację czy email istnieje, bez szczegółów użytkownika
+      res.json({ 
+        exists: !!user,
+        email
+      });
+    } catch (error) {
+      console.error("Error checking email existence:", error);
+      res.status(500).json({ message: "Failed to check email" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

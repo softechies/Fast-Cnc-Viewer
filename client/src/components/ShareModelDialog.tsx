@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ModelInfo } from "@shared/schema";
 import { Clipboard, Calendar, Copy, Check, Link2, LogIn, Mail, UserPlus } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useLanguage } from "@/lib/LanguageContext";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +27,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [enableSharing, setEnableSharing] = useState(modelInfo?.shareEnabled || false);
   const [password, setPassword] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -312,7 +313,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                         className="text-xs h-8 w-full"
                         onClick={() => {
                           handleClose();
-                          navigate('/auth');
+                          setLocation('/auth');
                         }}
                       >
                         <LogIn className="mr-2 h-3 w-3" />
