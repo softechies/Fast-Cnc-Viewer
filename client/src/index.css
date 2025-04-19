@@ -8,6 +8,15 @@
   max-width: 100% !important;
 }
 
+/* Rozszerzenie wszystkich kluczowych elementów panelu administratora */
+.admin-panel .tabs-content,
+.admin-panel .card,
+.admin-panel .card-content,
+.admin-panel .table {
+  width: 100% !important;
+  max-width: 1500px !important;
+}
+
 /* Kompletne rozwiązanie problemu z przewijaniem w tabeli */
 .card-content-no-scroll {
   overflow: visible !important;

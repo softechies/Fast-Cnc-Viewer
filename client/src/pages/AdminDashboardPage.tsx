@@ -389,8 +389,8 @@ export default function AdminDashboardPage() {
   }, [sharedModels, searchQuery, sortField, sortDirection]);
 
   return (
-    <div className="container p-4 mx-auto max-w-7xl admin-panel">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container p-4 mx-auto admin-panel" style={{ maxWidth: '1500px' }}>
+      <div className="flex justify-between items-center mb-6" style={{ maxWidth: '1500px', width: '100%' }}>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-2">
           <Button onClick={loadSharedModels} variant="outline" size="sm">
@@ -417,7 +417,7 @@ export default function AdminDashboardPage() {
         </TabsList>
         
         <TabsContent value="user" className="space-y-4">
-          <Card className="shadow-md">
+          <Card className="shadow-md" style={{ maxWidth: '1500px', width: '100%' }}>
             <CardHeader>
               <CardTitle>User Models</CardTitle>
               <CardDescription>

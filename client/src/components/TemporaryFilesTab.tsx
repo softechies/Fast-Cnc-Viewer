@@ -96,7 +96,7 @@ export default function TemporaryFilesTab() {
   };
 
   return (
-    <Card>
+    <Card style={{ maxWidth: '1500px', width: '100%' }}>
       <CardHeader>
         <CardTitle>Temporary Files</CardTitle>
         <CardDescription>Manage temporary files uploaded by anonymous users</CardDescription>
