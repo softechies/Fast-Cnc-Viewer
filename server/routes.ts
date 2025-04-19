@@ -443,18 +443,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract metadata from the STEP file
       const metadata = extractStepMetadata(file.path);
       
+      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
+      const userEmail = req.query.email as string || null;
+      
+      // Pobierz klienta po e-mailu, jeśli podano
+      let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
+      let shareEmail = null;
+      
+      if (userEmail) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        if (user) {
+          userId = user.id;
+          shareEmail = userEmail; // Ustaw e-mail do udostępniania
+        }
+      }
+      
       // Create initial model record
       const modelData = {
-        userId: 1, // We now have a user with ID 1 in the database
+        userId: userId,
         filename: file.originalname,
         filesize: stats.size,
         format: metadata.format,
         created: new Date().toISOString(),
         sourceSystem: metadata.sourceSystem,
+        shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
         metadata: {
           ...metadata,
           filePath: file.path, // Store the file path for later processing
-          conversionStatus: 'pending'
+          conversionStatus: 'pending',
+          userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
         }
       };
       

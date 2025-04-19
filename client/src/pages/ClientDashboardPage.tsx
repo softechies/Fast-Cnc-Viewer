@@ -21,6 +21,8 @@ import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
+import UploadModal from "@/components/UploadModal";
+import { useModelUpload } from "@/lib/hooks";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -45,6 +47,26 @@ export default function ClientDashboardPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  
+  // Konfiguracja uploadera plików
+  const { isUploading, uploadProgress, upload } = useModelUpload({
+    onSuccess: (data) => {
+      setIsUploadModalOpen(false);
+      toast({
+        title: t('upload_success'),
+        description: data.filename,
+      });
+      refetch(); // Odśwież listę modeli
+    },
+    onError: (error) => {
+      toast({
+        title: t('upload_failed'),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Pobieranie modeli klienta
   const { data: models, isLoading, refetch } = useQuery<ClientModel[]>({
@@ -171,9 +193,28 @@ export default function ClientDashboardPage() {
     );
   }
 
+  // Obsługa uploadu pliku
+  const handleUpload = (file: File) => {
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    let uploadUrl = '/api/models/upload'; // domyślnie dla STEP
+    
+    if (fileExtension === 'stl') {
+      uploadUrl = '/api/models/upload-stl';
+    } else if (fileExtension === 'dxf' || fileExtension === 'dwg') {
+      uploadUrl = '/api/models/upload-cad';
+    }
+    
+    // Dodajemy e-mail użytkownika do URL, aby backend mógł go automatycznie przypisać
+    if (user?.email) {
+      uploadUrl += `?email=${encodeURIComponent(user.email)}`;
+    }
+    
+    upload(file, uploadUrl);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header onUploadClick={() => {}} />
+      <Header onUploadClick={() => setIsUploadModalOpen(true)} />
       
       <main className="flex-grow flex flex-col">
         <div className="bg-white shadow-sm border-b border-gray-200">
@@ -406,6 +447,15 @@ export default function ClientDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Modal uploadu plików */}
+      <UploadModal 
+        isOpen={isUploadModalOpen} 
+        onClose={() => setIsUploadModalOpen(false)}
+        isUploading={isUploading}
+        uploadProgress={uploadProgress}
+        onUpload={handleUpload}
+      />
     </div>
   );
 }
