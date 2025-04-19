@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Prosty konwerter plików DXF do SVG i JSON
-Używa biblioteki ezdxf do analizy plików DXF
+Zmodyfikowany konwerter plików DXF do SVG i JSON
+Używa biblioteki własnej oraz ezdxf jako fallback
+
+Ta wersja konwertera obsługuje zarówno standardową bibliotekę ezdxf,
+jak i specjalną bibliotekę do obsługi plików DXF, która lepiej radzi sobie
+z plikami DXF utworzonymi w różnych programach CAD.
 """
 
 import os
@@ -9,13 +13,69 @@ import sys
 import json
 import traceback
 import numpy as np
-import ezdxf
-from ezdxf.addons import r12writer
+
+# Importuj bibliotekę ezdxf jako fallback
+try:
+    import ezdxf
+    from ezdxf.addons import r12writer
+    HAVE_EZDXF = True
+except ImportError:
+    HAVE_EZDXF = False
+    print("Warning: ezdxf library is not available (fallback won't work)")
+
+# Flaga określająca czy używamy własnej biblioteki czy ezdxf jako fallback
+USE_CUSTOM_LIBRARY = True
+
+# Próba importu własnej biblioteki DXF
+try:
+    # TODO: Zmień 'custom_dxf_library' na nazwę Twojej biblioteki
+    # import custom_dxf_library as custom_dxf
+    # HAVE_CUSTOM_LIBRARY = True
+    
+    # Tymczasowo wyłączamy własną bibliotekę, dopóki nie zostanie określona
+    HAVE_CUSTOM_LIBRARY = False
+    if USE_CUSTOM_LIBRARY:
+        print("Warning: Custom DXF library not specified yet")
+except ImportError:
+    HAVE_CUSTOM_LIBRARY = False
+    print("Warning: Custom DXF library is not available")
+    
+# Jeśli brak obu bibliotek, wyświetl ostrzeżenie
+if not HAVE_EZDXF and not HAVE_CUSTOM_LIBRARY:
+    print("Error: Neither custom DXF library nor ezdxf are available")
+
+# Funkcje pomocnicze dla własnej biblioteki
+def parse_dxf_with_custom_library(dxf_path):
+    """Parsuje plik DXF przy użyciu własnej biblioteki"""
+    # TODO: Zaimplementuj parsowanie przy użyciu własnej biblioteki
+    # Przykład:
+    # dxf = custom_dxf.parse(dxf_path)
+    # return dxf
+    raise NotImplementedError("Custom DXF library integration not implemented yet")
+    
+def convert_dxf_to_svg_with_custom_library(dxf_path, svg_path=None):
+    """Konwertuje plik DXF do SVG przy użyciu własnej biblioteki"""
+    # TODO: Zaimplementuj konwersję przy użyciu własnej biblioteki
+    # Przykład:
+    # dxf = custom_dxf.parse(dxf_path)
+    # svg = custom_dxf.to_svg(dxf)
+    # if svg_path:
+    #     with open(svg_path, 'w') as f:
+    #         f.write(svg)
+    # return svg
+    raise NotImplementedError("Custom DXF library integration not implemented yet")
 
 
 def parse_dxf_file(dxf_path):
     """Parsowanie pliku DXF i zwrócenie podstawowych informacji o nim"""
     try:
+        # Zapisz informację debugowania
+        with open("/tmp/dxf_debug.log", "a") as f:
+            f.write(f"Parsing DXF file: {dxf_path}\n")
+            f.write(f"USE_CUSTOM_LIBRARY: {USE_CUSTOM_LIBRARY}\n")
+            f.write(f"HAVE_CUSTOM_LIBRARY: {HAVE_CUSTOM_LIBRARY}\n")
+            f.write(f"HAVE_EZDXF: {HAVE_EZDXF}\n")
+            
         # Sprawdź czy plik istnieje
         if not os.path.exists(dxf_path):
             raise FileNotFoundError(f"DXF file not found: {dxf_path}")
@@ -24,22 +84,46 @@ def parse_dxf_file(dxf_path):
         file_size = os.path.getsize(dxf_path)
         if file_size == 0:
             raise ValueError("DXF file is empty")
-
-        # Wczytaj plik DXF z obsługą różnych formatów i kodowań
-        try:
-            doc = ezdxf.readfile(dxf_path)
-        except Exception as e:
-            # Spróbuj otworzyć jako strumień z różnymi kodowaniami
-            for encoding in ['utf-8', 'latin1', 'ascii', 'cp1250', 'cp1252']:
-                try:
-                    with open(dxf_path, encoding=encoding, errors='ignore') as fp:
-                        doc = ezdxf.read(fp)
-                    break
-                except Exception:
-                    continue
-            else:
-                # Jeśli żadne kodowanie nie zadziałało, zgłoś błąd
-                raise ValueError(f"Could not read DXF file with any encoding: {str(e)}")
+            
+        # Próbuj użyć własnej biblioteki, jeśli jest dostępna i włączona
+        if USE_CUSTOM_LIBRARY and HAVE_CUSTOM_LIBRARY:
+            try:
+                with open("/tmp/dxf_debug.log", "a") as f:
+                    f.write("Trying to use custom DXF library\n")
+                return parse_dxf_with_custom_library(dxf_path)
+            except Exception as e:
+                with open("/tmp/dxf_debug.log", "a") as f:
+                    f.write(f"Custom library failed: {str(e)}, falling back to ezdxf\n")
+                # Jeśli własna biblioteka zawiedzie, używamy ezdxf jako fallback
+                if not HAVE_EZDXF:
+                    raise ValueError("Custom library failed and ezdxf is not available")
+        
+        # Używamy ezdxf jako głównej biblioteki lub jako fallback
+        if HAVE_EZDXF:
+            try:
+                with open("/tmp/dxf_debug.log", "a") as f:
+                    f.write("Using ezdxf library\n")
+                doc = ezdxf.readfile(dxf_path)
+            except Exception as e:
+                with open("/tmp/dxf_debug.log", "a") as f:
+                    f.write(f"Standard readfile failed: {str(e)}\n")
+                # Spróbuj otworzyć jako strumień z różnymi kodowaniami
+                for encoding in ['utf-8', 'latin1', 'ascii', 'cp1250', 'cp1252']:
+                    try:
+                        with open("/tmp/dxf_debug.log", "a") as f:
+                            f.write(f"Trying encoding: {encoding}\n")
+                        with open(dxf_path, encoding=encoding, errors='ignore') as fp:
+                            doc = ezdxf.read(fp)
+                        with open("/tmp/dxf_debug.log", "a") as f:
+                            f.write(f"Success with encoding: {encoding}\n")
+                        break
+                    except Exception:
+                        continue
+                else:
+                    # Jeśli żadne kodowanie nie zadziałało, zgłoś błąd
+                    raise ValueError(f"Could not read DXF file with any encoding: {str(e)}")
+        else:
+            raise ValueError("No DXF library available")
         
         modelspace = doc.modelspace()
         
