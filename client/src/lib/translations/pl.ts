@@ -55,6 +55,8 @@ const translations = {
     copy: "Skopiowano"
   },
   
+  checking: "Sprawdzanie...",
+  
   // Home page
   welcome: "Witaj w Przeglądarce CAD",
   welcomeMessage: "Prześlij plik CAD, aby rozpocząć",

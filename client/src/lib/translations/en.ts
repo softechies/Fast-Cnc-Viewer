@@ -56,6 +56,8 @@ const translations = {
     back: "Back to Home"
   },
   
+  checking: "Checking...",
+  
   // Home page
   welcome: "Welcome to CAD Viewer",
   welcomeMessage: "Upload a CAD file to get started",

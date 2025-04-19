@@ -38,11 +38,13 @@ export default function UploadModal({
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [emailChecked, setEmailChecked] = useState(false);
+  const [emailPending, setEmailPending] = useState(false); // Stan oczekiwania na sprawdzenie emaila
   
   // Ustawienie e-maila na podstawie zalogowanego użytkownika
   useEffect(() => {
     if (user?.email) {
       setEmail(user.email);
+      setEmailChecked(true); // Dla zalogowanego użytkownika, email jest już sprawdzony
     }
   }, [user]);
   
@@ -54,8 +56,9 @@ export default function UploadModal({
     }
     
     console.log("[CHECK-EMAIL] Sprawdzanie czy email istnieje:", email);
-    setIsCheckingEmail(true);
-    setEmailChecked(false);
+    setIsCheckingEmail(true);   // Rozpoczynamy sprawdzanie (spinner)
+    setEmailChecked(false);     // Email nie jest jeszcze zweryfikowany
+    setEmailPending(true);      // Ustawiamy stan oczekiwania na sprawdzenie
     
     try {
       const endpoint = `/api/check-email/${encodeURIComponent(email)}`;
@@ -81,13 +84,16 @@ export default function UploadModal({
       });
     } catch (error) {
       console.error('[CHECK-EMAIL] Błąd podczas sprawdzania emaila:', error);
+      setEmailChecked(true);  // Nawet w przypadku błędu oznaczamy jako sprawdzony
+      setEmailExists(false);  // Przy błędzie zakładamy, że email nie istnieje
       toast({
         variant: "destructive",
         title: t('error'),
         description: error instanceof Error ? error.message : t('error.unknown'),
       });
     } finally {
-      setIsCheckingEmail(false);
+      setIsCheckingEmail(false); // Zatrzymujemy spinner
+      setEmailPending(false);    // Kończymy oczekiwanie
     }
   };
   
@@ -217,10 +223,18 @@ export default function UploadModal({
                   type="email"
                   value={email}
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    const newEmail = e.target.value;
+                    setEmail(newEmail);
                     // Resetujemy stan sprawdzania przy zmianie emaila
                     setEmailChecked(false);
                     setEmailExists(false);
+                    
+                    // Jeśli email jest pusty, to nie ma potrzeby sprawdzania
+                    if (!newEmail || !newEmail.includes('@')) {
+                      setEmailPending(false);
+                    } else {
+                      setEmailPending(true); // Zmieniając email, musimy ponownie sprawdzić
+                    }
                   }}
                   onBlur={() => {
                     if (email && !user?.email) {
@@ -282,11 +296,24 @@ export default function UploadModal({
                 {t('button.cancel')}
               </Button>
               <Button
-                disabled={!selectedFile || !email || (emailChecked && emailExists && !user?.email)}
+                disabled={
+                  !selectedFile || 
+                  !email || 
+                  emailPending || 
+                  isCheckingEmail ||
+                  (emailChecked && emailExists && !user?.email)
+                }
                 onClick={handleUpload}
                 className="bg-primary hover:bg-blue-700"
               >
-                {t('button.upload')}
+                {emailPending || isCheckingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('checking')}
+                  </>
+                ) : (
+                  t('button.upload')
+                )}
               </Button>
             </DialogFooter>
           </>
