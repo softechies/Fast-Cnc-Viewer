@@ -167,6 +167,9 @@ const translations = {
   invalidPassword: "Mot de passe invalide",
   invalidEmail: "Adresse e-mail invalide",
   email_already_exists: "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
+  warning: "Avertissement",
+  email_exists_warning: "Cet e-mail existe déjà dans notre système. Veuillez d'abord vous connecter.",
+  login_button: "Se connecter",
   
   // Specific error messages
   errors: {

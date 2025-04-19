@@ -191,6 +191,9 @@ const translations = {
   invalidPassword: "Ungültiges Passwort",
   invalidEmail: "Ungültige E-Mail-Adresse",
   email_already_exists: "Diese E-Mail ist bereits registriert. Bitte melden Sie sich stattdessen an.",
+  warning: "Warnung",
+  email_exists_warning: "Diese E-Mail existiert bereits in unserem System. Bitte melden Sie sich zuerst an.",
+  login_button: "Anmelden",
   
   // Specific error messages
   errors: {
