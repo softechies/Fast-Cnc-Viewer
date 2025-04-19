@@ -2054,9 +2054,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hashedPassword = await hashPassword(password);
       }
       
+      // Zaktualizuj model z nowym hasłem
       await storage.updateModel(modelId, {
-        password: hashedPassword,
-        hasPassword: !!hashedPassword
+        sharePassword: hashedPassword
       });
       
       return res.json({ success: true });
