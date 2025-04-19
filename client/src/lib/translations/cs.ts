@@ -190,6 +190,9 @@ const translations = {
   invalidPassword: "Neplatné heslo",
   invalidEmail: "Neplatná e-mailová adresa",
   email_already_exists: "Tento e-mail je již registrován. Prosím, přihlaste se.",
+  warning: "Varování",
+  email_exists_warning: "Tento e-mail již existuje v našem systému. Prosím, nejprve se přihlaste.",
+  login_button: "Přihlásit se",
   
   // Specific error messages
   errors: {

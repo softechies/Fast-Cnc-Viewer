@@ -218,6 +218,9 @@ const translations = {
   invalidPassword: "Nieprawidłowe hasło",
   invalidEmail: "Nieprawidłowy adres e-mail",
   email_already_exists: "Ten adres email jest już zarejestrowany. Proszę się zalogować.",
+  warning: "Ostrzeżenie",
+  email_exists_warning: "Ten adres email już istnieje w naszym systemie. Proszę się najpierw zalogować.",
+  login_button: "Zaloguj się",
   errors: {
     title: "Błąd",
     share: "Błąd podczas udostępniania modelu",

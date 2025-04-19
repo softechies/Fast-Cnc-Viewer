@@ -244,6 +244,9 @@ const translations = {
   invalidPassword: "Invalid password",
   invalidEmail: "Invalid email address",
   email_already_exists: "This email is already registered. Please log in instead.",
+  warning: "Warning",
+  email_exists_warning: "This email already exists in our system. Please log in first.",
+  login_button: "Log in",
   
   // Specific error messages
   errors: {
