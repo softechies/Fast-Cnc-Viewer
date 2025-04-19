@@ -205,8 +205,8 @@ export type UpdateSharedModel = z.infer<typeof updateSharedModelSchema>;
 export const stlModelMetadataSchema = z.object({
   filePath: z.string(),
   stlFilePath: z.string(),
-  isDirectStl: z.boolean().optional(),
-  stlFormat: z.string().optional(),
+  isDirectStl: z.boolean().default(false),
+  stlFormat: z.string().default('unknown'),
   parts: z.number(),
   assemblies: z.number(),
   surfaces: z.number(),

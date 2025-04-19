@@ -908,7 +908,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const viewToken = nanoid(32); // Generujemy token dostępu
       
       // Dodajemy token dostępu do metadanych
-      modelData.metadata.viewToken = viewToken;
+      const stlMetadata = modelData.metadata as StlModelMetadata;
+      stlMetadata.viewToken = viewToken;
+      modelData.metadata = stlMetadata;
       
       // Walidacja i tworzenie modelu
       const validatedData = insertModelSchema.parse(modelData);
@@ -1024,7 +1026,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const viewToken = nanoid(32); // Generujemy token dostępu
       
       // Dodajemy token dostępu do metadanych
-      modelData.metadata.viewToken = viewToken;
+      const cadMetadata = modelData.metadata as CadModelMetadata;
+      cadMetadata.viewToken = viewToken;
+      modelData.metadata = cadMetadata;
       
       // Walidacja i tworzenie modelu
       const validatedData = insertModelSchema.parse(modelData);
