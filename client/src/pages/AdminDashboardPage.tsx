@@ -551,7 +551,7 @@ export default function AdminDashboardPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex justify-end gap-2 relative z-10">
                             <Button
                               variant="outline"
                               size="sm"

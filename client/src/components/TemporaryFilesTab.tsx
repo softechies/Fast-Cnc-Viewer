@@ -156,7 +156,7 @@ export default function TemporaryFilesTab() {
                     <TableCell>{model.userEmail || '-'}</TableCell>
                     <TableCell>{model.viewTokenFragment || '-'}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 relative z-10">
                         <Button
                           variant="outline"
                           size="sm"

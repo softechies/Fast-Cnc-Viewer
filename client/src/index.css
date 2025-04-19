@@ -57,6 +57,15 @@ div[role="dialog"] {
   z-index: 999 !important;
 }
 
+/* Poprawienie wyświetlania przycisków akcji w tabelach */
+.admin-panel .flex.justify-end.gap-2 {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important; /* zwiększamy odstęp między przyciskami */
+  position: relative !important;
+  z-index: 50 !important; /* wysoki z-index */
+}
+
 /* Wyłączenie wszystkich pasków przewijania w panelu admina */
 .card-content-no-scroll ::-webkit-scrollbar {
   display: none !important;
