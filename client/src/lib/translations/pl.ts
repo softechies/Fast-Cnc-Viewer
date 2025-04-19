@@ -4,6 +4,8 @@ const translations = {
   // Common UI elements
   appTitle: "Przeglądarka CAD",
   applicationName: "Przeglądarka CAD",
+  cad_viewer: "Przeglądarka CAD",
+  powered_by: "Obsługiwane przez",
   home: "Strona główna",
   back_to_home: "Powrót do strony głównej",
   upload: "Prześlij",
@@ -20,6 +22,15 @@ const translations = {
   success: "Sukces",
   close: "Zamknij",
   confirm: "Potwierdź",
+  
+  // Auth Page
+  app_description: "Zaawansowana aplikacja do analizy i wizualizacji plików CAD 3D",
+  feature_1_title: "Zaawansowana wizualizacja",
+  feature_1_desc: "Przeglądaj i analizuj modele 3D z precyzją i szczegółami",
+  feature_2_title: "Bezpieczne udostępnianie",
+  feature_2_desc: "Udostępniaj modele klientom i współpracownikom w bezpieczny sposób",
+  feature_3_title: "Wsparcie wielu formatów",
+  feature_3_desc: "Obsługa formatów STEP, IGES, STL, DXF i DWG",
   
   // Authentication
   login: "Zaloguj się",

@@ -4,6 +4,8 @@ const translations = {
   // Common UI elements
   appTitle: "CAD Prohlížeč",
   applicationName: "CAD Prohlížeč",
+  cad_viewer: "CAD Prohlížeč",
+  powered_by: "Provozováno",
   home: "Domů",
   back_to_home: "Zpět na domovskou stránku",
   upload: "Nahrát",
@@ -20,6 +22,15 @@ const translations = {
   success: "Úspěch",
   close: "Zavřít",
   confirm: "Potvrdit",
+  
+  // Auth Page
+  app_description: "Komplexní webová aplikace pro pokročilou analýzu a vizualizaci 3D CAD souborů",
+  feature_1_title: "Pokročilá vizualizace",
+  feature_1_desc: "Prohlížejte a analyzujte 3D modely s přesností a detaily",
+  feature_2_title: "Bezpečné sdílení",
+  feature_2_desc: "Sdílejte své modely bezpečně s klienty a spolupracovníky",
+  feature_3_title: "Podpora různých formátů",
+  feature_3_desc: "Podpora formátů STEP, IGES, STL, DXF a DWG",
   
   // Authentication
   login: "Přihlásit se",

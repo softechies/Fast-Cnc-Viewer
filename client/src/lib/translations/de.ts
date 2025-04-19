@@ -4,6 +4,8 @@ const translations = {
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",
+  cad_viewer: "CAD Viewer",
+  powered_by: "Betrieben von",
   home: "Start",
   back_to_home: "Zurück zur Startseite",
   upload: "Hochladen",
