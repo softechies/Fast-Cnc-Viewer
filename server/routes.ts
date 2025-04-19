@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,13 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const [createAccount, setCreateAccount] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  
+  // Efekt do automatycznego ustawiania emaila na podstawie zalogowanego użytkownika
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
   
   // Dane formularza rejestracji
   const [registerData, setRegisterData] = useState({
@@ -100,7 +107,13 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
   const handleClose = () => {
     setPassword("");
     setExpiryDate("");
-    setEmail("");
+    // Resetuj email tylko jeśli użytkownik nie jest zalogowany
+    if (!user) {
+      setEmail("");
+    } else if (user.email) {
+      // W przypadku zalogowanego użytkownika, ustaw email na email użytkownika
+      setEmail(user.email);
+    }
     setCreateAccount(false);
     setRegisterData({
       username: "",
@@ -300,6 +313,7 @@ export default function ShareModelDialog({ isOpen, onClose, modelId, modelInfo }
                     value={email}
                     onChange={handleEmailChange}
                     onBlur={handleEmailBlur}
+                    disabled={!!user} // Zablokuj edycję dla zalogowanych użytkowników
                     required
                   />
                   {emailExists && (
