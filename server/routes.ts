@@ -728,14 +728,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       const stats = fs.statSync(file.path);
       
+      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
+      const userEmail = req.query.email as string || null;
+      
+      // Pobierz klienta po e-mailu, jeśli podano
+      let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
+      let shareEmail = null;
+      
+      if (userEmail) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        if (user) {
+          userId = user.id;
+          shareEmail = userEmail; // Ustaw e-mail do udostępniania
+        }
+      }
+      
       // Create model record directly for the STL file
       const modelData = {
-        userId: 1, // We now have a user with ID 1 in the database
+        userId: userId,
         filename: file.originalname,
         filesize: stats.size,
         format: 'STL',
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
+        shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -744,8 +761,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assemblies: 1,
           surfaces: 10,
           solids: 1,
+          userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
           properties: {
-            author: "User",
+            author: userEmail || "User",
             organization: "Direct Upload",
             partNumber: "STL-" + nanoid(6).toUpperCase(),
             revision: "A"
@@ -784,22 +802,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(file.originalname).toLowerCase();
       const format = fileExtension === '.dxf' ? 'DXF' : 'DWG';
       
+      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
+      const userEmail = req.query.email as string || null;
+      
+      // Pobierz klienta po e-mailu, jeśli podano
+      let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
+      let shareEmail = null;
+      
+      if (userEmail) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        if (user) {
+          userId = user.id;
+          shareEmail = userEmail; // Ustaw e-mail do udostępniania
+        }
+      }
+      
       // Create model record for 2D CAD file
       const modelData = {
-        userId: 1,
+        userId: userId,
         filename: file.originalname,
         filesize: stats.size,
         format: format,
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
+        shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
         metadata: {
           filePath: file.path,
           fileType: '2d',
           cadFormat: format.toLowerCase(),
           entities: 0, // To be determined by the renderer
           layers: 0,  // To be determined by the renderer
+          userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
           properties: {
-            author: "User",
+            author: userEmail || "User",
             organization: "Direct Upload",
             drawingNumber: format + "-" + nanoid(6).toUpperCase(),
             revision: "A"

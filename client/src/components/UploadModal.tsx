@@ -1,9 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Upload, X, FileUp } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -21,9 +24,18 @@ export default function UploadModal({
   onUpload 
 }: UploadModalProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  
+  // Ustawienie e-maila na podstawie zalogowanego użytkownika
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -59,8 +71,11 @@ export default function UploadModal({
   };
   
   const handleUpload = () => {
-    if (selectedFile) {
-      onUpload(selectedFile);
+    if (selectedFile && email) {
+      // Modyfikujemy funkcję, aby przekazać e-mail do naszej funkcji obsługi uploadu
+      // Funkcja nadrzędna w komponencie ClientDashboardPage doda e-mail do URL zapytania
+      const fileWithEmail = Object.assign(selectedFile, { userEmail: email });
+      onUpload(fileWithEmail);
     }
   };
   
@@ -115,6 +130,24 @@ export default function UploadModal({
             </div>
             <p className="mt-2 text-xs text-gray-500">STEP (AP203, AP214), STL, DXF, DWG</p>
             
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="email">{t('email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@example.com"
+                disabled={!!user?.email} // Pole wyłączone dla zalogowanych użytkowników
+                required
+              />
+              <p className="text-xs text-gray-500">
+                {user?.email 
+                  ? t('email_autofilled') 
+                  : t('email_required')}
+              </p>
+            </div>
+            
             <DialogFooter className="mt-4">
               <Button 
                 variant="outline" 
@@ -123,7 +156,7 @@ export default function UploadModal({
                 {t('button.cancel')}
               </Button>
               <Button
-                disabled={!selectedFile}
+                disabled={!selectedFile || !email}
                 onClick={handleUpload}
                 className="bg-primary hover:bg-blue-700"
               >
