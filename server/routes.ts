@@ -1953,6 +1953,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to check email" });
     }
   });
+  
+  // Endpoint do pobierania modeli przypisanych do zalogowanego użytkownika
+  app.get("/api/client/models", async (req: Request, res: Response) => {
+    try {
+      // Sprawdź czy użytkownik jest zalogowany
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Niezalogowany" });
+      }
+      
+      // Pobierz zalogowanego użytkownika
+      const user = req.user as User;
+      
+      // Jeśli użytkownik jest adminem, zwróć wszystkie modele
+      if (user.isAdmin) {
+        const allModels = await storage.getModels();
+        return res.json(allModels);
+      }
+      
+      // Dla zwykłego użytkownika, pobierz modele powiązane z jego adresem email
+      if (user.email) {
+        const userModels = await storage.getModelsByEmail(user.email);
+        return res.json(userModels);
+      }
+      
+      // Zwróć pustą tablicę, jeśli użytkownik nie ma emaila
+      return res.json([]);
+    } catch (error) {
+      console.error("Error retrieving client models:", error);
+      res.status(500).json({ error: "Błąd podczas pobierania modeli klienta" });
+    }
+  });
+  
+  // Endpoint do usuwania modelu przez klienta
+  app.delete("/api/client/models/:id", async (req: Request, res: Response) => {
+    try {
+      // Sprawdź czy użytkownik jest zalogowany
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Niezalogowany" });
+      }
+      
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Nieprawidłowe ID modelu" });
+      }
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model nie istnieje" });
+      }
+      
+      // Sprawdź czy model należy do zalogowanego użytkownika
+      const user = req.user as User;
+      if (!user.isAdmin && user.email !== model.shareEmail) {
+        return res.status(403).json({ error: "Brak uprawnień do usunięcia tego modelu" });
+      }
+      
+      // Usuń model
+      await storage.deleteModel(modelId);
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting client model:", error);
+      res.status(500).json({ error: "Błąd podczas usuwania modelu" });
+    }
+  });
+  
+  // Endpoint do zmiany hasła modelu przez klienta
+  app.post("/api/client/shared-models/:id/password", async (req: Request, res: Response) => {
+    try {
+      // Sprawdź czy użytkownik jest zalogowany
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Niezalogowany" });
+      }
+      
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Nieprawidłowe ID modelu" });
+      }
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model nie istnieje" });
+      }
+      
+      // Sprawdź czy model należy do zalogowanego użytkownika
+      const user = req.user as User;
+      if (!user.isAdmin && user.email !== model.shareEmail) {
+        return res.status(403).json({ error: "Brak uprawnień do zmiany hasła tego modelu" });
+      }
+      
+      // Zweryfikuj dane żądania
+      const { password } = req.body;
+      
+      // Aktualizuj model z nowym hasłem lub usuń hasło, jeśli przekazano puste
+      let hashedPassword = null;
+      if (password) {
+        hashedPassword = await hashPassword(password);
+      }
+      
+      await storage.updateModel(modelId, {
+        password: hashedPassword,
+        hasPassword: !!hashedPassword
+      });
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating model password:", error);
+      res.status(500).json({ error: "Błąd podczas aktualizacji hasła modelu" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
