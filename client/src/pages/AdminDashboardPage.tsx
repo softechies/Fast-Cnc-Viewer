@@ -56,7 +56,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2, Search, ArrowUp, ArrowDown, Key, FileX } from 'lucide-react';
+import { Loader2, RefreshCw, Clock, Check, X, Link as LinkIcon, Copy, ExternalLink, BarChart2, Search, ArrowUp, ArrowDown, Key, FileX, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -87,6 +87,10 @@ export default function AdminDashboardPage() {
   const [revokeModelId, setRevokeModelId] = useState<number | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
   const [statsModelId, setStatsModelId] = useState<number | null>(null);
+  
+  // Stany dla usuwania modelu
+  const [deleteModelId, setDeleteModelId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Nowe stany dla wyszukiwania i sortowania
   const [searchQuery, setSearchQuery] = useState('');
@@ -191,6 +195,37 @@ export default function AdminDashboardPage() {
     } finally {
       setIsRevoking(false);
       setRevokeModelId(null);
+    }
+  };
+  
+  // Funkcja usuwająca model całkowicie
+  const deleteModel = async (id: number) => {
+    setIsDeleting(true);
+    try {
+      const response = await apiRequest('DELETE', `/api/admin/models/${id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete model');
+      }
+      
+      toast({
+        title: "Model Deleted",
+        description: "The model has been completely deleted",
+      });
+      
+      // Odśwież listę modeli
+      await loadSharedModels();
+    } catch (error) {
+      console.error('Error deleting model:', error);
+      toast({
+        variant: "destructive",
+        title: "Error Deleting Model",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModelId(null);
     }
   };
   
@@ -417,15 +452,15 @@ export default function AdminDashboardPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Filename</TableHead>
-                        <TableHead>Format</TableHead>
-                        <TableHead>Owner Email</TableHead>
-                        <TableHead>Sharing Status</TableHead>
+                        <TableHead className="whitespace-nowrap">Filename</TableHead>
+                        <TableHead className="whitespace-nowrap">Format</TableHead>
+                        <TableHead className="whitespace-nowrap">Owner Email</TableHead>
+                        <TableHead className="whitespace-nowrap">Sharing Status</TableHead>
                         <TableHead 
-                          className="cursor-pointer hover:text-primary"
+                          className="cursor-pointer hover:text-primary whitespace-nowrap"
                           onClick={() => handleSort('created')}
                         >
                           <div className="flex items-center">
@@ -438,7 +473,7 @@ export default function AdminDashboardPage() {
                           </div>
                         </TableHead>
                         <TableHead 
-                          className="cursor-pointer hover:text-primary"
+                          className="cursor-pointer hover:text-primary whitespace-nowrap"
                           onClick={() => handleSort('shareLastAccessed')}
                         >
                           <div className="flex items-center">
@@ -450,9 +485,9 @@ export default function AdminDashboardPage() {
                             )}
                           </div>
                         </TableHead>
-                        <TableHead>Expiry Date</TableHead>
-                        <TableHead>Password</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="whitespace-nowrap">Expiry Date</TableHead>
+                        <TableHead className="whitespace-nowrap">Password</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -594,6 +629,49 @@ export default function AdminDashboardPage() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button 
+                                          variant="destructive" 
+                                          size="icon"
+                                          onClick={() => setDeleteModelId(model.id)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete Model Permanently</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to permanently delete this model? This will remove the model 
+                                            from the database and delete all associated files from the server. This action cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction 
+                                            onClick={() => deleteModel(model.id)}
+                                            disabled={isDeleting}
+                                            className="bg-red-600 hover:bg-red-700"
+                                          >
+                                            {isDeleting && deleteModelId === model.id ? (
+                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : null}
+                                            Yes, Delete Permanently
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete model permanently</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </TableCell>
                         </TableRow>
