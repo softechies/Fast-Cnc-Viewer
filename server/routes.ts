@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User, models } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
@@ -17,6 +17,8 @@ import { initializeEmailService, sendShareNotification as sendNodemailerNotifica
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Funkcja pomocnicza do wykrywania środowiska produkcyjnego
 function isProductionEnvironment(host: string): boolean {
@@ -858,8 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
-        // Zawsze włączamy udostępnianie dla plików STL aby zapewnić dostęp
-        shareEnabled: true, 
+        // W osobnym obiekcie, który zostanie wstawiony po walidacji
         shareId: shareId,
         metadata: {
           filePath: file.path,
@@ -880,12 +881,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
+      // Walidacja i tworzenie modelu
       const validatedData = insertModelSchema.parse(modelData);
+      
+      // Tworzymy model przez API storage
       const model = await storage.createModel(validatedData);
       
-      // Log upłoad success
-      console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled: ${model.shareEnabled}`);
+      // Użyj zaimportowanych modułów
+      // db, eq i models są już zaimportowane na początku pliku
       
+      // Teraz aktualizujemy go bezpośrednio w bazie danych
+      await db.update(models)
+        .set({ shareEnabled: true })
+        .where(eq(models.id, model.id));
+        
+      // Pobieramy zaktualizowany model
+      const updatedModel = await storage.getModel(model.id);
+      
+      if (!updatedModel) {
+        throw new Error("Model not found after update");
+      }
+      
+      // Log upload success
+      console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
+    
       res.status(201).json({
         id: model.id,
         filename: model.filename,
@@ -894,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: model.created,
         isStl: true,
         stlFormat: isSTLBinary ? 'binary' : 'ascii',
-        shareEnabled: model.shareEnabled
+        shareEnabled: updatedModel.shareEnabled
       });
     } catch (error) {
       console.error("Error uploading STL model:", error);
@@ -970,6 +989,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertModelSchema.parse(modelData);
       const model = await storage.createModel(validatedData);
+      
+      // Upewnij się, że shareEnabled jest włączone
+      await db.update(models)
+        .set({ shareEnabled: true })
+        .where(eq(models.id, model.id));
+      
+      // Pobierz zaktualizowany model
+      const updatedModel = await storage.getModel(model.id);
+      
+      if (!updatedModel) {
+        throw new Error("Model not found after update");
+      }
+      
+      console.log(`CAD model uploaded, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
       
       res.status(201).json({
         id: model.id,
