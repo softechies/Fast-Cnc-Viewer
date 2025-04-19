@@ -433,11 +433,11 @@ export class PostgresStorage implements IStorage {
   }
   
   async getSharedModels(): Promise<Model[]> {
-    // Pobierz wszystkie modele z włączonym udostępnianiem
+    // Pobierz wszystkie modele przypisane do użytkowników (userId jest not null)
     const result = await db.select()
       .from(models)
       .where(
-        eq(models.shareEnabled, true)
+        sql`${models.userId} IS NOT NULL`  // Modele przypisane do użytkowników
       );
     
     return result;

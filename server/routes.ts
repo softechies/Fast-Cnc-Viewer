@@ -1924,17 +1924,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Pobierz wszystkie udostępnione modele (tylko dla administratorów)
+  // Pobierz wszystkie modele użytkowników (tylko dla administratorów)
   app.get("/api/admin/shared-models", async (req: Request, res: Response) => {
     try {
       // W prawdziwej aplikacji powinieneś sprawdzić token administratora
       // Dla prostoty w prototypie pomijamy uwierzytelnianie
       
-      // Pobierz wszystkie udostępnione modele
-      const sharedModels = await storage.getSharedModels();
+      // Pobierz wszystkie modele przypisane do użytkowników
+      const userModels = await storage.getSharedModels();
       
       // Przygotuj dane do wysłania, zawierające tylko potrzebne informacje
-      const modelsList = sharedModels.map(model => ({
+      const modelsList = userModels.map(model => ({
         id: model.id,
         filename: model.filename,
         filesize: model.filesize,
@@ -1950,8 +1950,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(modelsList);
     } catch (error) {
-      console.error("Error getting shared models list:", error);
-      res.status(500).json({ message: "Failed to get shared models list" });
+      console.error("Error getting user models list:", error);
+      res.status(500).json({ message: "Failed to get user models list" });
     }
   });
   

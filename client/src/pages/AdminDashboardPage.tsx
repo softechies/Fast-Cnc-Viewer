@@ -119,13 +119,13 @@ export default function AdminDashboardPage() {
       const response = await apiRequest('GET', '/api/admin/shared-models');
       
       if (!response.ok) {
-        throw new Error('Failed to fetch shared models');
+        throw new Error('Failed to fetch user models');
       }
       
       const data = await response.json();
       setSharedModels(data);
     } catch (error) {
-      console.error('Error loading shared models:', error);
+      console.error('Error loading user models:', error);
       toast({
         variant: "destructive",
         title: "Error Loading Data",
@@ -403,7 +403,7 @@ export default function AdminDashboardPage() {
                 </div>
               ) : sharedModels.length === 0 ? (
                 <div className="text-center p-8 text-muted-foreground">
-                  No shared models found
+                  No user models found
                 </div>
               ) : filteredAndSortedModels.length === 0 ? (
                 <div className="text-center p-8 text-muted-foreground">
