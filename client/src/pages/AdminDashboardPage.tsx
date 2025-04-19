@@ -389,7 +389,7 @@ export default function AdminDashboardPage() {
   }, [sharedModels, searchQuery, sortField, sortDirection]);
 
   return (
-    <div className="container p-4 mx-auto max-w-7xl">
+    <div className="container p-4 mx-auto max-w-[1700px]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-2">
