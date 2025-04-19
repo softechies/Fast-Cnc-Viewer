@@ -48,23 +48,39 @@ export default function UploadModal({
   
   // Funkcja sprawdzająca, czy email istnieje w bazie użytkowników
   const checkEmailExists = async (email: string) => {
-    if (!email || !email.includes('@')) return;
+    if (!email || !email.includes('@')) {
+      console.log("[CHECK-EMAIL] Nieprawidłowy format emaila:", email);
+      return;
+    }
     
+    console.log("[CHECK-EMAIL] Sprawdzanie czy email istnieje:", email);
     setIsCheckingEmail(true);
     setEmailChecked(false);
     
     try {
-      const response = await apiRequest('GET', `/api/check-email/${encodeURIComponent(email)}`);
+      const endpoint = `/api/check-email/${encodeURIComponent(email)}`;
+      console.log("[CHECK-EMAIL] Wysyłanie zapytania do endpointu:", endpoint);
+      
+      const response = await apiRequest('GET', endpoint);
       
       if (!response.ok) {
+        console.error("[CHECK-EMAIL] Nieprawidłowa odpowiedź z serwera:", response.status);
         throw new Error('Failed to check email');
       }
       
       const data = await response.json();
+      console.log("[CHECK-EMAIL] Otrzymana odpowiedź:", data);
+      
       setEmailExists(data.exists);
       setEmailChecked(true);
+      
+      console.log("[CHECK-EMAIL] Ustawiono stan:", {
+        emailExists: data.exists,
+        emailChecked: true,
+        isProtected: data.exists && !user?.email
+      });
     } catch (error) {
-      console.error('Error checking email:', error);
+      console.error('[CHECK-EMAIL] Błąd podczas sprawdzania emaila:', error);
       toast({
         variant: "destructive",
         title: t('error'),
