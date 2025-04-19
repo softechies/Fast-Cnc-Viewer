@@ -204,8 +204,15 @@ export default function ClientDashboardPage() {
       uploadUrl = '/api/models/upload-cad';
     }
     
-    // Dodajemy e-mail użytkownika do URL, aby backend mógł go automatycznie przypisać
-    if (user?.email) {
+    // Pobieramy email z pliku (dodany przez UploadModal)
+    const userEmail = (file as any).userEmail;
+    
+    // Dodajemy email do URL
+    if (userEmail) {
+      uploadUrl += `?email=${encodeURIComponent(userEmail)}`;
+    }
+    // Jeśli brakuje email w pliku, ale użytkownik jest zalogowany, używamy email z konta
+    else if (user?.email) {
       uploadUrl += `?email=${encodeURIComponent(user.email)}`;
     }
     

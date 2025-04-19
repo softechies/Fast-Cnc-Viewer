@@ -191,6 +191,12 @@ const translations = {
     "email.placeholder": "Enter recipient email"
   },
   
+  // Email in upload modal
+  email_autofilled: "Your email address will be associated with this model",
+  email_required: "Please provide your email to associate with this model",
+  upload_success: "File uploaded successfully",
+  upload_failed: "File upload failed",
+  
   // Layout
   app: {
     footer: "CAD Viewer - © 2025 All rights reserved"

@@ -191,6 +191,12 @@ const translations = {
     "email.placeholder": "Wprowadź email odbiorcy"
   },
   
+  // Email in upload modal
+  email_autofilled: "Twój adres email zostanie powiązany z tym modelem",
+  email_required: "Podaj swój adres email, aby powiązać go z modelem",
+  upload_success: "Plik został pomyślnie przesłany",
+  upload_failed: "Przesyłanie pliku nie powiodło się",
+  
   // Layout
   app: {
     footer: "Przeglądarka CAD - © 2025 Wszelkie prawa zastrzeżone"
