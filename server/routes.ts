@@ -603,15 +603,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Weryfikacja dostępu:
-      // 1. Model jest udostępniony (shareEnabled = true)
-      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
-      // 3. Użytkownik jest administratorem
-      const isPubliclyShared = model.shareEnabled === true;
-      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
-      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
       
-      if (!isPubliclyShared && !isOwner && !isAdmin) {
+      if (!hasAccess) {
         return res.status(403).json({ 
           message: "Access denied. This model is not shared and you don't have permission to view it.",
           accessDenied: true
@@ -635,15 +630,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Weryfikacja dostępu:
-      // 1. Model jest udostępniony (shareEnabled = true)
-      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
-      // 3. Użytkownik jest administratorem
-      const isPubliclyShared = model.shareEnabled === true;
-      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
-      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
       
-      if (!isPubliclyShared && !isOwner && !isAdmin) {
+      if (!hasAccess) {
         return res.status(403).json({ 
           message: "Access denied. This model is not shared and you don't have permission to view it.",
           accessDenied: true
@@ -686,15 +676,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Weryfikacja dostępu:
-      // 1. Model jest udostępniony (shareEnabled = true)
-      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
-      // 3. Użytkownik jest administratorem
-      const isPubliclyShared = model.shareEnabled === true;
-      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
-      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
       
-      if (!isPubliclyShared && !isOwner && !isAdmin) {
+      if (!hasAccess) {
         return res.status(403).json({ 
           message: "Access denied. This model is not shared and you don't have permission to view it.",
           accessDenied: true
@@ -723,15 +708,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Weryfikacja dostępu:
-      // 1. Model jest udostępniony (shareEnabled = true)
-      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
-      // 3. Użytkownik jest administratorem
-      const isPubliclyShared = model.shareEnabled === true;
-      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
-      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
       
-      if (!isPubliclyShared && !isOwner && !isAdmin) {
+      if (!hasAccess) {
         return res.status(403).json({ 
           message: "Access denied. This model is not shared and you don't have permission to view it.",
           accessDenied: true
@@ -764,15 +744,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
-      // Weryfikacja dostępu:
-      // 1. Model jest udostępniony (shareEnabled = true)
-      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
-      // 3. Użytkownik jest administratorem
-      const isPubliclyShared = model.shareEnabled === true;
-      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
-      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
       
-      if (!isPubliclyShared && !isOwner && !isAdmin) {
+      if (!hasAccess) {
         return res.status(403).json({ 
           message: "Access denied. This model is not shared and you don't have permission to view it.",
           accessDenied: true
