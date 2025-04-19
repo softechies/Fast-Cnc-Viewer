@@ -254,7 +254,8 @@ export default function ClientDashboardPage() {
   
   // Otwiera model do podglądu
   const handleViewModel = (modelId: number) => {
-    window.open(`/${modelId}`, '_blank');
+    // Przekieruj do strony głównej z parametrem id modelu
+    window.open(`/?id=${modelId}`, '_blank');
   };
 
   if (isLoading) {

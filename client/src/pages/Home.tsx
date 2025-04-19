@@ -11,12 +11,24 @@ import { Box, InfoIcon, Upload } from "lucide-react";
 import { ModelInfo as ModelInfoType } from "@shared/schema";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { t } = useLanguage();
+  const [location] = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("info");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
+  
+  // Sprawdź, czy w parametrach URL jest ID modelu
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const modelId = urlParams.get('id');
+    if (modelId) {
+      setActiveModelId(parseInt(modelId, 10));
+    }
+  }, [location]);
+  
   const { isUploading, uploadProgress, upload } = useModelUpload({
     onSuccess: (data) => {
       setActiveModelId(data.id);
