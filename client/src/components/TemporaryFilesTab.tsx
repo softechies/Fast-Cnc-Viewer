@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -29,7 +28,6 @@ interface AssignModelInput {
 }
 
 export default function TemporaryFilesTab() {
-  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,8 +49,8 @@ export default function TemporaryFilesTab() {
     },
     onSuccess: () => {
       toast({
-        title: t('admin.temporaryFiles.assignSuccess'),
-        description: t('admin.temporaryFiles.assignSuccessMessage'),
+        title: "Assignment Successful",
+        description: "The model has been successfully assigned to the user.",
       });
       setAssignDialogOpen(false);
       setUserEmail('');
@@ -60,8 +58,8 @@ export default function TemporaryFilesTab() {
     },
     onError: (error: any) => {
       toast({
-        title: t('admin.temporaryFiles.assignError'),
-        description: error.message || t('admin.temporaryFiles.assignErrorMessage'),
+        title: "Assignment Failed",
+        description: error.message || "Failed to assign the model to the user.",
         variant: 'destructive',
       });
     },
@@ -87,8 +85,8 @@ export default function TemporaryFilesTab() {
   const confirmAssignModel = () => {
     if (!assigningModelId || !userEmail) {
       toast({
-        title: t('admin.temporaryFiles.validationError'),
-        description: t('admin.temporaryFiles.emailRequired'),
+        title: "Validation Error",
+        description: "Email address is required",
         variant: 'destructive',
       });
       return;
@@ -100,12 +98,12 @@ export default function TemporaryFilesTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('admin.temporaryFiles.title')}</CardTitle>
-        <CardDescription>{t('admin.temporaryFiles.description')}</CardDescription>
+        <CardTitle>Temporary Files</CardTitle>
+        <CardDescription>Manage temporary files uploaded by anonymous users</CardDescription>
         <div className="flex items-center space-x-2 mt-2">
           <Search className="w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder={t('admin.temporaryFiles.searchPlaceholder')}
+            placeholder="Search by filename or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
@@ -121,21 +119,21 @@ export default function TemporaryFilesTab() {
           </div>
         ) : error ? (
           <div className="text-red-500 p-4 text-center">
-            {t('admin.temporaryFiles.loadError')}
+            Error loading temporary files
           </div>
         ) : (
           <Table>
-            <TableCaption>{t('admin.temporaryFiles.tableCaption')}</TableCaption>
+            <TableCaption>List of files uploaded by anonymous users</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('admin.temporaryFiles.idColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.filenameColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.typeColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.sizeColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.createdColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.emailColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.tokenColumn')}</TableHead>
-                <TableHead>{t('admin.temporaryFiles.actionsColumn')}</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Filename</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>User Email</TableHead>
+                <TableHead>Token</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -143,8 +141,8 @@ export default function TemporaryFilesTab() {
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-4">
                     {searchQuery
-                      ? t('admin.temporaryFiles.noSearchResults')
-                      : t('admin.temporaryFiles.noModels')}
+                      ? "No files match your search criteria"
+                      : "No temporary files found"}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -163,7 +161,7 @@ export default function TemporaryFilesTab() {
                           variant="outline"
                           size="sm"
                           onClick={() => window.open(`/?modelId=${model.id}`, '_blank')}
-                          title={t('admin.temporaryFiles.viewTooltip')}
+                          title="View model in viewer"
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
@@ -171,7 +169,7 @@ export default function TemporaryFilesTab() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleAssignModel(model.id)}
-                          title={t('admin.temporaryFiles.assignTooltip')}
+                          title="Assign to user"
                         >
                           <UserPlus className="h-4 w-4" />
                         </Button>
@@ -188,28 +186,28 @@ export default function TemporaryFilesTab() {
         <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('admin.temporaryFiles.assignTitle')}</DialogTitle>
+              <DialogTitle>Assign File to User</DialogTitle>
               <DialogDescription>
-                {t('admin.temporaryFiles.assignDescription')}
+                Enter an email address to assign this file to a specific user
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <Input
-                placeholder={t('admin.temporaryFiles.emailPlaceholder')}
+                placeholder="user@example.com"
                 value={userEmail}
                 onChange={(e) => setUserEmail(e.target.value)}
               />
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">{t('button.cancel')}</Button>
+                <Button variant="outline">Cancel</Button>
               </DialogClose>
               <Button
                 variant="default"
                 onClick={confirmAssignModel}
                 disabled={assignModelMutation.isPending}
               >
-                {assignModelMutation.isPending ? t('state.processing') : t('button.assign')}
+                {assignModelMutation.isPending ? "Processing..." : "Assign"}
               </Button>
             </DialogFooter>
           </DialogContent>
