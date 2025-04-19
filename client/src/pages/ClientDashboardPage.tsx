@@ -16,9 +16,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import Header from "@/components/Header";
+import FooterBar from "@/components/FooterBar";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
