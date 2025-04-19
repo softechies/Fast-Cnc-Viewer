@@ -53,7 +53,6 @@ export const models = pgTable("models", {
   created: text("created").notNull(),
   sourceSystem: text("source_system"),
   metadata: jsonb("metadata"), // Zawiera wszystkie dodatkowe dane, w tym ścieżki do plików STL i JSON
-  isTemporaryUpload: boolean("is_temporary_upload").default(true), // Czy plik jest tymczasowym uploadem (tylko do podglądu)
   shareId: text("share_id").unique(), // Unikalny identyfikator do udostępniania
   shareEnabled: boolean("share_enabled").default(false), // Czy udostępnianie jest włączone
   sharePassword: text("share_password"), // Opcjonalne hasło do zabezpieczenia pliku (przechowywane jako hash)

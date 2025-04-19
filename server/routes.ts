@@ -881,19 +881,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
+      // Dodajemy token dostępu do metadanych - dzięki temu niezalogowany użytkownik będzie mógł 
+      // zobaczyć swój model, ale nie będzie on widoczny w panelu admina jako udostępniony
+      const viewToken = nanoid(32); // Generujemy token dostępu
+      
+      // Dodajemy token dostępu do metadanych
+      modelData.metadata.viewToken = viewToken;
+      
       // Walidacja i tworzenie modelu
       const validatedData = insertModelSchema.parse(modelData);
       
-      // Tworzymy model przez API storage
+      // Tworzymy model przez API storage bez ustawiania shareEnabled na true
       const model = await storage.createModel(validatedData);
       
-      // Użyj zaimportowanych modułów
-      // db, eq i models są już zaimportowane na początku pliku
+      // Zapisujemy token w sesji użytkownika, aby mógł zobaczyć swój model
+      if (!req.session.viewTokens) {
+        req.session.viewTokens = {};
+      }
+      req.session.viewTokens[model.id] = viewToken;
       
-      // Teraz aktualizujemy go bezpośrednio w bazie danych
-      await db.update(models)
-        .set({ shareEnabled: true })
-        .where(eq(models.id, model.id));
+      // Logujemy token dostępu dla celów diagnostycznych
+      console.log(`Model ID: ${model.id} przypisany token dostępu: ${viewToken}`);
+      console.log(`Token zapisany w sesji użytkownika: ${req.session.viewTokens[model.id]}`);
         
       // Pobieramy zaktualizowany model
       const updatedModel = await storage.getModel(model.id);
@@ -987,22 +996,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
+      // Dodajemy token dostępu do metadanych - dzięki temu niezalogowany użytkownik będzie mógł 
+      // zobaczyć swój model, ale nie będzie on widoczny w panelu admina jako udostępniony
+      const viewToken = nanoid(32); // Generujemy token dostępu
+      
+      // Dodajemy token dostępu do metadanych
+      modelData.metadata.viewToken = viewToken;
+      
+      // Walidacja i tworzenie modelu
       const validatedData = insertModelSchema.parse(modelData);
+      
+      // Tworzymy model przez API storage bez ustawiania shareEnabled na true dla niezalogowanych użytkowników
       const model = await storage.createModel(validatedData);
       
-      // Upewnij się, że shareEnabled jest włączone
-      await db.update(models)
-        .set({ shareEnabled: true })
-        .where(eq(models.id, model.id));
-      
-      // Pobierz zaktualizowany model
-      const updatedModel = await storage.getModel(model.id);
-      
-      if (!updatedModel) {
-        throw new Error("Model not found after update");
+      // Zapisujemy token w sesji użytkownika, aby mógł zobaczyć swój model
+      if (!req.session.viewTokens) {
+        req.session.viewTokens = {};
       }
+      req.session.viewTokens[model.id] = viewToken;
       
-      console.log(`CAD model uploaded, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
+      // Logujemy token dostępu dla celów diagnostycznych
+      console.log(`CAD model ID: ${model.id} przypisany token dostępu: ${viewToken}`);
+      console.log(`Token zapisany w sesji użytkownika: ${req.session.viewTokens[model.id]}`);
       
       res.status(201).json({
         id: model.id,
