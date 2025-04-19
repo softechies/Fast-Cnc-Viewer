@@ -23,6 +23,15 @@ const translations = {
   close: "Schließen",
   confirm: "Bestätigen",
   
+  // Auth Page
+  app_description: "Eine umfassende Webanwendung für fortgeschrittene 3D-CAD-Dateianalyse und -visualisierung",
+  feature_1_title: "Fortgeschrittene Visualisierung",
+  feature_1_desc: "Betrachten und analysieren Sie 3D-Modelle mit Präzision und Detailgenauigkeit",
+  feature_2_title: "Sicheres Teilen",
+  feature_2_desc: "Teilen Sie Ihre Modelle sicher mit Kunden und Mitarbeitern",
+  feature_3_title: "Format-Unterstützung",
+  feature_3_desc: "Unterstützung für STEP, IGES, STL, DXF und DWG Formate",
+  
   // Authentication
   login: "Anmelden",
   register: "Registrieren",
