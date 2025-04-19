@@ -134,6 +134,73 @@ export default function ClientDashboardPage() {
       });
     }
   });
+  
+  // Mutacja włączania udostępniania
+  const enableSharingMutation = useMutation({
+    mutationFn: async (modelId: number) => {
+      const res = await apiRequest(
+        "POST", 
+        `/api/models/${modelId}/share`, 
+        {
+          modelId,
+          enableSharing: true,
+          email: user?.email
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Błąd podczas włączania udostępniania");
+      }
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t('sharing_enabled'),
+        description: t('sharing_enabled_success'),
+      });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('sharing_error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutacja wyłączania udostępniania
+  const disableSharingMutation = useMutation({
+    mutationFn: async (modelId: number) => {
+      const res = await apiRequest(
+        "POST", 
+        `/api/models/${modelId}/share`, 
+        {
+          modelId,
+          enableSharing: false
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Błąd podczas wyłączania udostępniania");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('sharing_disabled'),
+        description: t('sharing_disabled_success'),
+      });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('sharing_error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Obsługa zmiany hasła
   const handleChangePassword = (e: React.FormEvent) => {
@@ -183,6 +250,11 @@ export default function ClientDashboardPage() {
   // Otwiera link w nowej karcie
   const handleOpenLink = () => {
     window.open(shareLink, '_blank');
+  };
+  
+  // Otwiera model do podglądu
+  const handleViewModel = (modelId: number) => {
+    window.open(`/${modelId}`, '_blank');
   };
 
   if (isLoading) {
@@ -285,16 +357,42 @@ export default function ClientDashboardPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            {model.shareEnabled && model.shareId && (
+                            {/* Przycisk podglądu modelu */}
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleViewModel(model.id)}
+                              title={t('view_model')}
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span className="sr-only">{t('view_model')}</span>
+                            </Button>
+                            
+                            {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
+                            {model.shareEnabled && model.shareId ? (
                               <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={() => handleShowLink(model)}
+                                title={t('view_share_link')}
                               >
                                 <ExternalLink className="h-4 w-4" />
-                                <span className="sr-only">{t('open_link')}</span>
+                                <span className="sr-only">{t('view_share_link')}</span>
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => enableSharingMutation.mutate(model.id)}
+                                disabled={enableSharingMutation.isPending}
+                                title={t('enable_sharing')}
+                              >
+                                <Share className="h-4 w-4" />
+                                <span className="sr-only">{t('enable_sharing')}</span>
                               </Button>
                             )}
+                            
+                            {/* Przycisk zmiany hasła - dostępny zawsze */}
                             <Button
                               variant="outline"
                               size="icon"
@@ -302,10 +400,27 @@ export default function ClientDashboardPage() {
                                 setSelectedModel(model);
                                 setIsPasswordDialogOpen(true);
                               }}
+                              title={t('change_password')}
                             >
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">{t('change_password')}</span>
                             </Button>
+                            
+                            {/* Przycisk zakończenia udostępniania - widoczny tylko gdy model jest udostępniony */}
+                            {model.shareEnabled && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => disableSharingMutation.mutate(model.id)}
+                                disabled={disableSharingMutation.isPending}
+                                title={t('disable_sharing')}
+                              >
+                                <Unlock className="h-4 w-4" />
+                                <span className="sr-only">{t('disable_sharing')}</span>
+                              </Button>
+                            )}
+                            
+                            {/* Przycisk usuwania - dostępny zawsze */}
                             <Button
                               variant="destructive"
                               size="icon"
@@ -313,6 +428,7 @@ export default function ClientDashboardPage() {
                                 setSelectedModel(model);
                                 setIsDeleteDialogOpen(true);
                               }}
+                              title={t('delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                               <span className="sr-only">{t('delete')}</span>
