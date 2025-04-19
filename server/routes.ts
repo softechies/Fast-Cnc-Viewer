@@ -19,6 +19,14 @@ import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevo
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import session from "express-session";
+
+// Rozszerzenie typu Session aby zawierał viewTokens
+declare module 'express-session' {
+  interface SessionData {
+    viewTokens?: Record<string, string>;
+  }
+}
 
 // Funkcja pomocnicza do wykrywania środowiska produkcyjnego
 function isProductionEnvironment(host: string): boolean {
@@ -29,6 +37,44 @@ function isProductionEnvironment(host: string): boolean {
 // Funkcja do porównywania haszowanego hasła
 async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
   return await bcrypt.compare(plainPassword, hashedPassword);
+}
+
+// Funkcja sprawdzająca dostęp do modelu
+async function hasAccessToModel(req: Request, modelId: number): Promise<boolean> {
+  try {
+    const model = await storage.getModel(modelId);
+    if (!model) return false;
+    
+    // Administrator ma dostęp do wszystkich modeli
+    if (req.isAuthenticated() && req.user.isAdmin) {
+      return true;
+    }
+    
+    // Właściciel modelu ma dostęp do modelu
+    if (req.isAuthenticated() && model.userId === req.user.id) {
+      return true;
+    }
+    
+    // Jeśli model jest udostępniony publicznie, każdy ma dostęp
+    if (model.shareEnabled) {
+      return true;
+    }
+    
+    // Sprawdź, czy w sesji użytkownika jest zapisany token dostępu dla tego modelu
+    const viewTokens = req.session.viewTokens || {};
+    if (viewTokens[modelId.toString()]) {
+      // Sprawdź, czy token zgadza się z tokenem w metadanych
+      const metadata = model.metadata as any;
+      if (metadata && metadata.viewToken && metadata.viewToken === viewTokens[modelId.toString()]) {
+        return true;
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error("Error checking model access:", error);
+    return false;
+  }
 }
 
 // ES modules compatibility (replacement for __dirname)
@@ -846,8 +892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSTLBinary = true;
       }
       
-      // Dla plików STL musimy zapewnić, że są automatycznie udostępniane, aby użytkownik mógł je od razu zobaczyć
-      // Nie ma potrzeby chowania ich za dostępem - są przecież bezpośrednio uploadowane
+      // Tylko zalogowani użytkownicy mają włączone shareEnabled
       const isOwner = req.isAuthenticated();
       const shareId = nanoid(10); // Zawsze generujemy shareId
       
@@ -862,6 +907,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
         // W osobnym obiekcie, który zostanie wstawiony po walidacji
         shareId: shareId,
+        // Tylko zalogowani użytkownicy mają włączone shareEnabled automatycznie
+        shareEnabled: isOwner, 
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -965,7 +1012,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Dla plików DXF/DWG również włączamy automatycznie udostępnianie
+      // Tylko zalogowani użytkownicy mają włączone shareEnabled
+      const isOwner = req.isAuthenticated();
       const shareId = nanoid(10); // Zawsze generujemy shareId
       
       // Create model record for 2D CAD file
@@ -977,8 +1025,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
-        // Włączamy udostępnianie aby zapewnić dostęp
-        shareEnabled: true,
+        // Tylko zalogowani użytkownicy mają włączone shareEnabled automatycznie
+        shareEnabled: isOwner,
         shareId: shareId,
         metadata: {
           filePath: file.path,
