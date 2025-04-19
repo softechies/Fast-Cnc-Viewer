@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ukrycie paska przewijania w panelu administratora */
+.card-content-no-scroll {
+  overflow: visible !important;
+  padding: 24px !important;
+  position: static !important;
+}
+
+.card-content-no-scroll > * {
+  overflow: visible !important;
+}
+
+/* Zapewnienie, że tabele mają pełną szerokość */
+.full-width-table {
+  width: 100% !important;
+  overflow-x: visible !important;
+}
+
+/* Naprawienie stylu dla komponentu Card */
+.card-content-no-scroll div[data-radix-scroll-area-viewport] {
+  overflow: visible !important;
+  position: static !important;
+}
+
+/* Wyłączenie styli shadow dla diva wewnątrz tabeli */
+div[data-component-name="Card"] > div {
+  overflow: visible !important;
+}
+
 @layer base {
   * {
     @apply border-border;

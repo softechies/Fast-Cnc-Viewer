@@ -437,7 +437,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="card-content-no-scroll">
               {isLoading ? (
                 <div className="flex justify-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -451,7 +451,7 @@ export default function AdminDashboardPage() {
                   No models match your search
                 </div>
               ) : (
-                <Table className="w-full">
+                <Table className="w-full full-width-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="whitespace-nowrap">Filename</TableHead>

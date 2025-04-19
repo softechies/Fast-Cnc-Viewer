@@ -110,7 +110,7 @@ export default function TemporaryFilesTab() {
           />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="card-content-no-scroll">
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
@@ -122,7 +122,7 @@ export default function TemporaryFilesTab() {
             Error loading temporary files
           </div>
         ) : (
-          <Table className="w-full">
+          <Table className="w-full full-width-table">
             <TableCaption>List of files uploaded by anonymous users</TableCaption>
             <TableHeader>
               <TableRow>
