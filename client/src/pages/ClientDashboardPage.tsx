@@ -304,7 +304,7 @@ export default function ClientDashboardPage() {
       
       <main className="flex-grow flex flex-col">
         <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+          <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
             <Button variant="ghost" asChild className="mr-4">
               <Link href="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -318,7 +318,7 @@ export default function ClientDashboardPage() {
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>{t('shared_models')}</CardTitle>
@@ -326,8 +326,9 @@ export default function ClientDashboardPage() {
             </CardHeader>
             <CardContent>
               {models && models.length > 0 ? (
-                <Table>
-                  <TableHeader>
+                <div className="overflow-x-auto">
+                  <Table className="w-full">
+                    <TableHeader>
                     <TableRow>
                       <TableHead>{t('filename')}</TableHead>
                       <TableHead>{t('shared_with')}</TableHead>
@@ -446,6 +447,7 @@ export default function ClientDashboardPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
