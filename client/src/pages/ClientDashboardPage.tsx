@@ -329,120 +329,120 @@ export default function ClientDashboardPage() {
                 <div className="overflow-x-auto">
                   <Table className="w-full">
                     <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('filename')}</TableHead>
-                      <TableHead>{t('shared_with')}</TableHead>
-                      <TableHead>{t('status')}</TableHead>
-                      <TableHead>{t('last_accessed')}</TableHead>
-                      <TableHead className="text-right">{t('actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {models.map((model) => (
-                      <TableRow key={model.id}>
-                        <TableCell className="font-medium">{model.filename}</TableCell>
-                        <TableCell>{model.shareEmail || "-"}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {model.shareEnabled ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                                {t('active')}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100">
-                                {t('inactive')}
-                              </span>
-                            )}
-                            {model.hasPassword && (
-                              <Lock className="ml-2 h-4 w-4 text-muted-foreground" />
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {model.shareLastAccessed 
-                            ? new Date(model.shareLastAccessed).toLocaleDateString() 
-                            : "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            {/* Przycisk podglądu modelu */}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleViewModel(model.id)}
-                              title={t('view_model')}
-                            >
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">{t('view_model')}</span>
-                            </Button>
-                            
-                            {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
-                            {model.shareEnabled && model.shareId ? (
+                      <TableRow>
+                        <TableHead>{t('filename')}</TableHead>
+                        <TableHead>{t('shared_with')}</TableHead>
+                        <TableHead>{t('status')}</TableHead>
+                        <TableHead>{t('last_accessed')}</TableHead>
+                        <TableHead className="text-right">{t('actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {models.map((model) => (
+                        <TableRow key={model.id}>
+                          <TableCell className="font-medium">{model.filename}</TableCell>
+                          <TableCell>{model.shareEmail || "-"}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              {model.shareEnabled ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                  {t('active')}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                                  {t('inactive')}
+                                </span>
+                              )}
+                              {model.hasPassword && (
+                                <Lock className="ml-2 h-4 w-4 text-muted-foreground" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {model.shareLastAccessed 
+                              ? new Date(model.shareLastAccessed).toLocaleDateString() 
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              {/* Przycisk podglądu modelu */}
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleShowLink(model)}
-                                title={t('view_share_link')}
+                                onClick={() => handleViewModel(model.id)}
+                                title={t('view_model')}
                               >
-                                <ExternalLink className="h-4 w-4" />
-                                <span className="sr-only">{t('view_share_link')}</span>
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">{t('view_model')}</span>
                               </Button>
-                            ) : (
+                              
+                              {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
+                              {model.shareEnabled && model.shareId ? (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleShowLink(model)}
+                                  title={t('view_share_link')}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span className="sr-only">{t('view_share_link')}</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => enableSharingMutation.mutate(model.id)}
+                                  disabled={enableSharingMutation.isPending}
+                                  title={t('enable_sharing')}
+                                >
+                                  <Share className="h-4 w-4" />
+                                  <span className="sr-only">{t('enable_sharing')}</span>
+                                </Button>
+                              )}
+                              
+                              {/* Przycisk zmiany hasła - dostępny zawsze */}
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => enableSharingMutation.mutate(model.id)}
-                                disabled={enableSharingMutation.isPending}
-                                title={t('enable_sharing')}
+                                onClick={() => {
+                                  setSelectedModel(model);
+                                  setIsPasswordDialogOpen(true);
+                                }}
+                                title={t('change_password')}
                               >
-                                <Share className="h-4 w-4" />
-                                <span className="sr-only">{t('enable_sharing')}</span>
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">{t('change_password')}</span>
                               </Button>
-                            )}
-                            
-                            {/* Przycisk zmiany hasła - dostępny zawsze */}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedModel(model);
-                                setIsPasswordDialogOpen(true);
-                              }}
-                              title={t('change_password')}
-                            >
-                              <Edit className="h-4 w-4" />
-                              <span className="sr-only">{t('change_password')}</span>
-                            </Button>
-                            
-                            {/* Przycisk zakończenia udostępniania - widoczny tylko gdy model jest udostępniony */}
-                            {model.shareEnabled && (
+                              
+                              {/* Przycisk zakończenia udostępniania - widoczny tylko gdy model jest udostępniony */}
+                              {model.shareEnabled && (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => disableSharingMutation.mutate(model.id)}
+                                  disabled={disableSharingMutation.isPending}
+                                  title={t('disable_sharing')}
+                                >
+                                  <Unlock className="h-4 w-4" />
+                                  <span className="sr-only">{t('disable_sharing')}</span>
+                                </Button>
+                              )}
+                              
+                              {/* Przycisk usuwania - dostępny zawsze */}
                               <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="icon"
-                                onClick={() => disableSharingMutation.mutate(model.id)}
-                                disabled={disableSharingMutation.isPending}
-                                title={t('disable_sharing')}
+                                onClick={() => {
+                                  setSelectedModel(model);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                                title={t('delete')}
                               >
-                                <Unlock className="h-4 w-4" />
-                                <span className="sr-only">{t('disable_sharing')}</span>
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">{t('delete')}</span>
                               </Button>
-                            )}
-                            
-                            {/* Przycisk usuwania - dostępny zawsze */}
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedModel(model);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                              title={t('delete')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">{t('delete')}</span>
-                            </Button>
-                          </div>
-                        </TableCell>
+                            </div>
+                          </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
