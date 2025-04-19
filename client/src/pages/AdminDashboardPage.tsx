@@ -451,8 +451,8 @@ export default function AdminDashboardPage() {
                   No models match your search
                 </div>
               ) : (
-                <div className="overflow-auto">
-                  <Table>
+                <div className="overflow-x-auto w-full">
+                  <Table className="w-full">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="whitespace-nowrap">Filename</TableHead>

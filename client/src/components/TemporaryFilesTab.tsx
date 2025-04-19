@@ -122,8 +122,8 @@ export default function TemporaryFilesTab() {
             Error loading temporary files
           </div>
         ) : (
-          <div className="overflow-auto">
-            <Table>
+          <div className="overflow-x-auto w-full">
+            <Table className="w-full">
               <TableCaption>List of files uploaded by anonymous users</TableCaption>
               <TableHeader>
                 <TableRow>
