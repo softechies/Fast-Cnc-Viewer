@@ -2131,6 +2131,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to disable sharing" });
     }
   });
+  
+  // Całkowicie usuń model z serwera (tylko dla administratorów)
+  app.delete("/api/admin/models/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const modelId = parseInt(id);
+      
+      if (isNaN(modelId)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      // W prawdziwej aplikacji powinieneś sprawdzić token administratora
+      // Dla prostoty w prototypie pomijamy uwierzytelnianie
+      
+      // Pobierz model przed usunięciem, aby znać ścieżkę pliku
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Usuń model z bazy danych
+      const deleteResult = await storage.deleteModel(modelId);
+      
+      if (!deleteResult) {
+        return res.status(500).json({ message: "Failed to delete model from database" });
+      }
+      
+      // Próba usunięcia pliku fizycznego (opcjonalnie)
+      try {
+        // Jeśli metadane zawierają ścieżkę pliku, spróbuj go usunąć
+        if (model.metadata) {
+          const metadata = typeof model.metadata === 'string' 
+            ? JSON.parse(model.metadata) 
+            : model.metadata;
+          
+          // Usuń plik STL, jeśli istnieje
+          if (metadata.stlFilePath && fs.existsSync(metadata.stlFilePath)) {
+            fs.unlinkSync(metadata.stlFilePath);
+          }
+          
+          // Usuń plik STEP, jeśli istnieje
+          if (metadata.filePath && fs.existsSync(metadata.filePath)) {
+            fs.unlinkSync(metadata.filePath);
+          }
+          
+          // Usuń plik DXF, jeśli istnieje
+          if (metadata.dxfFilePath && fs.existsSync(metadata.dxfFilePath)) {
+            fs.unlinkSync(metadata.dxfFilePath);
+          }
+        }
+      } catch (fileError) {
+        console.error("Error deleting physical files:", fileError);
+        // Nie przerywamy procesu, jeśli usunięcie pliku się nie powiedzie
+      }
+      
+      res.status(200).json({ message: "Model completely deleted" });
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      res.status(500).json({ message: "Failed to delete model" });
+    }
+  });
 
   // Get model view statistics
   app.get("/api/admin/shared-models/:id/stats", async (req: Request, res: Response) => {
