@@ -215,6 +215,49 @@ export function setupAuth(app: Express): void {
         isClient: true
       });
       
+      // Znajdź wszystkie tymczasowe modele, które mogą być powiązane z tym emailem
+      // lub mają token dostępu w sesji użytkownika
+      try {
+        // Pobierz wszystkie modele
+        const allModels = await storage.getModels();
+        
+        // Przechowuj liczniki dla przypisanych modeli
+        let assignedModelsCount = 0;
+        
+        // Przejrzyj każdy model, aby sprawdzić czy jest tymczasowy i powiązany z użytkownikiem
+        for (const model of allModels) {
+          // Pobierz metadane modelu
+          const metadata = model.metadata as any;
+          
+          // Sprawdź czy model ma viewToken i czy nie jest już udostępniony
+          if (metadata && metadata.viewToken && !model.shareEnabled) {
+            // Sprawdź czy model ma powiązany email w metadanych
+            const modelEmail = metadata.userEmail;
+            
+            // Sprawdź również token w sesji, jeśli istnieje
+            const sessionHasToken = req.session.viewTokens && req.session.viewTokens[model.id] === metadata.viewToken;
+            
+            // Jeśli email pasuje lub istnieje token w sesji, przypisz model do użytkownika
+            if ((modelEmail && modelEmail === email) || sessionHasToken) {
+              // Przypisz model do nowego użytkownika
+              await storage.updateModel(model.id, {
+                userId: user.id,
+                shareEmail: email
+              });
+              
+              assignedModelsCount++;
+              
+              console.log(`Przypisano model #${model.id} (${model.filename}) do nowego użytkownika ${email}`);
+            }
+          }
+        }
+        
+        console.log(`Łącznie przypisano ${assignedModelsCount} modeli tymczasowych do nowego użytkownika ${email}`);
+      } catch (assignError) {
+        // Logujemy błąd, ale nie przerywamy procesu rejestracji
+        console.error("Błąd podczas przypisywania modeli tymczasowych:", assignError);
+      }
+      
       // Zaloguj użytkownika po rejestracji
       req.login({
         id: user.id,

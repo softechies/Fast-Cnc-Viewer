@@ -1955,6 +1955,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Pobierz wszystkie modele tymczasowe (tylko dla administratorów)
+  app.get("/api/admin/temporary-models", async (req: Request, res: Response) => {
+    try {
+      // Pobierz wszystkie modele
+      const allModels = await storage.getModels();
+      
+      // Filtruj modele tymczasowe - te, które mają token viewToken w metadanych
+      const temporaryModels = allModels.filter(model => {
+        // Sprawdź typ modelu i pobierz metadane
+        const metadata = model.metadata as any;
+        return metadata && metadata.viewToken && !model.shareEnabled;
+      });
+      
+      // Przygotuj dane do wysłania z dodatkowymi informacjami
+      const modelsList = temporaryModels.map(model => {
+        // Pobierz metadane modelu
+        const metadata = model.metadata as any;
+        
+        // Określ typ modelu na podstawie metadanych
+        let modelType = "unknown";
+        let userEmail = null;
+        
+        if (metadata) {
+          if (metadata.stlFilePath) {
+            modelType = "STL";
+          } else if (metadata.fileType === "2d") {
+            modelType = metadata.cadFormat ? metadata.cadFormat.toUpperCase() : "CAD";
+          }
+          
+          // Pobierz email użytkownika z metadanych, jeśli istnieje
+          userEmail = metadata.userEmail || null;
+        }
+        
+        return {
+          id: model.id,
+          filename: model.filename,
+          filesize: model.filesize,
+          format: model.format,
+          created: model.created,
+          modelType: modelType,
+          userEmail: userEmail,
+          // Dołącz tylko pierwszy fragment tokenu do identyfikacji
+          viewTokenFragment: metadata && metadata.viewToken 
+            ? metadata.viewToken.substring(0, 8) + "..." 
+            : null
+        };
+      });
+      
+      res.json(modelsList);
+    } catch (error) {
+      console.error("Error getting temporary models list:", error);
+      res.status(500).json({ message: "Failed to get temporary models list" });
+    }
+  });
+  
+  // Przypisz model tymczasowy do konkretnego użytkownika (przez administratora)
+  app.post("/api/admin/temporary-models/:id/assign", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      const { email } = req.body;
+      
+      if (isNaN(modelId)) {
+        return res.status(400).json({ message: "Invalid model ID" });
+      }
+      
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ message: "Valid email is required" });
+      }
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy to faktycznie model tymczasowy
+      const metadata = model.metadata as any;
+      if (!metadata || !metadata.viewToken || model.shareEnabled) {
+        return res.status(400).json({ message: "This is not a temporary model" });
+      }
+      
+      // Sprawdź czy istnieje użytkownik z podanym emailem
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User with this email not found" });
+      }
+      
+      // Aktualizuj model, przypisując go do użytkownika
+      const updatedModel = await storage.updateModel(modelId, {
+        userId: user.id,
+        shareEmail: email
+      });
+      
+      if (!updatedModel) {
+        return res.status(500).json({ message: "Failed to update model" });
+      }
+      
+      res.status(200).json({ 
+        success: true,
+        message: "Model assigned to user successfully", 
+        modelId,
+        userId: user.id,
+        email
+      });
+    } catch (error) {
+      console.error("Error assigning temporary model to user:", error);
+      res.status(500).json({ message: "Failed to assign model to user" });
+    }
+  });
+  
   // Odwołaj udostępnianie modelu (tylko dla administratorów)
   app.delete("/api/admin/shared-models/:id", async (req: Request, res: Response) => {
     try {
