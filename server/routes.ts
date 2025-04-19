@@ -555,6 +555,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
+      // Weryfikacja dostępu:
+      // 1. Model jest udostępniony (shareEnabled = true)
+      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
+      // 3. Użytkownik jest administratorem
+      const isPubliclyShared = model.shareEnabled === true;
+      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
+      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      
+      if (!isPubliclyShared && !isOwner && !isAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
+      }
+      
       res.json(model);
     } catch (error) {
       console.error("Error getting model:", error);
@@ -570,6 +585,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!model) {
         return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Weryfikacja dostępu:
+      // 1. Model jest udostępniony (shareEnabled = true)
+      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
+      // 3. Użytkownik jest administratorem
+      const isPubliclyShared = model.shareEnabled === true;
+      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
+      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      
+      if (!isPubliclyShared && !isOwner && !isAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
       }
       
       const metadata = model.metadata as any;
@@ -608,6 +638,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Model not found" });
       }
       
+      // Weryfikacja dostępu:
+      // 1. Model jest udostępniony (shareEnabled = true)
+      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
+      // 3. Użytkownik jest administratorem
+      const isPubliclyShared = model.shareEnabled === true;
+      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
+      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      
+      if (!isPubliclyShared && !isOwner && !isAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
+      }
+      
       // Generate a model tree from the STEP file
       const metadata = model.metadata as any;
       const filePath = metadata?.filePath;
@@ -628,6 +673,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!model) {
         return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Weryfikacja dostępu:
+      // 1. Model jest udostępniony (shareEnabled = true)
+      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
+      // 3. Użytkownik jest administratorem
+      const isPubliclyShared = model.shareEnabled === true;
+      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
+      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      
+      if (!isPubliclyShared && !isOwner && !isAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
       }
       
       const metadata = model.metadata as any;
@@ -654,6 +714,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!model) {
         return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Weryfikacja dostępu:
+      // 1. Model jest udostępniony (shareEnabled = true)
+      // 2. Użytkownik jest zalogowany i jest właścicielem modelu
+      // 3. Użytkownik jest administratorem
+      const isPubliclyShared = model.shareEnabled === true;
+      const isOwner = req.isAuthenticated() && req.user.id === model.userId;
+      const isAdmin = req.isAuthenticated() && req.user.isAdmin === true;
+      
+      if (!isPubliclyShared && !isOwner && !isAdmin) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
       }
       
       const metadata = model.metadata as any;
