@@ -493,7 +493,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail w parametrach URL
       const userEmail = req.query.email as string || null;
-      console.log(`[DEBUG STEP] Próba przesłania pliku STEP z emailem: ${userEmail}, zalogowany: ${req.isAuthenticated()}`);
+      
+      console.log(`[DEBUG STEP] Parametry żądania:`, {
+        queryEmail: req.query.email,
+        normalizedEmail: userEmail,
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        file: file.originalname,
+        size: stats.size
+      });
       
       // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
       if (userEmail && !req.isAuthenticated()) {
@@ -502,12 +511,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Spróbuj znaleźć użytkownika o podanym e-mailu
         const user = await storage.getUserByEmail(userEmail);
         
-        console.log(`[DEBUG STEP] Wynik sprawdzenia: ${user ? 'Znaleziono użytkownika' : 'Nie znaleziono użytkownika'}`);
+        console.log(`[DEBUG STEP] Wynik sprawdzenia:`, { 
+          emailExists: !!user,
+          userId: user?.id,
+          username: user?.username,
+          isClient: user?.isClient,
+          isAdmin: user?.isAdmin
+        });
         
         // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
         // na to konto, blokujemy taką operację
         if (user) {
-          console.log(`[DEBUG STEP] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika`);
+          console.log(`[DEBUG STEP] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika (ID: ${user.id})`);
           
           // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
           if (file && fs.existsSync(file.path)) {
@@ -856,26 +871,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail w parametrach URL
       const userEmail = req.query.email as string || null;
-      console.log(`[DEBUG] Próba przesłania pliku STL z emailem: ${userEmail}, zalogowany: ${req.isAuthenticated()}`);
+      
+      console.log(`[DEBUG STL] Parametry żądania:`, {
+        queryEmail: req.query.email,
+        normalizedEmail: userEmail,
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        file: file.originalname,
+        size: stats.size
+      });
       
       // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
       if (userEmail && !req.isAuthenticated()) {
-        console.log(`[DEBUG] Sprawdzam email ${userEmail} dla niezalogowanego użytkownika`);
+        console.log(`[DEBUG STL] Sprawdzam email ${userEmail} dla niezalogowanego użytkownika`);
         
         // Spróbuj znaleźć użytkownika o podanym e-mailu
         const user = await storage.getUserByEmail(userEmail);
         
-        console.log(`[DEBUG] Wynik sprawdzenia: ${user ? 'Znaleziono użytkownika' : 'Nie znaleziono użytkownika'}`);
+        console.log(`[DEBUG STL] Wynik sprawdzenia:`, { 
+          emailExists: !!user,
+          userId: user?.id,
+          username: user?.username,
+          isClient: user?.isClient,
+          isAdmin: user?.isAdmin
+        });
         
         // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
         // na to konto, blokujemy taką operację
         if (user) {
-          console.log(`[DEBUG] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika`);
+          console.log(`[DEBUG STL] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika (ID: ${user.id})`);
           
           // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
           if (file && fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
-            console.log(`[DEBUG] Usunięto plik tymczasowy: ${file.path}`);
+            console.log(`[DEBUG STL] Usunięto plik tymczasowy: ${file.path}`);
           }
           
           return res.status(403).json({ 
@@ -1020,7 +1050,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail w parametrach URL
       const userEmail = req.query.email as string || null;
-      console.log(`[DEBUG CAD] Próba przesłania pliku CAD z emailem: ${userEmail}, zalogowany: ${req.isAuthenticated()}`);
+      
+      console.log(`[DEBUG CAD] Parametry żądania:`, {
+        queryEmail: req.query.email,
+        normalizedEmail: userEmail,
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        file: file.originalname,
+        size: stats.size,
+        format: format
+      });
       
       // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
       if (userEmail && !req.isAuthenticated()) {
@@ -1029,12 +1069,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Spróbuj znaleźć użytkownika o podanym e-mailu
         const user = await storage.getUserByEmail(userEmail);
         
-        console.log(`[DEBUG CAD] Wynik sprawdzenia: ${user ? 'Znaleziono użytkownika' : 'Nie znaleziono użytkownika'}`);
+        console.log(`[DEBUG CAD] Wynik sprawdzenia:`, { 
+          emailExists: !!user,
+          userId: user?.id,
+          username: user?.username,
+          isClient: user?.isClient,
+          isAdmin: user?.isAdmin
+        });
         
         // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
         // na to konto, blokujemy taką operację
         if (user) {
-          console.log(`[DEBUG CAD] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika`);
+          console.log(`[DEBUG CAD] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika (ID: ${user.id})`);
           
           // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
           if (file && fs.existsSync(file.path)) {
@@ -2381,7 +2427,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/check-email/:email", async (req: Request, res: Response) => {
     try {
       const { email } = req.params;
-      console.log(`[DEBUG CHECK-EMAIL] Sprawdzanie czy email istnieje: ${email}`);
+      
+      console.log(`[DEBUG CHECK-EMAIL] Parametry żądania:`, {
+        rawEmail: req.params.email,
+        normalizedEmail: email,
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
       
       if (!email || !email.includes('@')) {
         console.log(`[DEBUG CHECK-EMAIL] Nieprawidłowy format emaila: ${email}`);
@@ -2390,7 +2445,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź czy użytkownik z podanym emailem istnieje
       const user = await storage.getUserByEmail(email);
-      console.log(`[DEBUG CHECK-EMAIL] Wynik sprawdzenia: ${user ? 'Znaleziono użytkownika' : 'Nie znaleziono użytkownika'}`);
+      
+      console.log(`[DEBUG CHECK-EMAIL] Wynik sprawdzenia:`, { 
+        emailExists: !!user,
+        userId: user?.id,
+        username: user?.username,
+        isClient: user?.isClient,
+        isAdmin: user?.isAdmin
+      });
       
       // Zwróć tylko informację czy email istnieje, bez szczegółów użytkownika
       res.json({ 
@@ -2398,7 +2460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email
       });
     } catch (error) {
-      console.error("Error checking email existence:", error);
+      console.error("[DEBUG CHECK-EMAIL] Błąd podczas sprawdzania email:", error);
       res.status(500).json({ message: "Failed to check email" });
     }
   });
