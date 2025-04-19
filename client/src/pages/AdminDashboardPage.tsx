@@ -369,18 +369,18 @@ export default function AdminDashboardPage() {
         onClose={() => setStatsModelId(null)}
       />
       
-      <Tabs defaultValue="shared" className="space-y-4">
+      <Tabs defaultValue="user" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="shared">Shared Models</TabsTrigger>
+          <TabsTrigger value="user">User Models</TabsTrigger>
           <TabsTrigger value="temporary">Temporary Files</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="shared" className="space-y-4">
+        <TabsContent value="user" className="space-y-4">
           <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Shared Models</CardTitle>
+              <CardTitle>User Models</CardTitle>
               <CardDescription>
-                Manage all shared model links in the system
+                Manage all models assigned to registered users
               </CardDescription>
               
               {/* Pole wyszukiwania */}
@@ -416,7 +416,8 @@ export default function AdminDashboardPage() {
                       <TableRow>
                         <TableHead>Filename</TableHead>
                         <TableHead>Format</TableHead>
-                        <TableHead>Shared With</TableHead>
+                        <TableHead>Owner Email</TableHead>
+                        <TableHead>Sharing Status</TableHead>
                         <TableHead 
                           className="cursor-pointer hover:text-primary"
                           onClick={() => handleSort('created')}
@@ -462,6 +463,17 @@ export default function AdminDashboardPage() {
                           </TableCell>
                           <TableCell>
                             {model.shareEmail || '—'}
+                          </TableCell>
+                          <TableCell>
+                            {model.shareEnabled ? (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                <Check className="h-3 w-3 mr-1" /> Shared
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
+                                <X className="h-3 w-3 mr-1" /> Not Shared
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             {formatDate(model.created)}
