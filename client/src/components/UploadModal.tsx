@@ -17,7 +17,7 @@ interface UploadModalProps {
   onClose: () => void;
   isUploading: boolean;
   uploadProgress: number;
-  onUpload: (file: File) => void;
+  onUpload: (file: File, email: string) => void;
 }
 
 export default function UploadModal({ 
@@ -151,10 +151,10 @@ export default function UploadModal({
         isLoggedIn: !!user
       });
       
-      // Modyfikujemy funkcję, aby przekazać e-mail do naszej funkcji obsługi uploadu
-      // Funkcja nadrzędna w komponencie ClientDashboardPage doda e-mail do URL zapytania
-      const fileWithEmail = Object.assign(selectedFile, { userEmail: email });
-      onUpload(fileWithEmail);
+      // UWAGA: Object.assign modyfikuje oryginalny obiekt, co może powodować problemy
+      // z właściwościami niestandardowymi. Zamiast tego przekazujemy email i plik oddzielnie,
+      // aby ClientDashboardPage mógł skonstruować URL z parametrami
+      onUpload(selectedFile, email);
     }
   };
   

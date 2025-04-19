@@ -267,7 +267,7 @@ export default function ClientDashboardPage() {
   }
 
   // Obsługa uploadu pliku
-  const handleUpload = (file: File) => {
+  const handleUpload = (file: File, userEmail?: string) => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     let uploadUrl = '/api/models/upload'; // domyślnie dla STEP
     
@@ -277,22 +277,19 @@ export default function ClientDashboardPage() {
       uploadUrl = '/api/models/upload-cad';
     }
     
-    // Pobieramy email z pliku (dodany przez UploadModal)
-    const userEmail = (file as any).userEmail;
-    
     console.log("[CLIENT] Przygotowanie do przesłania pliku:", {
       filename: file.name,
-      email: userEmail || "brak",
+      email: userEmail || (user?.email || "brak"),
       fileSize: file.size,
       isLoggedIn: !!user
     });
     
-    // Dodajemy email do URL
+    // Jeśli podano userEmail z komponentu UploadModal, użyj go
     if (userEmail) {
       uploadUrl += `?email=${encodeURIComponent(userEmail)}`;
-      console.log("[CLIENT] Dodano email do URL:", uploadUrl);
+      console.log("[CLIENT] Dodano email otrzymany z UploadModal:", uploadUrl);
     }
-    // Jeśli brakuje email w pliku, ale użytkownik jest zalogowany, używamy email z konta
+    // Jeśli nie ma userEmail, ale użytkownik jest zalogowany, używamy email z konta
     else if (user?.email) {
       uploadUrl += `?email=${encodeURIComponent(user.email)}`;
       console.log("[CLIENT] Dodano email zalogowanego użytkownika:", uploadUrl);
