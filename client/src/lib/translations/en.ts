@@ -7,6 +7,7 @@ const translations = {
   cad_viewer: "CAD Viewer",
   powered_by: "Powered by",
   home: "Home",
+  back_to_home: "Back to Home",
   
   // Authentication
   login: "Log In",

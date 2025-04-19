@@ -5,6 +5,7 @@ const translations = {
   appTitle: "Przeglądarka CAD",
   applicationName: "Przeglądarka CAD",
   home: "Strona główna",
+  back_to_home: "Powrót do strony głównej",
   upload: "Prześlij",
   uploadModel: "Prześlij model",
   view: "Podgląd",

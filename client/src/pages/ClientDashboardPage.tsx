@@ -172,108 +172,126 @@ export default function ClientDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{t('client_dashboard')}</h1>
-          <p className="text-muted-foreground">
-            {t('welcome')}, {user?.fullName || user?.username}
-          </p>
+    <div className="min-h-screen flex flex-col">
+      <Header onUploadClick={() => {}} />
+      
+      <main className="flex-grow flex flex-col">
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+            <Button variant="ghost" asChild className="mr-4">
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t('back_to_home')}
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-semibold text-gray-800">{t('client_dashboard')}</h1>
+            <p className="ml-4 text-muted-foreground">
+              {t('welcome')}, {user?.fullName || user?.email || user?.username}
+            </p>
+          </div>
         </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('shared_models')}</CardTitle>
-          <CardDescription>{t('shared_models_description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {models && models.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('filename')}</TableHead>
-                  <TableHead>{t('shared_with')}</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  <TableHead>{t('last_accessed')}</TableHead>
-                  <TableHead className="text-right">{t('actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {models.map((model) => (
-                  <TableRow key={model.id}>
-                    <TableCell className="font-medium">{model.filename}</TableCell>
-                    <TableCell>{model.shareEmail || "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {model.shareEnabled ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                            {t('active')}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100">
-                            {t('inactive')}
-                          </span>
-                        )}
-                        {model.hasPassword && (
-                          <Lock className="ml-2 h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {model.shareLastAccessed 
-                        ? new Date(model.shareLastAccessed).toLocaleDateString() 
-                        : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        {model.shareEnabled && model.shareId && (
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleShowLink(model)}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            <span className="sr-only">{t('open_link')}</span>
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedModel(model);
-                            setIsPasswordDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">{t('change_password')}</span>
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedModel(model);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">{t('delete')}</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">{t('no_models')}</h3>
-              <p className="text-muted-foreground mt-2">{t('no_models_description')}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t('shared_models')}</CardTitle>
+              <CardDescription>{t('shared_models_description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {models && models.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('filename')}</TableHead>
+                      <TableHead>{t('shared_with')}</TableHead>
+                      <TableHead>{t('status')}</TableHead>
+                      <TableHead>{t('last_accessed')}</TableHead>
+                      <TableHead className="text-right">{t('actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {models.map((model) => (
+                      <TableRow key={model.id}>
+                        <TableCell className="font-medium">{model.filename}</TableCell>
+                        <TableCell>{model.shareEmail || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {model.shareEnabled ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                {t('active')}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                                {t('inactive')}
+                              </span>
+                            )}
+                            {model.hasPassword && (
+                              <Lock className="ml-2 h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {model.shareLastAccessed 
+                            ? new Date(model.shareLastAccessed).toLocaleDateString() 
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            {model.shareEnabled && model.shareId && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleShowLink(model)}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                <span className="sr-only">{t('open_link')}</span>
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedModel(model);
+                                setIsPasswordDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">{t('change_password')}</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedModel(model);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">{t('delete')}</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">{t('no_models')}</h3>
+                  <p className="text-muted-foreground mt-2">{t('no_models_description')}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      
+      <FooterBar 
+        modelName={t('client_dashboard')} 
+        partCount={models?.length || 0} 
+        entityCount={0}
+      />
 
       {/* Dialog zmiany hasła */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>

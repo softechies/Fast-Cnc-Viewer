@@ -5,6 +5,7 @@ const translations = {
   appTitle: "CAD Prohlížeč",
   applicationName: "CAD Prohlížeč",
   home: "Domů",
+  back_to_home: "Zpět na domovskou stránku",
   upload: "Nahrát",
   uploadModel: "Nahrát model",
   view: "Zobrazit",
