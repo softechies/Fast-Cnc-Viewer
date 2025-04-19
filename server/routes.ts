@@ -491,20 +491,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract metadata from the STEP file
       const metadata = extractStepMetadata(file.path);
       
-      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
+      // Sprawdź, czy przekazano e-mail w parametrach URL
       const userEmail = req.query.email as string || null;
+      
+      // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
+      if (userEmail && !req.isAuthenticated()) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        
+        // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
+        // na to konto, blokujemy taką operację
+        if (user) {
+          // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
+          if (file && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+          
+          return res.status(403).json({ 
+            message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
+            emailExists: true
+          });
+        }
+      }
       
       // Pobierz klienta po e-mailu, jeśli podano
       let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
       let shareEmail = null;
       
-      if (userEmail) {
-        // Spróbuj znaleźć użytkownika o podanym e-mailu
-        const user = await storage.getUserByEmail(userEmail);
-        if (user) {
-          userId = user.id;
-          shareEmail = userEmail; // Ustaw e-mail do udostępniania
-        }
+      if (req.isAuthenticated()) {
+        // Użyj zalogowanego użytkownika
+        userId = req.user.id;
+        shareEmail = req.user.email;
+      } else if (userEmail) {
+        // Przypisujemy email ze sprawdzonego wcześniej parametru URL
+        shareEmail = userEmail;
       }
       
       // Create initial model record
