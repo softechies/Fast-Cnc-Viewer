@@ -840,10 +840,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (userEmail) {
           // Spróbuj znaleźć użytkownika o podanym e-mailu
           const user = await storage.getUserByEmail(userEmail);
+          
+          // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
+          // na to konto, blokujemy taką operację
           if (user) {
-            userId = user.id;
-            shareEmail = userEmail; // Ustaw e-mail do udostępniania
+            // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
+            if (file && fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+            
+            return res.status(403).json({ 
+              message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
+              emailExists: true
+            });
           }
+          
+          // Jeśli użytkownik nie istnieje, to możemy przypisać ten email do pliku
+          shareEmail = userEmail;
         }
       }
       
@@ -982,10 +995,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (userEmail) {
           // Spróbuj znaleźć użytkownika o podanym e-mailu
           const user = await storage.getUserByEmail(userEmail);
+          
+          // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
+          // na to konto, blokujemy taką operację
           if (user) {
-            userId = user.id;
-            shareEmail = userEmail; // Ustaw e-mail do udostępniania
+            // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
+            if (file && fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+            
+            return res.status(403).json({ 
+              message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
+              emailExists: true
+            });
           }
+          
+          // Jeśli użytkownik nie istnieje, to możemy przypisać ten email do pliku
+          shareEmail = userEmail;
         }
       }
       
