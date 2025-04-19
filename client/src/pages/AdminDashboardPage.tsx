@@ -389,8 +389,8 @@ export default function AdminDashboardPage() {
   }, [sharedModels, searchQuery, sortField, sortDirection]);
 
   return (
-    <div className="container p-4 mx-auto admin-panel" style={{ maxWidth: '1500px' }}>
-      <div className="flex justify-between items-center mb-6" style={{ maxWidth: '1500px', width: '100%' }}>
+    <div className="container p-4 mx-auto max-w-7xl">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-2">
           <Button onClick={loadSharedModels} variant="outline" size="sm">
@@ -417,7 +417,7 @@ export default function AdminDashboardPage() {
         </TabsList>
         
         <TabsContent value="user" className="space-y-4">
-          <Card className="shadow-md" style={{ maxWidth: '1500px', width: '100%' }}>
+          <Card className="shadow-md">
             <CardHeader>
               <CardTitle>User Models</CardTitle>
               <CardDescription>
@@ -437,7 +437,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="card-content-no-scroll">
+            <CardContent>
               {isLoading ? (
                 <div className="flex justify-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -451,232 +451,234 @@ export default function AdminDashboardPage() {
                   No models match your search
                 </div>
               ) : (
-                <Table className="w-full full-width-table">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Filename</TableHead>
-                      <TableHead className="whitespace-nowrap">Format</TableHead>
-                      <TableHead className="whitespace-nowrap">Owner Email</TableHead>
-                      <TableHead className="whitespace-nowrap">Sharing Status</TableHead>
-                      <TableHead 
-                        className="cursor-pointer hover:text-primary whitespace-nowrap"
-                        onClick={() => handleSort('created')}
-                      >
-                        <div className="flex items-center">
-                          Created
-                          {sortField === 'created' && (
-                            sortDirection === 'asc' 
-                              ? <ArrowUp className="ml-1 h-4 w-4" />
-                              : <ArrowDown className="ml-1 h-4 w-4" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer hover:text-primary whitespace-nowrap"
-                        onClick={() => handleSort('shareLastAccessed')}
-                      >
-                        <div className="flex items-center">
-                          Last Accessed
-                          {sortField === 'shareLastAccessed' && (
-                            sortDirection === 'asc' 
-                              ? <ArrowUp className="ml-1 h-4 w-4" />
-                              : <ArrowDown className="ml-1 h-4 w-4" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="whitespace-nowrap">Expiry Date</TableHead>
-                      <TableHead className="whitespace-nowrap">Password</TableHead>
-                      <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredAndSortedModels.map((model) => (
-                      <TableRow key={model.id}>
-                        <TableCell className="font-medium">
-                          {model.filename}
-                          <div className="text-xs text-muted-foreground">
-                            {formatFileSize(model.filesize)}
+                <div className="overflow-x-auto w-full">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Filename</TableHead>
+                        <TableHead className="whitespace-nowrap">Format</TableHead>
+                        <TableHead className="whitespace-nowrap">Owner Email</TableHead>
+                        <TableHead className="whitespace-nowrap">Sharing Status</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:text-primary whitespace-nowrap"
+                          onClick={() => handleSort('created')}
+                        >
+                          <div className="flex items-center">
+                            Created
+                            {sortField === 'created' && (
+                              sortDirection === 'asc' 
+                                ? <ArrowUp className="ml-1 h-4 w-4" />
+                                : <ArrowDown className="ml-1 h-4 w-4" />
+                            )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {model.format || 'Unknown'}
-                        </TableCell>
-                        <TableCell>
-                          {model.shareEmail || '—'}
-                        </TableCell>
-                        <TableCell>
-                          {model.shareEnabled ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              <Check className="h-3 w-3 mr-1" /> Shared
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
-                              <X className="h-3 w-3 mr-1" /> Not Shared
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(model.created)}
-                        </TableCell>
-                        <TableCell>
-                          {model.shareLastAccessed ? (
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {formatDate(model.shareLastAccessed)}
-                            </span>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell>
-                          {model.shareExpiryDate ? formatDate(model.shareExpiryDate) : '—'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-between gap-2">
-                            {model.hasPassword ? (
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:text-primary whitespace-nowrap"
+                          onClick={() => handleSort('shareLastAccessed')}
+                        >
+                          <div className="flex items-center">
+                            Last Accessed
+                            {sortField === 'shareLastAccessed' && (
+                              sortDirection === 'asc' 
+                                ? <ArrowUp className="ml-1 h-4 w-4" />
+                                : <ArrowDown className="ml-1 h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="whitespace-nowrap">Expiry Date</TableHead>
+                        <TableHead className="whitespace-nowrap">Password</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAndSortedModels.map((model) => (
+                        <TableRow key={model.id}>
+                          <TableCell className="font-medium">
+                            {model.filename}
+                            <div className="text-xs text-muted-foreground">
+                              {formatFileSize(model.filesize)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {model.format || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            {model.shareEmail || '—'}
+                          </TableCell>
+                          <TableCell>
+                            {model.shareEnabled ? (
                               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                <Check className="h-3 w-3 mr-1" /> Protected
+                                <Check className="h-3 w-3 mr-1" /> Shared
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                                <X className="h-3 w-3 mr-1" /> Not Protected
+                              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
+                                <X className="h-3 w-3 mr-1" /> Not Shared
                               </Badge>
                             )}
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="h-6 w-6 rounded-full"
-                              onClick={() => openPasswordDialog(model)}
-                            >
-                              <Key className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2 relative z-10">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setStatsModelId(model.id)}
-                            >
-                              <BarChart2 className="h-4 w-4 mr-2" />
-                              Stats
-                            </Button>
-                            
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <LinkIcon className="h-4 w-4 mr-2" />
-                                  Link
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-80">
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Share Link</h4>
-                                  <div className="flex gap-2">
-                                    <Input 
-                                      readOnly 
-                                      value={`${window.location.origin}/shared/${model.shareId}`} 
-                                      className="flex-1" 
-                                    />
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(model.created)}
+                          </TableCell>
+                          <TableCell>
+                            {model.shareLastAccessed ? (
+                              <span className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {formatDate(model.shareLastAccessed)}
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            {model.shareExpiryDate ? formatDate(model.shareExpiryDate) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-between gap-2">
+                              {model.hasPassword ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  <Check className="h-3 w-3 mr-1" /> Protected
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                  <X className="h-3 w-3 mr-1" /> Not Protected
+                                </Badge>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-6 w-6 rounded-full"
+                                onClick={() => openPasswordDialog(model)}
+                              >
+                                <Key className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setStatsModelId(model.id)}
+                              >
+                                <BarChart2 className="h-4 w-4 mr-2" />
+                                Stats
+                              </Button>
+                              
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <LinkIcon className="h-4 w-4 mr-2" />
+                                    Link
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80">
+                                  <div className="space-y-2">
+                                    <h4 className="font-medium">Share Link</h4>
+                                    <div className="flex gap-2">
+                                      <Input 
+                                        readOnly 
+                                        value={`${window.location.origin}/shared/${model.shareId}`} 
+                                        className="flex-1" 
+                                      />
+                                      <Button 
+                                        size="icon" 
+                                        onClick={() => copyShareLink(model.shareId!)}
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                     <Button 
-                                      size="icon" 
-                                      onClick={() => copyShareLink(model.shareId!)}
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="w-full"
+                                      onClick={() => window.open(`/shared/${model.shareId}`, '_blank')}
                                     >
-                                      <Copy className="h-4 w-4" />
+                                      <ExternalLink className="h-4 w-4 mr-2" />
+                                      Open Link
                                     </Button>
                                   </div>
+                                </PopoverContent>
+                              </Popover>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
                                   <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full"
-                                    onClick={() => window.open(`/shared/${model.shareId}`, '_blank')}
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => setRevokeModelId(model.id)}
                                   >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    Open Link
+                                    Revoke
                                   </Button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                            
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="destructive" 
-                                  size="sm"
-                                  onClick={() => setRevokeModelId(model.id)}
-                                >
-                                  Revoke
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirm Revocation</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to revoke sharing for this model? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => revokeSharing(model.id)}
-                                    disabled={isRevoking}
-                                  >
-                                    {isRevoking && revokeModelId === model.id ? (
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    ) : null}
-                                    Yes, Revoke
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                            
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button 
-                                        variant="destructive" 
-                                        size="icon"
-                                        onClick={() => setDeleteModelId(model.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Model Permanently</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to permanently delete this model? This will remove the model 
-                                          from the database and delete all associated files from the server. This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction 
-                                          onClick={() => deleteModel(model.id)}
-                                          disabled={isDeleting}
-                                          className="bg-red-600 hover:bg-red-700"
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirm Revocation</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to revoke sharing for this model? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => revokeSharing(model.id)}
+                                      disabled={isRevoking}
+                                    >
+                                      {isRevoking && revokeModelId === model.id ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      ) : null}
+                                      Yes, Revoke
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button 
+                                          variant="destructive" 
+                                          size="icon"
+                                          onClick={() => setDeleteModelId(model.id)}
                                         >
-                                          {isDeleting && deleteModelId === model.id ? (
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                          ) : null}
-                                          Yes, Delete Permanently
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete model permanently</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete Model Permanently</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to permanently delete this model? This will remove the model 
+                                            from the database and delete all associated files from the server. This action cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction 
+                                            onClick={() => deleteModel(model.id)}
+                                            disabled={isDeleting}
+                                            className="bg-red-600 hover:bg-red-700"
+                                          >
+                                            {isDeleting && deleteModelId === model.id ? (
+                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : null}
+                                            Yes, Delete Permanently
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete model permanently</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

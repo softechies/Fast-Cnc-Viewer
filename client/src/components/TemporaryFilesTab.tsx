@@ -96,7 +96,7 @@ export default function TemporaryFilesTab() {
   };
 
   return (
-    <Card style={{ maxWidth: '1500px', width: '100%' }}>
+    <Card>
       <CardHeader>
         <CardTitle>Temporary Files</CardTitle>
         <CardDescription>Manage temporary files uploaded by anonymous users</CardDescription>
@@ -110,7 +110,7 @@ export default function TemporaryFilesTab() {
           />
         </div>
       </CardHeader>
-      <CardContent className="card-content-no-scroll">
+      <CardContent>
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
@@ -122,64 +122,66 @@ export default function TemporaryFilesTab() {
             Error loading temporary files
           </div>
         ) : (
-          <Table className="w-full full-width-table">
-            <TableCaption>List of files uploaded by anonymous users</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Filename</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>User Email</TableHead>
-                <TableHead>Token</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredModels.length === 0 ? (
+          <div className="overflow-x-auto w-full">
+            <Table className="w-full">
+              <TableCaption>List of files uploaded by anonymous users</TableCaption>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-4">
-                    {searchQuery
-                      ? "No files match your search criteria"
-                      : "No temporary files found"}
-                  </TableCell>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Filename</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>User Email</TableHead>
+                  <TableHead>Token</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ) : (
-                filteredModels.map((model) => (
-                  <TableRow key={model.id}>
-                    <TableCell>{model.id}</TableCell>
-                    <TableCell className="font-medium">{model.filename}</TableCell>
-                    <TableCell>{model.modelType || model.format}</TableCell>
-                    <TableCell>{formatFileSize(model.filesize)}</TableCell>
-                    <TableCell>{formatDate(model.created)}</TableCell>
-                    <TableCell>{model.userEmail || '-'}</TableCell>
-                    <TableCell>{model.viewTokenFragment || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 relative z-10">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(`/?modelId=${model.id}`, '_blank')}
-                          title="View model in viewer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAssignModel(model.id)}
-                          title="Assign to user"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {filteredModels.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-4">
+                      {searchQuery
+                        ? "No files match your search criteria"
+                        : "No temporary files found"}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredModels.map((model) => (
+                    <TableRow key={model.id}>
+                      <TableCell>{model.id}</TableCell>
+                      <TableCell className="font-medium">{model.filename}</TableCell>
+                      <TableCell>{model.modelType || model.format}</TableCell>
+                      <TableCell>{formatFileSize(model.filesize)}</TableCell>
+                      <TableCell>{formatDate(model.created)}</TableCell>
+                      <TableCell>{model.userEmail || '-'}</TableCell>
+                      <TableCell>{model.viewTokenFragment || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`/?modelId=${model.id}`, '_blank')}
+                            title="View model in viewer"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAssignModel(model.id)}
+                            title="Assign to user"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         )}
 
         {/* Dialog do przypisywania modelu */}
