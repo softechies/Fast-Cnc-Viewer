@@ -844,8 +844,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSTLBinary = true;
       }
       
-      // Domyślnie włącz udostępnianie dla zalogowanych użytkowników - właściciel powinien od razu widzieć swój model
+      // Dla plików STL musimy zapewnić, że są automatycznie udostępniane, aby użytkownik mógł je od razu zobaczyć
+      // Nie ma potrzeby chowania ich za dostępem - są przecież bezpośrednio uploadowane
       const isOwner = req.isAuthenticated();
+      const shareId = nanoid(10); // Zawsze generujemy shareId
       
       // Create model record directly for the STL file
       const modelData = {
@@ -856,9 +858,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
-        // Jeśli zalogowany użytkownik przesyła model, automatycznie ustaw go jako udostępniony dla niego
-        shareEnabled: isOwner, 
-        shareId: isOwner ? nanoid(10) : null,
+        // Zawsze włączamy udostępnianie dla plików STL aby zapewnić dostęp
+        shareEnabled: true, 
+        shareId: shareId,
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -914,21 +916,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(file.originalname).toLowerCase();
       const format = fileExtension === '.dxf' ? 'DXF' : 'DWG';
       
-      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
-      const userEmail = req.query.email as string || null;
-      
-      // Pobierz klienta po e-mailu, jeśli podano
-      let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
+      // Sprawdź, czy użytkownik jest zalogowany
+      let userId = req.isAuthenticated() ? req.user.id : 1; // Jeśli zalogowany, użyj ID zalogowanego użytkownika
       let shareEmail = null;
       
-      if (userEmail) {
-        // Spróbuj znaleźć użytkownika o podanym e-mailu
-        const user = await storage.getUserByEmail(userEmail);
-        if (user) {
-          userId = user.id;
-          shareEmail = userEmail; // Ustaw e-mail do udostępniania
+      if (req.isAuthenticated()) {
+        // Użyj danych zalogowanego użytkownika
+        shareEmail = req.user.email;
+      } else {
+        // Sprawdź, czy przekazano e-mail w parametrach URL
+        const userEmail = req.query.email as string || null;
+        
+        if (userEmail) {
+          // Spróbuj znaleźć użytkownika o podanym e-mailu
+          const user = await storage.getUserByEmail(userEmail);
+          if (user) {
+            userId = user.id;
+            shareEmail = userEmail; // Ustaw e-mail do udostępniania
+          }
         }
       }
+      
+      // Dla plików DXF/DWG również włączamy automatycznie udostępnianie
+      const shareId = nanoid(10); // Zawsze generujemy shareId
       
       // Create model record for 2D CAD file
       const modelData = {
@@ -938,17 +948,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: format,
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
-        shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
+        shareEmail: shareEmail, // Automatyczne przypisanie e-mail
+        // Włączamy udostępnianie aby zapewnić dostęp
+        shareEnabled: true,
+        shareId: shareId,
         metadata: {
           filePath: file.path,
           fileType: '2d',
           cadFormat: format.toLowerCase(),
           entities: 0, // To be determined by the renderer
           layers: 0,  // To be determined by the renderer
-          userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
+          userEmail: shareEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
           properties: {
-            author: userEmail || "User",
-            organization: "Direct Upload",
+            author: shareEmail || "User",
+            organization: req.isAuthenticated() ? (req.user.company || "Direct Upload") : "Direct Upload",
             drawingNumber: format + "-" + nanoid(6).toUpperCase(),
             revision: "A"
           }
