@@ -819,6 +819,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Sprawdź czy plik STL jest w formacie binarnym czy ASCII
+      let isSTLBinary = false;
+      try {
+        // Przeczytaj pierwsze 5 bajtów aby określić format
+        const buffer = Buffer.alloc(5);
+        const fd = fs.openSync(file.path, 'r');
+        fs.readSync(fd, buffer, 0, 5, 0);
+        fs.closeSync(fd);
+        
+        // Pliki binarne STL zwykle zaczynają się od "solid" dla ASCII lub innych bajtów dla binarnych
+        const signature = buffer.toString('utf8', 0, 5);
+        isSTLBinary = signature.toLowerCase() !== 'solid';
+        
+        console.log(`Detected STL format for ${file.originalname}: ${isSTLBinary ? 'Binary' : 'ASCII'}`);
+      } catch (formatError) {
+        console.error("Error detecting STL format:", formatError);
+        // Domyślnie zakładamy format binarny w przypadku błędu
+        isSTLBinary = true;
+      }
+      
       // Create model record directly for the STL file
       const modelData = {
         userId: userId,
@@ -832,6 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
           isDirectStl: true,
+          stlFormat: isSTLBinary ? 'binary' : 'ascii', // Dodajemy informację o formacie STL
           parts: 1,
           assemblies: 1,
           surfaces: 10,
@@ -855,7 +876,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filesize: model.filesize,
         format: model.format,
         created: model.created,
-        isStl: true
+        isStl: true,
+        stlFormat: isSTLBinary ? 'binary' : 'ascii'
       });
     } catch (error) {
       console.error("Error uploading STL model:", error);
