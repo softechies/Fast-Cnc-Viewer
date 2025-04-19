@@ -52,7 +52,8 @@ const translations = {
     upload: "Upload",
     cancel: "Cancel",
     share: "Share",
-    copy: "Copied"
+    copy: "Copied",
+    back: "Back to Home"
   },
   
   // Home page
@@ -229,6 +230,9 @@ const translations = {
     error: "Error",
     shared: {
       model: "Shared model"
+    },
+    no: {
+      model: "The requested model was not found or is not available."
     }
   },
 
@@ -260,7 +264,8 @@ const translations = {
   },
   
   // Actions
-  actions: {
+  actions: "Actions",
+  action: {
     back_to_home: "Back to home page",
     access: "Access",
     verifying: "Verifying...",

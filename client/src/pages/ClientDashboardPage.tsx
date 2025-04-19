@@ -540,7 +540,7 @@ export default function ClientDashboardPage() {
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('share_link')}</DialogTitle>
+            <DialogTitle>{t('shareLink')}</DialogTitle>
             <DialogDescription>
               {selectedModel?.filename}
             </DialogDescription>
