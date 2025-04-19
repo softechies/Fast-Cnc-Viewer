@@ -5,6 +5,7 @@ const translations = {
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",
   home: "Start",
+  back_to_home: "Zurück zur Startseite",
   upload: "Hochladen",
   uploadModel: "Modell hochladen",
   view: "Ansicht",
