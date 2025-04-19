@@ -24,19 +24,37 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
         setIsLoading(true);
         setError(null);
         
+        // Najpierw pobierz informacje o modelu, aby sprawdzić uprawnienia
+        const modelResponse = await fetch(`/api/models/${modelId}`);
+        if (!modelResponse.ok) {
+          const errorData = await modelResponse.json();
+          console.error("Error fetching model info:", errorData);
+          throw new Error(errorData.message || 'Nie masz dostępu do tego modelu');
+        }
+        
         // Pobierz wygenerowane SVG z serwera
         const response = await fetch(`/api/models/${modelId}/svg`);
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to load SVG');
+          if (response.status === 403) {
+            throw new Error('Brak dostępu do tego modelu');
+          } else if (response.status === 404) {
+            throw new Error('Nie znaleziono pliku SVG lub konwersja nie została jeszcze zakończona');
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Problem z załadowaniem SVG');
+          }
         }
         
         const svgData = await response.text();
+        if (!svgData || svgData.trim() === '') {
+          throw new Error('Pobrany plik SVG jest pusty');
+        }
+        
         setSvgContent(svgData);
       } catch (err) {
         console.error("Error loading SVG:", err);
-        setError(err instanceof Error ? err.message : 'Unknown error loading SVG');
+        setError(err instanceof Error ? err.message : 'Nieznany błąd podczas ładowania SVG');
         setSvgContent(null);
       } finally {
         setIsLoading(false);

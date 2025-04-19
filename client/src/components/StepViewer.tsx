@@ -168,21 +168,26 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
+        setDebugInfo("Ładowanie informacji o modelu...");
+        
+        // Najpierw pobierz informacje o modelu
+        const modelResponse = await fetch(`/api/models/${modelId}`);
+        if (!modelResponse.ok) {
+          const errorData = await modelResponse.json();
+          console.error("Model info error:", errorData);
+          throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status}): ${errorData.message || ''}`);
+        }
+        
+        const modelInfo = await modelResponse.json();
+        console.log("Model info loaded:", modelInfo);
+        
         setDebugInfo("Ładowanie pliku modelu...");
         
-        // Get model file
+        // Następnie spróbuj pobrać plik, gdy wiemy, że mamy dostęp do modelu
         const response = await fetch(`/api/models/${modelId}/file`);
         if (!response.ok) {
           throw new Error(`Nie można pobrać pliku (${response.status})`);
         }
-        
-        // Get model information
-        const modelResponse = await fetch(`/api/models/${modelId}`);
-        if (!modelResponse.ok) {
-          throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status})`);
-        }
-        
-        const modelInfo = await modelResponse.json();
         
         const blob = await response.blob();
         const filename = modelInfo.filename || `model-${modelId}.step`;
@@ -190,31 +195,46 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         
         setFileData(file);
         
-        // Try to get STL file if available
-        try {
-          setIsLoadingStlFile(true);
-          setDebugInfo("Sprawdzanie dostępności pliku STL...");
-          
-          const stlResponse = await fetch(`/api/models/${modelId}/stl`);
-          if (stlResponse.ok) {
-            // STL available
-            const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
-            setStlFileInfo({ url: `/api/models/${modelId}/stl`, isDirectStl });
-            setDebugInfo("Plik STL dostępny");
-          } else {
-            // No STL available
+        // Sprawdź, czy model jest bezpośrednio w formacie STL
+        const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
+        
+        if (isDirectStl) {
+          setDebugInfo("Bezpośredni plik STL...");
+          setStlFileInfo({ 
+            url: `/api/models/${modelId}/file`, // Dla bezpośrednich plików STL, plik jest dostępny pod /file
+            isDirectStl: true 
+          });
+        } else {
+          // Try to get STL file if available (only for converted models)
+          try {
+            setIsLoadingStlFile(true);
+            setDebugInfo("Sprawdzanie dostępności pliku STL...");
+            
+            const stlResponse = await fetch(`/api/models/${modelId}/stl`);
+            if (stlResponse.ok) {
+              // STL available
+              setStlFileInfo({ 
+                url: `/api/models/${modelId}/stl`, 
+                isDirectStl: false 
+              });
+              setDebugInfo("Plik STL dostępny");
+            } else {
+              // No STL available
+              setStlFileInfo(null);
+              console.error("STL file not available:", await stlResponse.json());
+              setDebugInfo("Brak pliku STL dla tego modelu");
+            }
+          } catch (stlError) {
             setStlFileInfo(null);
-            console.error("STL file not available:", await stlResponse.json());
+            console.error("Error checking STL availability:", stlError);
+            setDebugInfo("Błąd podczas sprawdzania pliku STL");
+          } finally {
+            setIsLoadingStlFile(false);
           }
-        } catch (stlError) {
-          setStlFileInfo(null);
-          console.error("Error checking STL availability:", stlError);
-        } finally {
-          setIsLoadingStlFile(false);
         }
       } catch (error) {
         console.error("Error loading model file:", error);
-        setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+        setDebugInfo(`Błąd ładowania modelu: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
         setFileData(null);
       } finally {
         setIsLoadingFile(false);
