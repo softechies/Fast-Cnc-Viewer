@@ -803,19 +803,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       const stats = fs.statSync(file.path);
       
-      // Sprawdź, czy użytkownik jest zalogowany lub czy przekazano e-mail w parametrach URL
-      const userEmail = req.query.email as string || null;
-      
-      // Pobierz klienta po e-mailu, jeśli podano
-      let userId = 1; // Domyślny użytkownik, jeśli nie znaleziono klienta
+      // Sprawdź, czy użytkownik jest zalogowany
+      let userId = req.isAuthenticated() ? req.user.id : 1; // Jeśli zalogowany, użyj ID zalogowanego użytkownika
       let shareEmail = null;
       
-      if (userEmail) {
-        // Spróbuj znaleźć użytkownika o podanym e-mailu
-        const user = await storage.getUserByEmail(userEmail);
-        if (user) {
-          userId = user.id;
-          shareEmail = userEmail; // Ustaw e-mail do udostępniania
+      if (req.isAuthenticated()) {
+        // Użyj danych zalogowanego użytkownika
+        shareEmail = req.user.email;
+      } else {
+        // Sprawdź, czy przekazano e-mail w parametrach URL
+        const userEmail = req.query.email as string || null;
+        
+        if (userEmail) {
+          // Spróbuj znaleźć użytkownika o podanym e-mailu
+          const user = await storage.getUserByEmail(userEmail);
+          if (user) {
+            userId = user.id;
+            shareEmail = userEmail; // Ustaw e-mail do udostępniania
+          }
         }
       }
       
@@ -839,6 +844,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSTLBinary = true;
       }
       
+      // Domyślnie włącz udostępnianie dla zalogowanych użytkowników - właściciel powinien od razu widzieć swój model
+      const isOwner = req.isAuthenticated();
+      
       // Create model record directly for the STL file
       const modelData = {
         userId: userId,
@@ -847,7 +855,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: 'STL',
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
-        shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
+        shareEmail: shareEmail, // Automatyczne przypisanie e-mail
+        // Jeśli zalogowany użytkownik przesyła model, automatycznie ustaw go jako udostępniony dla niego
+        shareEnabled: isOwner, 
+        shareId: isOwner ? nanoid(10) : null,
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -857,10 +868,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assemblies: 1,
           surfaces: 10,
           solids: 1,
-          userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
+          userEmail: shareEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
           properties: {
-            author: userEmail || "User",
-            organization: "Direct Upload",
+            author: shareEmail || "User",
+            organization: req.isAuthenticated() ? (req.user.company || "Direct Upload") : "Direct Upload",
             partNumber: "STL-" + nanoid(6).toUpperCase(),
             revision: "A"
           }
@@ -870,6 +881,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertModelSchema.parse(modelData);
       const model = await storage.createModel(validatedData);
       
+      // Log upłoad success
+      console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled: ${model.shareEnabled}`);
+      
       res.status(201).json({
         id: model.id,
         filename: model.filename,
@@ -877,7 +891,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: model.format,
         created: model.created,
         isStl: true,
-        stlFormat: isSTLBinary ? 'binary' : 'ascii'
+        stlFormat: isSTLBinary ? 'binary' : 'ascii',
+        shareEnabled: model.shareEnabled
       });
     } catch (error) {
       console.error("Error uploading STL model:", error);
