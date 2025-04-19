@@ -826,6 +826,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       const stats = fs.statSync(file.path);
       
+      // Sprawdź, czy przekazano e-mail w parametrach URL
+      const userEmail = req.query.email as string || null;
+      
+      // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
+      if (userEmail && !req.isAuthenticated()) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        
+        // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
+        // na to konto, blokujemy taką operację
+        if (user) {
+          // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
+          if (file && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+          
+          return res.status(403).json({ 
+            message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
+            emailExists: true
+          });
+        }
+      }
+      
       // Sprawdź, czy użytkownik jest zalogowany
       let userId = req.isAuthenticated() ? req.user.id : 1; // Jeśli zalogowany, użyj ID zalogowanego użytkownika
       let shareEmail = null;
@@ -833,31 +856,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.isAuthenticated()) {
         // Użyj danych zalogowanego użytkownika
         shareEmail = req.user.email;
-      } else {
-        // Sprawdź, czy przekazano e-mail w parametrach URL
-        const userEmail = req.query.email as string || null;
-        
-        if (userEmail) {
-          // Spróbuj znaleźć użytkownika o podanym e-mailu
-          const user = await storage.getUserByEmail(userEmail);
-          
-          // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
-          // na to konto, blokujemy taką operację
-          if (user) {
-            // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
-            if (file && fs.existsSync(file.path)) {
-              fs.unlinkSync(file.path);
-            }
-            
-            return res.status(403).json({ 
-              message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
-              emailExists: true
-            });
-          }
-          
-          // Jeśli użytkownik nie istnieje, to możemy przypisać ten email do pliku
-          shareEmail = userEmail;
-        }
+      } else if (userEmail) {
+        // Przypisujemy email ze sprawdzonego wcześniej parametru URL
+        shareEmail = userEmail;
       }
       
       // Sprawdź czy plik STL jest w formacie binarnym czy ASCII
@@ -981,6 +982,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(file.originalname).toLowerCase();
       const format = fileExtension === '.dxf' ? 'DXF' : 'DWG';
       
+      // Sprawdź, czy przekazano e-mail w parametrach URL
+      const userEmail = req.query.email as string || null;
+      
+      // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
+      if (userEmail && !req.isAuthenticated()) {
+        // Spróbuj znaleźć użytkownika o podanym e-mailu
+        const user = await storage.getUserByEmail(userEmail);
+        
+        // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
+        // na to konto, blokujemy taką operację
+        if (user) {
+          // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
+          if (file && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+          
+          return res.status(403).json({ 
+            message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
+            emailExists: true
+          });
+        }
+      }
+      
       // Sprawdź, czy użytkownik jest zalogowany
       let userId = req.isAuthenticated() ? req.user.id : 1; // Jeśli zalogowany, użyj ID zalogowanego użytkownika
       let shareEmail = null;
@@ -988,31 +1012,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.isAuthenticated()) {
         // Użyj danych zalogowanego użytkownika
         shareEmail = req.user.email;
-      } else {
-        // Sprawdź, czy przekazano e-mail w parametrach URL
-        const userEmail = req.query.email as string || null;
-        
-        if (userEmail) {
-          // Spróbuj znaleźć użytkownika o podanym e-mailu
-          const user = await storage.getUserByEmail(userEmail);
-          
-          // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
-          // na to konto, blokujemy taką operację
-          if (user) {
-            // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
-            if (file && fs.existsSync(file.path)) {
-              fs.unlinkSync(file.path);
-            }
-            
-            return res.status(403).json({ 
-              message: "Adres email jest już zarejestrowany w systemie. Zaloguj się, aby przesłać plik.",
-              emailExists: true
-            });
-          }
-          
-          // Jeśli użytkownik nie istnieje, to możemy przypisać ten email do pliku
-          shareEmail = userEmail;
-        }
+      } else if (userEmail) {
+        // Przypisujemy email ze sprawdzonego wcześniej parametru URL
+        shareEmail = userEmail;
       }
       
       // Tylko zalogowani użytkownicy mają włączone shareEnabled
