@@ -280,13 +280,22 @@ export default function ClientDashboardPage() {
     // Pobieramy email z pliku (dodany przez UploadModal)
     const userEmail = (file as any).userEmail;
     
+    console.log("[CLIENT] Przygotowanie do przesłania pliku:", {
+      filename: file.name,
+      email: userEmail || "brak",
+      fileSize: file.size,
+      isLoggedIn: !!user
+    });
+    
     // Dodajemy email do URL
     if (userEmail) {
       uploadUrl += `?email=${encodeURIComponent(userEmail)}`;
+      console.log("[CLIENT] Dodano email do URL:", uploadUrl);
     }
     // Jeśli brakuje email w pliku, ale użytkownik jest zalogowany, używamy email z konta
     else if (user?.email) {
       uploadUrl += `?email=${encodeURIComponent(user.email)}`;
+      console.log("[CLIENT] Dodano email zalogowanego użytkownika:", uploadUrl);
     }
     
     upload(file, uploadUrl);

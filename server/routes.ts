@@ -1012,18 +1012,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail w parametrach URL
       const userEmail = req.query.email as string || null;
+      console.log(`[DEBUG CAD] Próba przesłania pliku CAD z emailem: ${userEmail}, zalogowany: ${req.isAuthenticated()}`);
       
       // Jeśli email jest podany i użytkownik nie jest zalogowany, sprawdź czy istnieje taki użytkownik
       if (userEmail && !req.isAuthenticated()) {
+        console.log(`[DEBUG CAD] Sprawdzam email ${userEmail} dla niezalogowanego użytkownika`);
+        
         // Spróbuj znaleźć użytkownika o podanym e-mailu
         const user = await storage.getUserByEmail(userEmail);
+        
+        console.log(`[DEBUG CAD] Wynik sprawdzenia: ${user ? 'Znaleziono użytkownika' : 'Nie znaleziono użytkownika'}`);
         
         // Jeśli użytkownik o podanym e-mailu istnieje, ale ktoś próbuje przesłać plik nie będąc zalogowanym
         // na to konto, blokujemy taką operację
         if (user) {
+          console.log(`[DEBUG CAD] Blokuję dostęp dla emaila ${userEmail}, który należy do istniejącego użytkownika`);
+          
           // Usuwamy plik tymczasowy, aby nie zaśmiecać serwera
           if (file && fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
+            console.log(`[DEBUG CAD] Usunięto plik tymczasowy: ${file.path}`);
           }
           
           return res.status(403).json({ 

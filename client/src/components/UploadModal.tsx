@@ -111,6 +111,13 @@ export default function UploadModal({
   const handleUpload = () => {
     // Blokujemy przesyłanie pliku, jeśli email istnieje w bazie i użytkownik nie jest zalogowany
     if (emailChecked && emailExists && !user?.email) {
+      console.log("[UPLOAD_MODAL] Blokada uploadu - email istnieje w bazie:", {
+        email,
+        emailChecked,
+        emailExists,
+        isLoggedIn: !!user
+      });
+      
       toast({
         variant: "destructive",
         title: t('warning'),
@@ -120,6 +127,14 @@ export default function UploadModal({
     }
 
     if (selectedFile && email) {
+      console.log("[UPLOAD_MODAL] Rozpoczynam upload z emailem:", {
+        email,
+        filename: selectedFile.name,
+        emailChecked,
+        emailExists,
+        isLoggedIn: !!user
+      });
+      
       // Modyfikujemy funkcję, aby przekazać e-mail do naszej funkcji obsługi uploadu
       // Funkcja nadrzędna w komponencie ClientDashboardPage doda e-mail do URL zapytania
       const fileWithEmail = Object.assign(selectedFile, { userEmail: email });
