@@ -2,11 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Upload, X, FileUp } from 'lucide-react';
+import { Upload, X, FileUp, AlertTriangle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useLocation } from 'wouter';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -25,10 +29,15 @@ export default function UploadModal({
 }: UploadModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [email, setEmail] = useState<string>("");
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailChecked, setEmailChecked] = useState(false);
   
   // Ustawienie e-maila na podstawie zalogowanego użytkownika
   useEffect(() => {
@@ -36,6 +45,35 @@ export default function UploadModal({
       setEmail(user.email);
     }
   }, [user]);
+  
+  // Funkcja sprawdzająca, czy email istnieje w bazie użytkowników
+  const checkEmailExists = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    setIsCheckingEmail(true);
+    setEmailChecked(false);
+    
+    try {
+      const response = await apiRequest('GET', `/api/check-email/${encodeURIComponent(email)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to check email');
+      }
+      
+      const data = await response.json();
+      setEmailExists(data.exists);
+      setEmailChecked(true);
+    } catch (error) {
+      console.error('Error checking email:', error);
+      toast({
+        variant: "destructive",
+        title: t('error'),
+        description: error instanceof Error ? error.message : t('error.unknown'),
+      });
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -132,20 +170,67 @@ export default function UploadModal({
             
             <div className="mt-4 space-y-2">
               <Label htmlFor="email">{t('email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@example.com"
-                disabled={!!user?.email} // Pole wyłączone dla zalogowanych użytkowników
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    // Resetujemy stan sprawdzania przy zmianie emaila
+                    setEmailChecked(false);
+                    setEmailExists(false);
+                  }}
+                  onBlur={() => {
+                    if (email && !user?.email) {
+                      checkEmailExists(email);
+                    }
+                  }}
+                  placeholder="email@example.com"
+                  disabled={!!user?.email} // Pole wyłączone dla zalogowanych użytkowników
+                  required
+                />
+                {!user?.email && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => checkEmailExists(email)}
+                    disabled={isCheckingEmail || !email || !email.includes('@')}
+                  >
+                    {isCheckingEmail ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <span className="text-xs font-medium">Check</span>
+                    )}
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-gray-500">
                 {user?.email 
                   ? t('email_autofilled') 
                   : t('email_required')}
               </p>
+              
+              {/* Pokazujemy alert, jeśli email istnieje w bazie */}
+              {emailChecked && emailExists && !user?.email && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>{t('warning')}</AlertTitle>
+                  <AlertDescription>
+                    <p>{t('email_exists_warning') || 'This email already exists in our system.'}</p>
+                    <div className="mt-2">
+                      <Button
+                        size="sm"
+                        onClick={() => setLocation('/auth')}
+                        className="mr-2"
+                      >
+                        {t('login_button') || 'Log in'}
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
             
             <DialogFooter className="mt-4">
@@ -156,7 +241,7 @@ export default function UploadModal({
                 {t('button.cancel')}
               </Button>
               <Button
-                disabled={!selectedFile || !email}
+                disabled={!selectedFile || !email || (emailChecked && emailExists && !user?.email)}
                 onClick={handleUpload}
                 className="bg-primary hover:bg-blue-700"
               >
