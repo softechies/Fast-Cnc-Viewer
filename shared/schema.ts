@@ -201,6 +201,42 @@ export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type Model = typeof models.$inferSelect;
 export type InsertModel = z.infer<typeof insertModelSchema>;
 export type UpdateSharedModel = z.infer<typeof updateSharedModelSchema>;
+// Definicje typów metadanych dla różnych rodzajów modeli
+export const stlModelMetadataSchema = z.object({
+  filePath: z.string(),
+  stlFilePath: z.string(),
+  isDirectStl: z.boolean().optional(),
+  stlFormat: z.string().optional(),
+  parts: z.number(),
+  assemblies: z.number(),
+  surfaces: z.number(),
+  solids: z.number(),
+  userEmail: z.string().nullable(),
+  properties: z.object({
+    author: z.string(),
+    organization: z.string(),
+    partNumber: z.string(),
+    revision: z.string()
+  }),
+  viewToken: z.string().optional() // Token dostępu dla niezalogowanych użytkowników
+});
+
+export const cadModelMetadataSchema = z.object({
+  filePath: z.string(),
+  fileType: z.string(),
+  cadFormat: z.string(),
+  entities: z.number(),
+  layers: z.number(),
+  userEmail: z.string().nullable(),
+  properties: z.object({
+    author: z.string(),
+    organization: z.string(),
+    drawingNumber: z.string(),
+    revision: z.string()
+  }),
+  viewToken: z.string().optional() // Token dostępu dla niezalogowanych użytkowników
+});
+
 export type ModelView = typeof modelViews.$inferSelect;
 export type InsertModelView = z.infer<typeof insertModelViewSchema>;
 export type ModelTree = z.infer<typeof modelTreeSchema>;
@@ -210,3 +246,5 @@ export type AccessSharedModelRequest = z.infer<typeof accessSharedModelSchema>;
 export type AdminLoginRequest = z.infer<typeof adminLoginSchema>;
 export type ModelViewStats = z.infer<typeof modelViewStatsSchema>;
 export type UserData = z.infer<typeof userDataSchema>;
+export type StlModelMetadata = z.infer<typeof stlModelMetadataSchema>;
+export type CadModelMetadata = z.infer<typeof cadModelMetadataSchema>;
