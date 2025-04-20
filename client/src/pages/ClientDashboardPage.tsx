@@ -311,7 +311,7 @@ export default function ClientDashboardPage() {
                 {t('back_to_home')}
               </Link>
             </Button>
-            <h1 className="text-2xl font-semibold text-gray-800">{t('client_dashboard')}</h1>
+            <h1 className="text-xl font-medium text-gray-800">{t('client_dashboard')}</h1>
             <p className="ml-4 text-muted-foreground">
               {t('welcome')}, {user?.fullName || user?.email || user?.username}
             </p>
