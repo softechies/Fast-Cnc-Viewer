@@ -11,6 +11,7 @@ const translations = {
   
   // Authentication
   login: "Log In",
+  logout: "Log Out",
   register: "Register",
   create_account_sharing: "Create an account to manage your files",
   account_created: "Your account has been created successfully. You are now logged in.",
@@ -129,7 +130,7 @@ const translations = {
   emailNotSent: "Email could not be sent",
   
   // Client dashboard
-  shared_models: "Your Models",
+  shared_models: "Your CAD Library",
   shared_models_description: "Manage your uploaded and shared 3D models",
   filename: "Filename",
   shared_with: "Shared With",
