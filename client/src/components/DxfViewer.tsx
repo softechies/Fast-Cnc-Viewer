@@ -308,10 +308,8 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                 <div 
                   className="svg-container"
                   style={{
-                    width: "900px",
-                    height: "900px",
-                    maxWidth: "900px",
-                    maxHeight: "900px",
+                    width: "100%",
+                    height: "100%",
                     boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
                     borderRadius: "8px",
                     background: "#fff",

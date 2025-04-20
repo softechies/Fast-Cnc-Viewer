@@ -293,8 +293,8 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         svg_width = "100%"
         svg_height = "100%"
         
-        # Uproszczone podejście - używamy faktycznych wymiarów
-        # i środkujemy rysunek
+        # Zaawansowane podejście - używamy faktycznych wymiarów,
+        # skalujemy i środkujemy rysunek dla lepszego dopasowania do kontenera
         
         # Znajdujemy punkt środkowy rysunku
         center_x = (min_x + max_x) / 2
@@ -305,21 +305,34 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         adjusted_width = width + 2 * padding
         adjusted_height = height + 2 * padding
         
+        # Zapewniamy minimalne wymiary, by uniknąć zbyt małych rysunków
+        min_dimension = 100
+        if adjusted_width < min_dimension:
+            adjusted_width = min_dimension
+        if adjusted_height < min_dimension:
+            adjusted_height = min_dimension
+            
         # Obliczamy skorygowane współrzędne viewBox
-        view_min_x = min_x - padding
-        view_max_x = max_x + padding
-        view_min_y = min_y - padding
-        view_max_y = max_y + padding
+        view_min_x = center_x - (adjusted_width / 2)
+        view_max_x = center_x + (adjusted_width / 2)
+        view_min_y = center_y - (adjusted_height / 2)
+        view_max_y = center_y + (adjusted_height / 2)
         
         # Odwracamy współrzędne Y
         view_min_y_flipped = -view_max_y
         view_height_flipped = adjusted_height
         
+        # Zapisujemy informacje o skalowaniu do debugowania
+        with open("/tmp/dxf_debug.log", "a") as f:
+            f.write(f"Drawing bounds: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}\n")
+            f.write(f"Width: {width}, Height: {height}, Center: ({center_x}, {center_y})\n")
+            f.write(f"ViewBox: {view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}\n")
+        
         # Używamy prostego viewBox obejmującego cały rysunek z marginesem
         lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
           viewBox="{view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}"
           width="{svg_width}" height="{svg_height}"
-          preserveAspectRatio="xMidYMid meet">''')
+          preserveAspectRatio="xMidYMid slice">''')
         
         # Dodajemy tło do lepszej wizualizacji
         lines.append(f'<rect x="{view_min_x}" y="{view_min_y_flipped}" width="{adjusted_width}" height="{view_height_flipped}" fill="#ffffff" />')
