@@ -502,12 +502,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract metadata from the STEP file
       const metadata = extractStepMetadata(file.path);
       
-      // Sprawdź, czy przekazano e-mail w parametrach URL
+      // Sprawdź, czy przekazano e-mail i autoShare w parametrach URL
       const userEmail = req.query.email as string || null;
+      const autoShare = req.query.autoShare !== 'false'; // Domyślnie true (udostępniaj automatycznie), chyba że przekazano false
       
       console.log(`[DEBUG STEP] Parametry żądania:`, {
         queryEmail: req.query.email,
         normalizedEmail: userEmail,
+        autoShare: autoShare,
         authenticated: req.isAuthenticated(),
         userId: req.user?.id,
         userEmail: req.user?.email,
@@ -570,13 +572,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: metadata.sourceSystem,
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
-        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie 
-        shareEnabled: false,
+        // Ustawienie shareEnabled na podstawie parametru autoShare 
+        shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         metadata: {
           ...metadata,
           filePath: file.path, // Store the file path for later processing
           conversionStatus: 'pending',
           userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
+          autoShare: autoShare // Zapisz informację o autoShare w metadanych
         }
       };
       
@@ -882,12 +885,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       const stats = fs.statSync(file.path);
       
-      // Sprawdź, czy przekazano e-mail w parametrach URL
+      // Sprawdź, czy przekazano e-mail i autoShare w parametrach URL
       const userEmail = req.query.email as string || null;
+      const autoShare = req.query.autoShare !== 'false'; // Domyślnie true (udostępniaj automatycznie), chyba że przekazano false
       
       console.log(`[DEBUG STL] Parametry żądania:`, {
         queryEmail: req.query.email,
         normalizedEmail: userEmail,
+        autoShare: autoShare,
         authenticated: req.isAuthenticated(),
         userId: req.user?.id,
         userEmail: req.user?.email,
@@ -960,9 +965,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSTLBinary = true;
       }
       
-      // Zawsze wyłączone shareEnabled, bez względu na to czy użytkownik jest zalogowany
+      // Ustawianie shareEnabled na podstawie parametru autoShare
       const isOwner = req.isAuthenticated();
-      const shareId = nanoid(10); // Zawsze generujemy shareId, ale nie włączamy udostępniania
+      const shareId = nanoid(10); // Zawsze generujemy shareId, ale włączamy udostępnianie tylko jeśli autoShare = true
       
       // Create model record directly for the STL file
       const modelData = {
@@ -975,8 +980,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
         // W osobnym obiekcie, który zostanie wstawiony po walidacji
         shareId: shareId,
-        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie
-        shareEnabled: false, 
+        // Ustawienie shareEnabled na podstawie parametru autoShare
+        shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -1061,12 +1066,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(file.originalname).toLowerCase();
       const format = fileExtension === '.dxf' ? 'DXF' : 'DWG';
       
-      // Sprawdź, czy przekazano e-mail w parametrach URL
+      // Sprawdź, czy przekazano e-mail i autoShare w parametrach URL
       const userEmail = req.query.email as string || null;
+      const autoShare = req.query.autoShare !== 'false'; // Domyślnie true (udostępniaj automatycznie), chyba że przekazano false
       
       console.log(`[DEBUG CAD] Parametry żądania:`, {
         queryEmail: req.query.email,
         normalizedEmail: userEmail,
+        autoShare: autoShare,
         authenticated: req.isAuthenticated(),
         userId: req.user?.id,
         userEmail: req.user?.email,
@@ -1120,9 +1127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail = userEmail;
       }
       
-      // Zawsze wyłączone shareEnabled, bez względu na to czy użytkownik jest zalogowany
+      // Ustawianie shareEnabled na podstawie parametru autoShare
       const isOwner = req.isAuthenticated();
-      const shareId = nanoid(10); // Zawsze generujemy shareId, ale nie włączamy udostępniania
+      const shareId = nanoid(10); // Zawsze generujemy shareId, ale włączamy udostępnianie tylko jeśli autoShare = true
       
       // Create model record for 2D CAD file
       const modelData = {
@@ -1133,8 +1140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
-        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie
-        shareEnabled: false,
+        // Ustawienie shareEnabled na podstawie parametru autoShare
+        shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         shareId: shareId,
         metadata: {
           filePath: file.path,
