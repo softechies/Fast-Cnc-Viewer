@@ -341,11 +341,11 @@ export default function ClientDashboardPage() {
             <CardContent>
               {models && models.length > 0 ? (
                 <div className="text-muted-foreground">
-                  {t('your_models_count', { count: String(models.length) }) || `You have ${models.length} models in your library`}
+                  You have {models.length} models in your library
                 </div>
               ) : (
                 <div className="text-muted-foreground">
-                  {t('no_models_in_library') || 'You have no models in your library yet'}
+                  You have no models in your library yet
                 </div>
               )}
             </CardContent>

@@ -138,7 +138,7 @@ export default function CadUploader({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">{t('cad_uploader_title') || 'Upload CAD Files'}</DialogTitle>
+          <DialogTitle className="text-xl">Upload CAD Files</DialogTitle>
         </DialogHeader>
         
         {isUploading && !isUploadComplete ? (
@@ -199,7 +199,7 @@ export default function CadUploader({
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 text-center mb-4">
-                  {t('cad_uploader_message') || 'Upload CAD files to your library without sharing them'}
+                  Upload CAD files to your library without sharing them
                 </p>
               )}
               <input 
@@ -214,7 +214,7 @@ export default function CadUploader({
                 onClick={handleBrowseClick}
                 className="bg-primary hover:bg-blue-700 mt-2"
               >
-                {t('select_files') || 'Select Files'}
+                Select Files
               </Button>
             </div>
             <p className="mt-2 text-xs text-gray-500">
