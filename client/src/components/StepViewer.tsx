@@ -664,7 +664,39 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         >
           <RefreshCw className="h-6 w-6" />
         </Button>
+        <Toggle
+          aria-label="Tryb pomiaru"
+          pressed={measureMode}
+          onPressedChange={setMeasureMode}
+          className={`p-2 ${measureMode ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'} border-none`}
+          title="Włącz/wyłącz tryb pomiaru"
+        >
+          <Ruler className="h-6 w-6" />
+        </Toggle>
       </div>
+      
+      {/* Measurement info */}
+      {measureMode && (
+        <div className="absolute top-12 left-2 z-10 bg-black/70 text-white p-2 rounded max-w-xs">
+          <div className="font-bold mb-1 flex items-center">
+            <Ruler className="h-4 w-4 mr-2" /> 
+            Tryb pomiaru
+          </div>
+          <div className="text-xs mb-2">
+            Kliknij na model, aby zaznaczyć pierwszy punkt pomiaru, a następnie kliknij ponownie, aby zaznaczyć drugi punkt i zmierzyć odległość.
+          </div>
+          {measurePoints.length > 0 && (
+            <div className="text-xs">
+              Punkty: {measurePoints.length}/2
+            </div>
+          )}
+          {measureDistance !== null && (
+            <div className="mt-1 p-1 bg-blue-900/50 rounded text-center">
+              <span className="font-bold">Odległość:</span> {measureDistance.toFixed(3)} jednostek
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Loading overlay */}
       {(isLoadingFile || isLoadingStlFile) && (
