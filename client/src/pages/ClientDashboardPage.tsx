@@ -322,6 +322,36 @@ export default function ClientDashboardPage() {
         
         <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
           <Card className="mb-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="space-y-1">
+                <CardTitle>{t('your_models') || 'Your CAD Library'}</CardTitle>
+                <CardDescription>{t('your_models_description') || 'Models you have uploaded to your account'}</CardDescription>
+              </div>
+              <div className="flex flex-row space-x-2">
+                <Button onClick={() => setIsCadUploaderOpen(true)} variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('upload_to_library') || 'Upload to library'}
+                </Button>
+                <Button onClick={() => setIsUploadModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('upload_and_share') || 'Upload and share'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {models && models.length > 0 ? (
+                <div className="text-muted-foreground">
+                  {t('your_models_count', { count: models.length }) || `You have ${models.length} models in your library`}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">
+                  {t('no_models_in_library') || 'You have no models in your library yet'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>{t('shared_models')}</CardTitle>
               <CardDescription>{t('shared_models_description')}</CardDescription>
@@ -589,6 +619,13 @@ export default function ClientDashboardPage() {
         isUploading={isUploading}
         uploadProgress={uploadProgress}
         onUpload={handleUpload}
+      />
+      
+      {/* CadUploader - nowa funkcjonalność do zapisywania plików bez udostępniania */}
+      <CadUploader
+        isOpen={isCadUploaderOpen}
+        onClose={() => setIsCadUploaderOpen(false)}
+        onSuccess={() => refetch()}
       />
     </div>
   );
