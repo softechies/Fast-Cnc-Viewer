@@ -6,13 +6,13 @@ const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string>) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: () => {},
-  t: (key) => key
+  t: (key: string, params?: Record<string, string | number>) => key
 });
 
 // Helper function to get a nested value from an object using a dot-separated path
@@ -46,16 +46,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(getInitialLanguage());
 
   // Format translation string with parameters
-  const formatTranslation = (translation: string, params?: Record<string, string>): string => {
+  const formatTranslation = (translation: string, params?: Record<string, string | number>): string => {
     if (!params) return translation;
     
     return Object.entries(params).reduce((result, [key, value]) => {
-      return result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      return result.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
     }, translation);
   };
 
   // Get translation function
-  const t = (key: string, params?: Record<string, string>): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const currentTranslations = translations[language] || translations.en;
     
     // Get the nested value using helper function

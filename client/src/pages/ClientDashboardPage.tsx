@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus } from "lucide-react";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
@@ -324,24 +324,24 @@ export default function ClientDashboardPage() {
           <Card className="mb-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="space-y-1">
-                <CardTitle>{t('your_models') || 'Your CAD Library'}</CardTitle>
-                <CardDescription>{t('your_models_description') || 'Models you have uploaded to your account'}</CardDescription>
+                <CardTitle>Your CAD Library</CardTitle>
+                <CardDescription>Models you have uploaded to your account</CardDescription>
               </div>
               <div className="flex flex-row space-x-2">
                 <Button onClick={() => setIsCadUploaderOpen(true)} variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t('upload_to_library') || 'Upload to library'}
+                  <FileText className="mr-2 h-4 w-4" />
+                  Upload to library
                 </Button>
                 <Button onClick={() => setIsUploadModalOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t('upload_and_share') || 'Upload and share'}
+                  <Share className="mr-2 h-4 w-4" />
+                  Upload and share
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {models && models.length > 0 ? (
                 <div className="text-muted-foreground">
-                  {t('your_models_count', { count: models.length }) || `You have ${models.length} models in your library`}
+                  {t('your_models_count', { count: String(models.length) }) || `You have ${models.length} models in your library`}
                 </div>
               ) : (
                 <div className="text-muted-foreground">
