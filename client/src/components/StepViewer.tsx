@@ -5,8 +5,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Ruler } from 'lucide-react';
 import { loadSTLModel } from '@/lib/step-parser';
+import { Toggle } from '@/components/ui/toggle';
 
 // Interface for STL File Information
 interface StlFileInfo {
@@ -40,6 +41,110 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   // Używamy tylko renderowania STL (bez STEP)
   const renderMode = 'stl_only' as const;
   
+  // Stan dla trybu pomiaru
+  const [measureMode, setMeasureMode] = useState(false);
+  const [measurePoints, setMeasurePoints] = useState<THREE.Vector3[]>([]);
+  const [measureDistance, setMeasureDistance] = useState<number | null>(null);
+  
+  // Funkcja do obsługi kliknięć w trybie pomiaru
+  const handleMeasureClick = (event: MouseEvent) => {
+    if (!measureMode || !containerRef.current || !sceneRef.current || !cameraRef.current) return;
+    
+    // Oblicz pozycję myszy w przestrzeni znormalizowanej (od -1 do 1)
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / containerRef.current.clientWidth) * 2 - 1;
+    const y = -((event.clientY - rect.top) / containerRef.current.clientHeight) * 2 + 1;
+    
+    // Utwórz raycaster
+    const raycaster = new THREE.Raycaster();
+    const mousePosition = new THREE.Vector2(x, y);
+    raycaster.setFromCamera(mousePosition, cameraRef.current);
+    
+    // Pobierz model z sceny
+    const model = sceneRef.current.getObjectByName("StepModel");
+    if (!model) return;
+    
+    // Sprawdź przecięcie promienia z modelem
+    const intersects = raycaster.intersectObjects(model.children, true);
+    if (intersects.length > 0) {
+      const intersectionPoint = intersects[0].point;
+      
+      // Dodaj punkt do listy punktów pomiaru
+      setMeasurePoints(prev => {
+        // Jeśli mamy już 2 punkty, zacznij od nowa
+        if (prev.length === 2) {
+          // Usuń linię pomiaru jeśli istnieje
+          const measureLine = sceneRef.current?.getObjectByName("MeasureLine");
+          if (measureLine) {
+            sceneRef.current?.remove(measureLine);
+          }
+          
+          // Dodaj punkt do pustej tablicy
+          return [intersectionPoint];
+        }
+        
+        // Dodaj punkt do tablicy (pierwszy lub drugi punkt)
+        return [...prev, intersectionPoint];
+      });
+      
+      // Stworz wizualną reprezentację punktu
+      createMeasurePoint(intersectionPoint);
+      
+      // Jeśli to drugi punkt, narysuj linię między punktami i oblicz odległość
+      if (measurePoints.length === 1) {
+        const distance = measurePoints[0].distanceTo(intersectionPoint);
+        setMeasureDistance(distance);
+        createMeasureLine(measurePoints[0], intersectionPoint, distance);
+      }
+    }
+  };
+  
+  // Funkcja do tworzenia wizualnej reprezentacji punktu pomiarowego
+  const createMeasurePoint = (position: THREE.Vector3) => {
+    if (!sceneRef.current) return;
+    
+    // Stwórz geometrię i materiał dla punktu
+    const pointGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    const pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
+    
+    // Ustaw pozycję punktu
+    pointMesh.position.copy(position);
+    
+    // Dodaj punkt do sceny z unikalną nazwą
+    const pointId = `MeasurePoint_${measurePoints.length}`;
+    pointMesh.name = pointId;
+    sceneRef.current.add(pointMesh);
+  };
+  
+  // Funkcja do tworzenia linii pomiarowej i etykiety z odległością
+  const createMeasureLine = (start: THREE.Vector3, end: THREE.Vector3, distance: number) => {
+    if (!sceneRef.current) return;
+    
+    // Usuń istniejącą linię jeśli istnieje
+    const existingLine = sceneRef.current.getObjectByName("MeasureLine");
+    if (existingLine) {
+      sceneRef.current.remove(existingLine);
+    }
+    
+    // Stwórz grupę dla linii i etykiety
+    const lineGroup = new THREE.Group();
+    lineGroup.name = "MeasureLine";
+    
+    // Stwórz materiał dla linii
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    
+    // Stwórz geometrię dla linii
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+    const line = new THREE.Line(lineGeometry, lineMaterial);
+    
+    // Dodaj linię do grupy
+    lineGroup.add(line);
+    
+    // Dodaj grupę do sceny
+    sceneRef.current.add(lineGroup);
+  };
+
   // Initialize Three.js scene
   useEffect(() => {
     if (!containerRef.current) return;
@@ -377,6 +482,50 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     }
   }
   
+  // Efekt do obsługi kliknięć w trybie pomiaru
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const handleClick = (event: MouseEvent) => {
+      handleMeasureClick(event);
+    };
+    
+    // Dodaj lub usuń obsługę kliknięć w zależności od trybu pomiaru
+    if (measureMode) {
+      containerRef.current.addEventListener('click', handleClick);
+    }
+    
+    // Cleanup
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('click', handleClick);
+      }
+    };
+  }, [measureMode, measurePoints]);
+  
+  // Efekt do czyszczenia punktów pomiarowych przy wyłączaniu trybu pomiaru
+  useEffect(() => {
+    if (!measureMode && sceneRef.current) {
+      // Usuń punkty pomiarowe
+      for (let i = 0; i < 2; i++) {
+        const point = sceneRef.current.getObjectByName(`MeasurePoint_${i}`);
+        if (point) {
+          sceneRef.current.remove(point);
+        }
+      }
+      
+      // Usuń linię pomiaru
+      const measureLine = sceneRef.current.getObjectByName("MeasureLine");
+      if (measureLine) {
+        sceneRef.current.remove(measureLine);
+      }
+      
+      // Zresetuj stan
+      setMeasurePoints([]);
+      setMeasureDistance(null);
+    }
+  }, [measureMode]);
+
   // Process model file when it's available
   useEffect(() => {
     if (!fileData || !sceneRef.current) return;
