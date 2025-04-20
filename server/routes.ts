@@ -559,6 +559,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: metadata.sourceSystem,
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail z URL
+        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie 
+        shareEnabled: false,
         metadata: {
           ...metadata,
           filePath: file.path, // Store the file path for later processing
@@ -947,9 +949,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSTLBinary = true;
       }
       
-      // Tylko zalogowani użytkownicy mają włączone shareEnabled
+      // Zawsze wyłączone shareEnabled, bez względu na to czy użytkownik jest zalogowany
       const isOwner = req.isAuthenticated();
-      const shareId = nanoid(10); // Zawsze generujemy shareId
+      const shareId = nanoid(10); // Zawsze generujemy shareId, ale nie włączamy udostępniania
       
       // Create model record directly for the STL file
       const modelData = {
@@ -962,8 +964,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
         // W osobnym obiekcie, który zostanie wstawiony po walidacji
         shareId: shareId,
-        // Tylko zalogowani użytkownicy mają włączone shareEnabled automatycznie
-        shareEnabled: isOwner, 
+        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie
+        shareEnabled: false, 
         metadata: {
           filePath: file.path,
           stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
@@ -1107,9 +1109,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail = userEmail;
       }
       
-      // Tylko zalogowani użytkownicy mają włączone shareEnabled
+      // Zawsze wyłączone shareEnabled, bez względu na to czy użytkownik jest zalogowany
       const isOwner = req.isAuthenticated();
-      const shareId = nanoid(10); // Zawsze generujemy shareId
+      const shareId = nanoid(10); // Zawsze generujemy shareId, ale nie włączamy udostępniania
       
       // Create model record for 2D CAD file
       const modelData = {
@@ -1120,8 +1122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created: new Date().toISOString(),
         sourceSystem: 'direct_upload',
         shareEmail: shareEmail, // Automatyczne przypisanie e-mail
-        // Tylko zalogowani użytkownicy mają włączone shareEnabled automatycznie
-        shareEnabled: isOwner,
+        // Domyślnie shareEnabled jest wyłączone - użytkownik musi jawnie włączyć udostępnianie
+        shareEnabled: false,
         shareId: shareId,
         metadata: {
           filePath: file.path,

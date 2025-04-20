@@ -53,8 +53,13 @@ export function useModelUpload({ onSuccess, onError }: UseModelUploadOptions = {
       });
     },
     onSuccess: (data) => {
+      // Odśwież wszystkie listy modeli (główną i klienta)
       queryClient.invalidateQueries({
         queryKey: ['/api/models']
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ['/api/client/models']
       });
       
       setUploadProgress(100);
