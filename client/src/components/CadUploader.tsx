@@ -99,7 +99,7 @@ export default function CadUploader({
   };
   
   const handleUpload = () => {
-    if (selectedFiles.length === 0 || !user?.email) return;
+    if (selectedFiles.length === 0) return;
     
     // Reset counters
     setUploadedCount(0);
@@ -117,7 +117,11 @@ export default function CadUploader({
       }
       
       // Add flag to prevent automatic sharing
-      uploadUrl += `?email=${encodeURIComponent(user.email)}&autoShare=false`;
+      if (user && user.email) {
+        uploadUrl += `?email=${encodeURIComponent(user.email)}&autoShare=false`;
+      } else {
+        uploadUrl += `?autoShare=false`;
+      }
       
       upload(file, uploadUrl);
     });

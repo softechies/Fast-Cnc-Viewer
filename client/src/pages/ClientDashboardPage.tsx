@@ -22,6 +22,7 @@ import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
 import UploadModal from "@/components/UploadModal";
+import CadUploader from "@/components/CadUploader";
 import { useModelUpload } from "@/lib/hooks";
 
 // Typ modelu do wyświetlenia
@@ -48,6 +49,7 @@ export default function ClientDashboardPage() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCadUploaderOpen, setIsCadUploaderOpen] = useState(false);
   
   // Konfiguracja uploadera plików
   const { isUploading, uploadProgress, upload } = useModelUpload({
