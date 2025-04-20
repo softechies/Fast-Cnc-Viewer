@@ -887,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail i autoShare w parametrach URL
       const userEmail = req.query.email as string || null;
-      const autoShare = req.query.autoShare !== 'false'; // Domyślnie true (udostępniaj automatycznie), chyba że przekazano false
+      const autoShare = req.query.autoShare === 'true'; // Domyślnie false (nie udostępniaj automatycznie), chyba że przekazano true
       
       console.log(`[DEBUG STL] Parametry żądania:`, {
         queryEmail: req.query.email,
@@ -1068,7 +1068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Sprawdź, czy przekazano e-mail i autoShare w parametrach URL
       const userEmail = req.query.email as string || null;
-      const autoShare = req.query.autoShare !== 'false'; // Domyślnie true (udostępniaj automatycznie), chyba że przekazano false
+      const autoShare = req.query.autoShare === 'true'; // Domyślnie false (nie udostępniaj automatycznie), chyba że przekazano true
       
       console.log(`[DEBUG CAD] Parametry żądania:`, {
         queryEmail: req.query.email,
