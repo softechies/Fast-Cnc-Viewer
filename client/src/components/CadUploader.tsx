@@ -147,10 +147,10 @@ export default function CadUploader({
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
             <h3 className="text-center font-medium text-lg mb-2">
-              {t('uploading_files') || 'Uploading Files'}
+              Uploading Files
             </h3>
             <p className="text-center text-gray-500 mb-4">
-              {t('uploaded_count') || 'Uploaded'}: {uploadedCount}/{selectedFiles.length}
+              Uploaded: {uploadedCount}/{selectedFiles.length}
             </p>
             <Progress value={uploadProgress} className="h-2" />
           </div>
@@ -164,14 +164,14 @@ export default function CadUploader({
               )}
               <h3 className="text-center font-medium text-lg">
                 {failedCount === 0 
-                  ? (t('upload_complete') || 'Upload Complete') 
-                  : (t('upload_partial') || 'Upload Partially Complete')}
+                  ? 'Upload Complete' 
+                  : 'Upload Partially Complete'}
               </h3>
               <p className="text-center text-gray-500 mt-2">
-                {t('uploaded_count') || 'Uploaded'}: {uploadedCount}/{selectedFiles.length}
+                Uploaded: {uploadedCount}/{selectedFiles.length}
                 {failedCount > 0 && (
                   <span className="text-red-500 ml-2">
-                    ({failedCount} {t('failed') || 'failed'})
+                    ({failedCount} failed)
                   </span>
                 )}
               </p>
@@ -188,7 +188,7 @@ export default function CadUploader({
               <FileUp className="h-10 w-10 text-gray-400 mb-4" />
               {selectedFiles.length > 0 ? (
                 <div className="text-sm text-gray-700 max-h-40 overflow-y-auto w-full">
-                  <p className="font-medium mb-2">{t('selected_files') || 'Selected Files'}: {selectedFiles.length}</p>
+                  <p className="font-medium mb-2">Selected Files: {selectedFiles.length}</p>
                   <ul className="list-disc pl-5">
                     {selectedFiles.map((file, index) => (
                       <li key={index} className="truncate">
@@ -218,7 +218,7 @@ export default function CadUploader({
               </Button>
             </div>
             <p className="mt-2 text-xs text-gray-500">
-              {t('supportedFormats') || 'Supported formats'}: STEP (AP203, AP214), STL, DXF, DWG
+              Supported formats: STEP (AP203, AP214), STL, DXF, DWG
             </p>
             
             <DialogFooter className="mt-4">
@@ -226,7 +226,7 @@ export default function CadUploader({
                 variant="outline" 
                 onClick={handleClose}
               >
-                {t('button.cancel')}
+                Cancel
               </Button>
               <Button
                 disabled={selectedFiles.length === 0 || isUploading}
@@ -236,10 +236,10 @@ export default function CadUploader({
                 {isUploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t('uploading') || 'Uploading...'}
+                    Uploading...
                   </>
                 ) : (
-                  t('button.upload')
+                  'Upload'
                 )}
               </Button>
             </DialogFooter>
