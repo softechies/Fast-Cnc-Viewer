@@ -50,7 +50,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     width: number; // X
     height: number; // Y
     depth: number; // Z
-    size: number; // Ogólny rozmiar (przekątna)
     scale: number; // Współczynnik skalowania użyty do renderowania modelu
   };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions | null>(null);
@@ -777,38 +776,35 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   function calculateModelDimensions(object: THREE.Object3D, currentScaleFactor: number = 1.0) {
     // Utwórz bounding box dla modelu
     const boundingBox = new THREE.Box3().setFromObject(object);
-    const size = new THREE.Vector3();
-    boundingBox.getSize(size);
+    const threeSize = new THREE.Vector3();
+    boundingBox.getSize(threeSize);
     
     // Odwróć skalowanie, aby uzyskać rzeczywiste wymiary modelu
     const realSize = {
-      x: size.x / currentScaleFactor,
-      y: size.y / currentScaleFactor,
-      z: size.z / currentScaleFactor
+      x: threeSize.x / currentScaleFactor,
+      y: threeSize.y / currentScaleFactor,
+      z: threeSize.z / currentScaleFactor
     };
-    
-    // Oblicz przekątną modelu (ogólny rozmiar) na podstawie rzeczywistych wymiarów
-    const size3D = Math.sqrt(
-      Math.pow(realSize.x, 2) + 
-      Math.pow(realSize.y, 2) + 
-      Math.pow(realSize.z, 2)
-    );
     
     // Ustaw wymiary modelu jako rzeczywiste wymiary, nie przeskalowane
     setModelDimensions({
       width: realSize.x,  // Rzeczywisty wymiar X
       height: realSize.y, // Rzeczywisty wymiar Y
       depth: realSize.z,  // Rzeczywisty wymiar Z
-      size: size3D,       // Rzeczywista przekątna 3D
       scale: currentScaleFactor // Współczynnik skalowania użyty do renderowania
     });
     
-    return { boundingBox, size };
+    // Zwracamy bounding box i wektor wymiarów threejs na potrzeby obliczeń kamery
+    return { boundingBox, size: threeSize };
   }
 
+  // Ta funkcja nie jest już używana, ale zostawiamy ją dla zachowania zgodności
+  // Używamy zamiast niej prostszą wersję ustawienia kamery w renderModel
   function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
-    // Oblicz wymiary modelu i uzyskaj bounding box (bez uwzględnienia skalowania na początkowym etapie)
-    const { boundingBox, size } = calculateModelDimensions(object, 1.0);
+    // Oblicz wymiary modelu i uzyskaj bounding box (bez uwzględnienia skalowania)
+    const boundingBox = new THREE.Box3().setFromObject(object);
+    const size = new THREE.Vector3();
+    boundingBox.getSize(size);
     
     // Get bounding box center
     const center = new THREE.Vector3();
@@ -854,10 +850,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     
     // Apply scaling to the model
     object.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    
-    // Po skalowaniu, ponownie oblicz wymiary modelu z uwzględnieniem współczynnika skalowania
-    // aby wyświetlić rzeczywiste wymiary modelu
-    calculateModelDimensions(object, scaleFactor);
     
     // Update controls after scaling
     controls.update();
@@ -960,10 +952,6 @@ export default function StepViewer({ modelId }: StepViewerProps) {
                   <div className="flex items-center gap-1">
                     <span className="text-gray-400">{t('dimensions.depth')}:</span>
                     <span className="font-mono">{modelDimensions.depth.toFixed(2)} mm</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.diagonal')}:</span>
-                    <span className="font-mono">{modelDimensions.size.toFixed(2)} mm</span>
                   </div>
                 </div>
               </div>
