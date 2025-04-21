@@ -51,6 +51,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     height: number; // Y
     depth: number; // Z
     size: number; // Ogólny rozmiar (przekątna)
+    scale: number; // Współczynnik skalowania użyty do renderowania modelu
   };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions | null>(null);
   
@@ -494,24 +495,31 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       if (stlFileInfo?.url) {
         try {
           setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
-          // Zamieniamy na Mesh dla pewności typu
-          const stlModel = await loadSTLModel(stlFileInfo.url, onProgress) as unknown as THREE.Mesh;
           
-          // Zawsze uproszczona wersja - bez wireframe
-          try {
-            stlModel.material = new THREE.MeshBasicMaterial({
-              color: 0x3b82f6,
-              wireframe: false,
-            });
-          } catch (materialError) {
-            console.warn("Nie można ustawić materiału:", materialError);
-          }
-          
-          // Create a group to hold the model
-          const modelGroup = new THREE.Group();
-          modelGroup.add(stlModel);
+          // Użyj nowego interfejsu STLLoadResult, który zwraca model, skalę i oryginalne wymiary
+          const stlLoadResult = await loadSTLModel(stlFileInfo.url, onProgress);
+          const modelGroup = stlLoadResult.model;
+          const scale = stlLoadResult.scale;
           
           console.log("STL loaded successfully");
+          
+          if (stlLoadResult.originalDimensions) {
+            console.log("Original model dimensions:", stlLoadResult.originalDimensions);
+            
+            // Ustawiamy wymiary modelu używając oryginalnych wymiarów z wyniku ładowania
+            setModelDimensions({
+              width: stlLoadResult.originalDimensions.width,
+              height: stlLoadResult.originalDimensions.height,
+              depth: stlLoadResult.originalDimensions.depth,
+              size: Math.sqrt(
+                Math.pow(stlLoadResult.originalDimensions.width, 2) + 
+                Math.pow(stlLoadResult.originalDimensions.height, 2) + 
+                Math.pow(stlLoadResult.originalDimensions.depth, 2)
+              ),
+              scale: scale
+            });
+          }
+          
           setDebugInfo("Model STL wczytany pomyślnie");
           
           // Ustaw nazwę modelu i dodaj do sceny
@@ -775,6 +783,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       height: realSize.y, // Rzeczywisty wymiar Y
       depth: realSize.z,  // Rzeczywisty wymiar Z
       size: size3D,       // Rzeczywista przekątna 3D
+      scale: currentScaleFactor // Współczynnik skalowania użyty do renderowania
     });
     
     return { boundingBox, size };
