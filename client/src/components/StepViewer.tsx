@@ -749,33 +749,40 @@ export default function StepViewer({ modelId }: StepViewerProps) {
 
   // Helper function to fit camera to object
   // Funkcja obliczająca i ustawiająca wymiary modelu
-  function calculateModelDimensions(object: THREE.Object3D) {
+  function calculateModelDimensions(object: THREE.Object3D, currentScaleFactor: number = 1.0) {
     // Utwórz bounding box dla modelu
     const boundingBox = new THREE.Box3().setFromObject(object);
     const size = new THREE.Vector3();
     boundingBox.getSize(size);
     
-    // Oblicz przekątną modelu (ogólny rozmiar)
+    // Odwróć skalowanie, aby uzyskać rzeczywiste wymiary modelu
+    const realSize = {
+      x: size.x / currentScaleFactor,
+      y: size.y / currentScaleFactor,
+      z: size.z / currentScaleFactor
+    };
+    
+    // Oblicz przekątną modelu (ogólny rozmiar) na podstawie rzeczywistych wymiarów
     const size3D = Math.sqrt(
-      Math.pow(size.x, 2) + 
-      Math.pow(size.y, 2) + 
-      Math.pow(size.z, 2)
+      Math.pow(realSize.x, 2) + 
+      Math.pow(realSize.y, 2) + 
+      Math.pow(realSize.z, 2)
     );
     
-    // Ustaw wymiary modelu
+    // Ustaw wymiary modelu jako rzeczywiste wymiary, nie przeskalowane
     setModelDimensions({
-      width: size.x,  // Wymiar X
-      height: size.y, // Wymiar Y
-      depth: size.z,  // Wymiar Z
-      size: size3D,   // Przekątna 3D
+      width: realSize.x,  // Rzeczywisty wymiar X
+      height: realSize.y, // Rzeczywisty wymiar Y
+      depth: realSize.z,  // Rzeczywisty wymiar Z
+      size: size3D,       // Rzeczywista przekątna 3D
     });
     
     return { boundingBox, size };
   }
 
   function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
-    // Oblicz wymiary modelu i uzyskaj bounding box
-    const { boundingBox, size } = calculateModelDimensions(object);
+    // Oblicz wymiary modelu i uzyskaj bounding box (bez uwzględnienia skalowania na początkowym etapie)
+    const { boundingBox, size } = calculateModelDimensions(object, 1.0);
     
     // Get bounding box center
     const center = new THREE.Vector3();
@@ -822,9 +829,9 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     // Apply scaling to the model
     object.scale.set(scaleFactor, scaleFactor, scaleFactor);
     
-    // Po skalowaniu, ponownie oblicz wymiary modelu 
-    // (ważne, ponieważ wymiary zmieniły się po skalowaniu)
-    calculateModelDimensions(object);
+    // Po skalowaniu, ponownie oblicz wymiary modelu z uwzględnieniem współczynnika skalowania
+    // aby wyświetlić rzeczywiste wymiary modelu
+    calculateModelDimensions(object, scaleFactor);
     
     // Update controls after scaling
     controls.update();
