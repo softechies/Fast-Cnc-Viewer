@@ -3,8 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
-import { Ruler } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -34,14 +32,6 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     units: string;   // Jednostki miary (domyślnie mm)
   };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions2D | null>(null);
-  
-  // Stan dla trybu pomiaru
-  const [measureMode, setMeasureMode] = useState(false);
-  const [measurePoints, setMeasurePoints] = useState<{ x: number; y: number }[]>([]);
-  const [measureDistance, setMeasureDistance] = useState<number | null>(null);
-  
-  // Stan dla elementów pomiaru w SVG
-  const [measureElements, setMeasureElements] = useState<SVGElement[]>([]);
 
   // Funkcja obliczająca wymiary modelu na podstawie SVG
   function calculateSvgDimensions() {
