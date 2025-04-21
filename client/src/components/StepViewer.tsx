@@ -526,9 +526,26 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           modelGroup.name = "StepModel";
           sceneRef.current.add(modelGroup);
           
-          // Dopasuj kamerę do modelu
+          // Dopasuj kamerę do modelu, ale nie używaj funkcji fitCameraToObject, która nadpisuje wymiary
           if (cameraRef.current && controlsRef.current) {
-            fitCameraToObject(modelGroup, cameraRef.current, controlsRef.current);
+            // Uzyskaj środek modelu dla kamery
+            const boundingBox = new THREE.Box3().setFromObject(modelGroup);
+            const center = new THREE.Vector3();
+            boundingBox.getCenter(center);
+            
+            // Ustaw kamerę w odpowiedniej odległości
+            cameraRef.current.position.set(
+              center.x + 20, 
+              center.y + 20, 
+              center.z + 20
+            );
+            cameraRef.current.lookAt(center);
+            
+            // Aktualizuj kontrolki orbity
+            controlsRef.current.target.copy(center);
+            controlsRef.current.update();
+            
+            console.log("Kamera ustawiona bez nadpisywania wymiarów");
           }
           
           setDebugInfo(`Model wczytany (format: STL)`);
