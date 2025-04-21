@@ -787,10 +787,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     };
     
     // Ustaw wymiary modelu jako rzeczywiste wymiary, nie przeskalowane
+    // W standardzie CAD wysokość to oś Z, a głębokość to oś Y
     setModelDimensions({
-      width: realSize.x,  // Rzeczywisty wymiar X
-      height: realSize.y, // Rzeczywisty wymiar Y
-      depth: realSize.z,  // Rzeczywisty wymiar Z
+      width: realSize.x,  // Rzeczywisty wymiar X - szerokość
+      height: realSize.z, // Rzeczywisty wymiar Z - wysokość (zamienione z Y)
+      depth: realSize.y,  // Rzeczywisty wymiar Y - głębokość (zamienione z Z)
       scale: currentScaleFactor // Współczynnik skalowania użyty do renderowania
     });
     
@@ -946,11 +947,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
                     <span className="font-mono">{modelDimensions.width.toFixed(2)} mm</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.height')}:</span>
+                    <span className="text-gray-400">{t('dimensions.depth')}:</span>
                     <span className="font-mono">{modelDimensions.height.toFixed(2)} mm</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.depth')}:</span>
+                    <span className="text-gray-400">{t('dimensions.height')}:</span>
                     <span className="font-mono">{modelDimensions.depth.toFixed(2)} mm</span>
                   </div>
                 </div>
