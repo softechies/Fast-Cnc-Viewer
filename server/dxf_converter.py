@@ -24,7 +24,7 @@ except ImportError:
     print("Warning: ezdxf library is not available (fallback won't work)")
 
 # Flaga określająca czy używamy własnej biblioteki czy ezdxf jako fallback
-USE_CUSTOM_LIBRARY = True
+USE_CUSTOM_LIBRARY = False
 
 # Próba importu własnej biblioteki DXF
 try:
