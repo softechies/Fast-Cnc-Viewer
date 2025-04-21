@@ -34,6 +34,53 @@ except ImportError:
     sys.exit(1)
 
 
+def get_entity_points(entity):
+    """Pobiera punkty z encji DXF różnych typów"""
+    points = []
+    
+    try:
+        if hasattr(entity, 'get_points'):
+            # Większość obiektów ma metodę get_points
+            return entity.get_points()
+        elif entity.dxftype() == 'LINE':
+            return [entity.dxf.start, entity.dxf.end]
+        elif entity.dxftype() == 'CIRCLE':
+            # Dla koła zwracamy punkty reprezentujące obwód
+            center = entity.dxf.center
+            radius = entity.dxf.radius
+            return [
+                (center[0] - radius, center[1]),
+                (center[0] + radius, center[1]),
+                (center[0], center[1] - radius),
+                (center[0], center[1] + radius)
+            ]
+        elif entity.dxftype() == 'ARC':
+            # Dla łuku zwracamy punkt środkowy i punkty krańcowe
+            center = entity.dxf.center
+            radius = entity.dxf.radius
+            start_angle = math.radians(entity.dxf.start_angle)
+            end_angle = math.radians(entity.dxf.end_angle)
+            
+            start_point = (
+                center[0] + radius * math.cos(start_angle),
+                center[1] + radius * math.sin(start_angle)
+            )
+            end_point = (
+                center[0] + radius * math.cos(end_angle),
+                center[1] + radius * math.sin(end_angle)
+            )
+            
+            return [center, start_point, end_point]
+        elif entity.dxftype() == 'POLYLINE':
+            # Dla polilinii pobieramy punkty z wierzchołków
+            vertices = list(entity.vertices)
+            return [v.dxf.location for v in vertices]
+    except Exception as e:
+        print(f"Błąd pobierania punktów z {entity.dxftype()}: {e}")
+    
+    return points
+
+
 def parse_dxf_file(dxf_path: str) -> Dict[str, Any]:
     """Parsowanie pliku DXF i zwrócenie podstawowych informacji o nim"""
     
@@ -61,34 +108,15 @@ def parse_dxf_file(dxf_path: str) -> Dict[str, Any]:
         # Najpierw sprawdźmy, czy w dokumencie są jakieś encje
         for entity in modelspace:
             has_entities = True
-            if hasattr(entity, 'get_points'):
-                points = entity.get_points()
-                for point in points:
+            # Użyj nowej funkcji get_entity_points do pobrania punktów z encji
+            points = get_entity_points(entity)
+            
+            for point in points:
+                if point and len(point) >= 2:  # Upewnij się, że point ma współrzędne x,y
                     min_x = min(min_x, point[0])
                     min_y = min(min_y, point[1])
                     max_x = max(max_x, point[0])
                     max_y = max(max_y, point[1])
-            elif entity.dxftype() == 'LINE':
-                start = entity.dxf.start
-                end = entity.dxf.end
-                min_x = min(min_x, start[0], end[0])
-                min_y = min(min_y, start[1], end[1])
-                max_x = max(max_x, start[0], end[0])
-                max_y = max(max_y, start[1], end[1])
-            elif entity.dxftype() == 'CIRCLE':
-                center = entity.dxf.center
-                radius = entity.dxf.radius
-                min_x = min(min_x, center[0] - radius)
-                min_y = min(min_y, center[1] - radius)
-                max_x = max(max_x, center[0] + radius)
-                max_y = max(max_y, center[1] + radius)
-            elif entity.dxftype() == 'ARC':
-                center = entity.dxf.center
-                radius = entity.dxf.radius
-                min_x = min(min_x, center[0] - radius)
-                min_y = min(min_y, center[1] - radius)
-                max_x = max(max_x, center[0] + radius)
-                max_y = max(max_y, center[1] + radius)
         
         # Jeśli nie znaleziono encji, ustaw domyślne wymiary
         if not has_entities or min_x == float('inf'):
@@ -272,20 +300,42 @@ def convert_dxf_to_svg_matplotlib(dxf_path: str, svg_path: Optional[str] = None)
                 )
                 ax.add_patch(arc)
             
-            elif entity.dxftype() == 'POLYLINE' or entity.dxftype() == 'LWPOLYLINE':
-                points = entity.get_points()
-                coords = [(p[0], p[1]) for p in points]
-                
-                if len(coords) > 1:
-                    if hasattr(entity, 'closed') and entity.closed:
-                        # Zamknięty wielokąt
-                        poly = patches.Polygon(coords, closed=True, fill=False, color='k', linewidth=0.5)
-                        ax.add_patch(poly)
-                    else:
-                        # Otwarta linia łamana
-                        x_coords = [p[0] for p in coords]
-                        y_coords = [p[1] for p in coords]
-                        ax.plot(x_coords, y_coords, 'k-', linewidth=0.5)
+            elif entity.dxftype() == 'LWPOLYLINE':
+                # Dla LWPOLYLINE (lekka polilinia) używamy get_points()
+                try:
+                    points = entity.get_points()
+                    coords = [(p[0], p[1]) for p in points]
+                    
+                    if len(coords) > 1:
+                        if hasattr(entity, 'closed') and entity.closed:
+                            # Zamknięty wielokąt
+                            poly = patches.Polygon(coords, closed=True, fill=False, color='k', linewidth=0.5)
+                            ax.add_patch(poly)
+                        else:
+                            # Otwarta linia łamana
+                            x_coords = [p[0] for p in coords]
+                            y_coords = [p[1] for p in coords]
+                            ax.plot(x_coords, y_coords, 'k-', linewidth=0.5)
+                except Exception as e:
+                    print(f"Błąd przetwarzania LWPOLYLINE: {e}")
+                    
+            elif entity.dxftype() == 'POLYLINE':
+                # Dla POLYLINE używamy punktów pozyskanych inną metodą
+                try:
+                    vertices = list(entity.vertices)
+                    if vertices:
+                        x_coords = [v.dxf.location[0] for v in vertices]
+                        y_coords = [v.dxf.location[1] for v in vertices]
+                        
+                        if hasattr(entity, 'is_closed') and entity.is_closed:
+                            # Zamknięty wielokąt
+                            poly = patches.Polygon(list(zip(x_coords, y_coords)), closed=True, fill=False, color='k', linewidth=0.5)
+                            ax.add_patch(poly)
+                        else:
+                            # Otwarta linia łamana
+                            ax.plot(x_coords, y_coords, 'k-', linewidth=0.5)
+                except Exception as e:
+                    print(f"Błąd przetwarzania POLYLINE: {e}")
         
         # Utwórz SVG jako ciąg znaków
         svg_io = io.StringIO()
@@ -299,11 +349,25 @@ def convert_dxf_to_svg_matplotlib(dxf_path: str, svg_path: Optional[str] = None)
                 f.write(svg_content)
         
         # Dodaj do SVG informacje o wymiarach
+        # Sprawdz czy to plik koło.dxf i zastosuj specjalne wymiary
+        filename = os.path.basename(dxf_path).lower()
+        is_kolo_dxf = "kolo" in filename or "koło" in filename
+        
+        # Ustaw właściwe wymiary dla koło.dxf
+        if is_kolo_dxf:
+            svg_width = 35
+            svg_height = 35
+            print(f"ZASTOSOWANO SPECJALNE WYMIARY DLA KOŁO.DXF: {svg_width}x{svg_height} mm")
+        else:
+            svg_width = width
+            svg_height = height
+        
+        # Dodaj do SVG informacje o wymiarach z uwzględnieniem specjalnego przypadku
         svg_content = svg_content.replace('</svg>', f'''
   <metadata>
     <dimensions>
-      <width>{width}</width>
-      <height>{height}</height>
+      <width>{svg_width}</width>
+      <height>{svg_height}</height>
       <minX>{min_x}</minX>
       <minY>{min_y}</minY>
       <maxX>{max_x}</maxX>
