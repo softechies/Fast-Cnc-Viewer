@@ -10,6 +10,17 @@ interface DxfViewerProps {
   modelId: number | null;
 }
 
+// Interfejs dla wymiarów modelu 2D
+interface ModelDimensions2D {
+  width: number;   // Szerokość (X)
+  height: number;  // Wysokość (Y)
+  minX: number;    // Minimalna wartość X
+  minY: number;    // Minimalna wartość Y
+  maxX: number;    // Maksymalna wartość X
+  maxY: number;    // Maksymalna wartość Y
+  units: string;   // Jednostki miary (domyślnie mm)
+}
+
 export default function DxfViewer({ modelId }: DxfViewerProps) {
   // Get translation function
   const { t } = useLanguage();
@@ -22,15 +33,6 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
   const svgWrapperRef = useRef<HTMLDivElement>(null);
   
   // Stan dla wymiarów modelu 2D
-  type ModelDimensions2D = {
-    width: number;   // Szerokość (X)
-    height: number;  // Wysokość (Y)
-    minX: number;    // Minimalna wartość X
-    minY: number;    // Minimalna wartość Y
-    maxX: number;    // Maksymalna wartość X
-    maxY: number;    // Maksymalna wartość Y
-    units: string;   // Jednostki miary (domyślnie mm)
-  };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions2D | null>(null);
 
   // Funkcja obliczająca wymiary modelu na podstawie SVG
@@ -194,526 +196,150 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     } catch (error) {
       console.error("Błąd podczas obliczania wymiarów SVG:", error);
     }
-  };
+  }
   
-  // Funkcja do obsługi kliknięć w trybie pomiaru
-  const handleMeasureClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!measureMode || !svgWrapperRef.current) return;
-    
-    const svgElement = svgWrapperRef.current.querySelector('svg') as SVGSVGElement;
-    if (!svgElement) return;
-    
-    // Pobierz pozycję SVG
-    const svgRect = svgElement.getBoundingClientRect();
-    
-    // Przygotuj punkt w układzie współrzędnych strony
-    const point = new DOMPoint(event.clientX, event.clientY);
-    
-    // Konwersja punktu z układu współrzędnych strony do układu SVG
-    // Uwzględnia transformacje, skalowanie, viewBox itp.
-    const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
-    
-    // Pobierz macierz transformacji od elementu SVG do przeglądarki
-    let svgCTM: DOMMatrix | null = null;
-    
-    // Sprawdź typ elementu i wywołaj odpowiednią metodę
-    if ('getScreenCTM' in entitiesGroup && typeof (entitiesGroup as any).getScreenCTM === 'function') {
-      svgCTM = (entitiesGroup as SVGGraphicsElement).getScreenCTM();
-    } else if (svgElement instanceof SVGSVGElement) {
-      // Fallback - użyj elementu głównego SVG
-      svgCTM = svgElement.getScreenCTM();
-    }
-    
-    if (!svgCTM) {
-      console.error("Nie można uzyskać macierzy transformacji SVG");
-      return;
-    }
-    
-    // Odwróć macierz, aby przejść od przeglądarki do SVG
-    const inverseCTM = svgCTM.inverse();
-    
-    // Przekształć punkt kliknięcia na współrzędne SVG
-    const svgPoint = point.matrixTransform(inverseCTM);
-    
-    // Zapisz punkt z dokładnymi współrzędnymi SVG
-    const x = svgPoint.x;
-    const y = svgPoint.y;
-    
-    console.log("Punkt kliknięcia w układzie SVG:", { x, y });
-    
-    // Dodaj punkt do listy punktów pomiaru
-    setMeasurePoints(prev => {
-      // Jeśli mamy już 2 punkty, zacznij od nowa
-      if (prev.length === 2) {
-        // Usuń wszystkie elementy pomiaru
-        clearMeasureElements();
-        return [{ x, y }];
-      }
-      
-      // Dodaj punkt do tablicy (pierwszy lub drugi punkt)
-      return [...prev, { x, y }];
-    });
-    
-    // Stwórz wizualną reprezentację punktu
-    createMeasurePoint(x, y);
-    
-    // Jeśli to drugi punkt, narysuj linię między punktami i oblicz odległość
-    if (measurePoints.length === 1) {
-      const point1 = measurePoints[0];
-      const point2 = { x, y };
-      
-      // Oblicz odległość między punktami w jednostkach SVG
-      const distance = calculateDistance(point1, point2);
-      setMeasureDistance(distance);
-      
-      // Narysuj linię między punktami
-      createMeasureLine(point1, point2);
-    }
-  };
-  
-  // Funkcja do obliczania odległości między dwoma punktami
-  const calculateDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
-    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-  };
-  
-  // Funkcja do tworzenia wizualnej reprezentacji punktu
-  const createMeasurePoint = (x: number, y: number) => {
-    if (!svgWrapperRef.current) return;
-    
-    const svgElement = svgWrapperRef.current.querySelector('svg');
-    if (!svgElement) return;
-    
-    // Znajdź grupę elementów - najlepiej używać tej samej grupy, co zawiera elementy rysunku
-    const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
-    
-    // Utwórz warstwę pomiarową, jeśli nie istnieje
-    let measureGroup = svgElement.querySelector('#measurement-layer');
-    if (!measureGroup) {
-      measureGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      measureGroup.setAttribute('id', 'measurement-layer');
-      svgElement.appendChild(measureGroup);
-    }
-    
-    // Tworzenie punktu jako element SVG
-    const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    point.setAttribute('cx', String(x));
-    point.setAttribute('cy', String(y));
-    point.setAttribute('r', '3');  // Zmniejszamy nieco rozmiar punktu
-    point.setAttribute('fill', 'red');
-    point.setAttribute('stroke', 'white');
-    point.setAttribute('stroke-width', '1');
-    
-    // Dodaj punkt do warstwy pomiarów
-    measureGroup.appendChild(point);
-    
-    // Zapisz element do późniejszego usunięcia
-    setMeasureElements(prev => [...prev, point]);
-    
-    // Dodaj etykietę z współrzędnymi dla pierwszego punktu
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(x + 5));
-    label.setAttribute('y', String(y - 5));
-    label.setAttribute('fill', 'red');
-    label.setAttribute('font-size', '10');
-    label.textContent = `(${x.toFixed(1)}, ${y.toFixed(1)})`;
-    
-    // Dodaj tło dla etykiety
-    const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    labelBg.setAttribute('fill', 'white');
-    labelBg.setAttribute('fill-opacity', '0.7');
-    
-    // Dodaj elementy do warstwy pomiarów
-    measureGroup.appendChild(labelBg);
-    measureGroup.appendChild(label);
-    
-    // Ustaw wymiary tła po dodaniu etykiety do SVG
-    setTimeout(() => {
-      try {
-        const bbox = label.getBBox();
-        labelBg.setAttribute('x', String(bbox.x - 2));
-        labelBg.setAttribute('y', String(bbox.y - 2));
-        labelBg.setAttribute('width', String(bbox.width + 4));
-        labelBg.setAttribute('height', String(bbox.height + 4));
-      } catch (e) {
-        console.error("Błąd przy pozycjonowaniu etykiety:", e);
-      }
-    }, 0);
-    
-    // Zapisz elementy do późniejszego usunięcia
-    setMeasureElements(prev => [...prev, label, labelBg]);
-  };
-  
-  // Funkcja do tworzenia linii między punktami
-  const createMeasureLine = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
-    if (!svgWrapperRef.current) return;
-    
-    const svgElement = svgWrapperRef.current.querySelector('svg');
-    if (!svgElement) return;
-    
-    // Znajdź warstwę pomiarową, lub utwórz ją jeśli nie istnieje
-    let measureGroup = svgElement.querySelector('#measurement-layer');
-    if (!measureGroup) {
-      measureGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      measureGroup.setAttribute('id', 'measurement-layer');
-      svgElement.appendChild(measureGroup);
-    }
-    
-    // Tworzenie linii jako element SVG
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', String(p1.x));
-    line.setAttribute('y1', String(p1.y));
-    line.setAttribute('x2', String(p2.x));
-    line.setAttribute('y2', String(p2.y));
-    line.setAttribute('stroke', 'red');
-    line.setAttribute('stroke-width', '1.5'); // Nieco cieńsza linia
-    line.setAttribute('stroke-dasharray', '3,3'); // Mniejszy wzór przerywania
-    
-    // Dodaj linię do warstwy pomiarów
-    measureGroup.appendChild(line);
-    
-    // Zapisz element do późniejszego usunięcia
-    setMeasureElements(prev => [...prev, line]);
-    
-    // Oblicz punkt środkowy i odległość
-    const midX = (p1.x + p2.x) / 2;
-    const midY = (p1.y + p2.y) / 2;
-    const distance = calculateDistance(p1, p2);
-    
-    // Oblicz kąt linii do poziomej osi, aby umieścić etykietę równolegle do linii
-    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
-    
-    // Utwórz grupę dla etykiety, aby móc ją obrócić
-    const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    labelGroup.setAttribute('transform', `translate(${midX}, ${midY}) rotate(${angle}) translate(0, -10)`);
-    
-    // Tło dla tekstu
-    const textRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    textRect.setAttribute('fill', 'white');
-    textRect.setAttribute('fill-opacity', '0.8');
-    textRect.setAttribute('rx', '3'); // Zaokrąglone rogi
-    textRect.setAttribute('ry', '3');
-    
-    // Tworzymy tekst
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', '0');
-    text.setAttribute('y', '0');
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('dominant-baseline', 'middle');
-    text.setAttribute('fill', 'red');
-    text.setAttribute('font-size', '12');
-    text.setAttribute('font-weight', 'bold');
-    
-    // Sformatuj odległość w jednostkach użytkownika
-    // Jeśli odległość jest większa niż 10, pokaż tylko 1 miejsce po przecinku
-    // W przeciwnym razie pokaż 2 miejsca po przecinku
-    text.textContent = `${distance >= 10 ? distance.toFixed(1) : distance.toFixed(2)} ${t('measurement.units')}`;
-    
-    // Dodaj elementy do grupy etykiet
-    measureGroup.appendChild(labelGroup);
-    labelGroup.appendChild(textRect);
-    labelGroup.appendChild(text);
-    
-    // Dostosuj tło do tekstu po wyrenderowaniu
-    setTimeout(() => {
-      try {
-        const bbox = text.getBBox();
-        textRect.setAttribute('x', String(bbox.x - 5));
-        textRect.setAttribute('y', String(bbox.y - 5));
-        textRect.setAttribute('width', String(bbox.width + 10));
-        textRect.setAttribute('height', String(bbox.height + 10));
-      } catch (e) {
-        console.error("Błąd przy pozycjonowaniu tła etykiety:", e);
-      }
-    }, 0);
-    
-    // Zapisz elementy do późniejszego usunięcia
-    setMeasureElements(prev => [...prev, line, labelGroup, textRect, text]);
-    
-    // Dodaj strzałki na końcach linii dla lepszej wizualizacji
-    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    arrowMarker.setAttribute('id', 'arrow');
-    arrowMarker.setAttribute('viewBox', '0 0 10 10');
-    arrowMarker.setAttribute('refX', '5');
-    arrowMarker.setAttribute('refY', '5');
-    arrowMarker.setAttribute('markerWidth', '4');
-    arrowMarker.setAttribute('markerHeight', '4');
-    arrowMarker.setAttribute('orient', 'auto-start-reverse');
-    
-    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    arrow.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-    arrow.setAttribute('fill', 'red');
-    
-    arrowMarker.appendChild(arrow);
-    marker.appendChild(arrowMarker);
-    measureGroup.appendChild(marker);
-    
-    // Dodaj strzałki do linii
-    line.setAttribute('marker-end', 'url(#arrow)');
-    line.setAttribute('marker-start', 'url(#arrow)');
-    
-    // Zapisz markery do usunięcia
-    setMeasureElements(prev => [...prev, marker]);
-  };
-  
-  // Funkcja do usuwania wszystkich elementów pomiaru
-  const clearMeasureElements = () => {
-    measureElements.forEach(element => {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
-      }
-    });
-    
-    setMeasureElements([]);
-  };
-  
-  // Efekt do obsługi kliknięć w trybie pomiaru
+  // Pobierz model DXF z serwera
   useEffect(() => {
-    if (!svgWrapperRef.current) return;
+    if (!modelId) return;
     
-    const handleClick = (event: MouseEvent) => {
-      // Konwersja zdarzenia DOM na React.MouseEvent
-      handleMeasureClick(event as unknown as React.MouseEvent<HTMLDivElement>);
-    };
+    setIsLoading(true);
+    setError(null);
     
-    // Dodaj lub usuń obsługę kliknięć w zależności od trybu pomiaru
-    if (measureMode) {
-      svgWrapperRef.current.addEventListener('click', handleClick);
-    }
-    
-    // Cleanup
-    return () => {
-      if (svgWrapperRef.current) {
-        svgWrapperRef.current.removeEventListener('click', handleClick);
-      }
-    };
-  }, [measureMode, measurePoints]);
-  
-  // Efekt do czyszczenia punktów pomiarowych przy wyłączaniu trybu pomiaru
-  useEffect(() => {
-    if (!measureMode) {
-      clearMeasureElements();
-      setMeasurePoints([]);
-      setMeasureDistance(null);
-    }
-  }, [measureMode]);
-
-  useEffect(() => {
-    if (!modelId) {
-      setSvgContent(null);
-      setError(null);
-      return;
-    }
-
-    const fetchSvg = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Najpierw pobierz informacje o modelu, aby sprawdzić uprawnienia
-        const modelResponse = await fetch(`/api/models/${modelId}`);
-        if (!modelResponse.ok) {
-          const errorData = await modelResponse.json();
-          console.error("Error fetching model info:", errorData);
-          throw new Error(errorData.message || 'Nie masz dostępu do tego modelu');
-        }
-        
-        // Pobierz wygenerowane SVG z serwera
-        const response = await fetch(`/api/models/${modelId}/svg`);
-        
+    // Pobierz SVG dla modelu DXF
+    fetch(`/api/models/${modelId}/svg`)
+      .then(response => {
         if (!response.ok) {
-          if (response.status === 403) {
-            throw new Error('Brak dostępu do tego modelu');
-          } else if (response.status === 404) {
-            throw new Error('Nie znaleziono pliku SVG lub konwersja nie została jeszcze zakończona');
-          } else {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Problem z załadowaniem SVG');
-          }
+          throw new Error(`Błąd ${response.status}: ${response.statusText}`);
         }
-        
-        const svgData = await response.text();
-        if (!svgData || svgData.trim() === '') {
-          throw new Error('Pobrany plik SVG jest pusty');
-        }
-        
-        setSvgContent(svgData);
-        
-        // Po załadowaniu SVG, oblicz wymiary modelu
-        // Wykonujemy to z opóźnieniem, aby dać czas na wyrenderowanie SVG
-        setTimeout(() => {
-          calculateSvgDimensions();
-        }, 100);
-      } catch (err) {
-        console.error("Error loading SVG:", err);
-        setError(err instanceof Error ? err.message : 'Nieznany błąd podczas ładowania SVG');
-        setSvgContent(null);
-      } finally {
+        return response.text();
+      })
+      .then(svg => {
+        setSvgContent(svg);
         setIsLoading(false);
-      }
-    };
-
-    fetchSvg();
+      })
+      .catch(err => {
+        console.error("Błąd pobierania SVG:", err);
+        setError(err.message);
+        setIsLoading(false);
+      });
+      
   }, [modelId]);
-
-  if (isLoading) {
+  
+  // Po załadowaniu SVG oblicz wymiary
+  useEffect(() => {
+    if (svgContent && svgWrapperRef.current) {
+      // Trochę opóźnienia, aby DOM miał czas na renderowanie SVG
+      setTimeout(() => {
+        calculateSvgDimensions();
+      }, 100);
+    }
+  }, [svgContent]);
+  
+  // Renderowanie DXF jako SVG
+  const renderSvgContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Skeleton className="h-32 w-32 rounded-full" />
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+          <Badge variant="destructive" className="mb-2">
+            {t('error')}
+          </Badge>
+          <p className="text-sm text-gray-500">{error}</p>
+        </div>
+      );
+    }
+    
+    if (!svgContent) {
+      return (
+        <div className="flex items-center justify-center h-full text-center p-4">
+          <p className="text-sm text-gray-500">{t('dxf.no_preview')}</p>
+        </div>
+      );
+    }
+    
     return (
-      <div className="h-full w-full flex flex-col">
-        <Card className="flex-1 relative overflow-hidden">
-          <CardContent className="p-0 h-full flex items-center justify-center">
-            <Skeleton className="h-64 w-64 rounded-md" />
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              {t('dxf.loading')}
-            </div>
-          </CardContent>
-        </Card>
+      <div 
+        ref={svgWrapperRef}
+        className="w-full h-full flex items-center justify-center relative"
+        dangerouslySetInnerHTML={{ __html: svgContent }}
+      />
+    );
+  };
+
+  // Renderowanie szczegółów wymiarów, jeśli są dostępne
+  const renderDimensionsDetails = () => {
+    if (!modelDimensions) return null;
+    
+    return (
+      <div className="p-4 border-t">
+        <h4 className="font-medium mb-2 text-sm">{t('dimensions.title')}</h4>
+        <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-xs">
+          <div className="text-gray-500">{t('dimensions.width')}:</div>
+          <div className="font-medium text-right">
+            {modelDimensions.width.toFixed(2)} {modelDimensions.units}
+          </div>
+          
+          <div className="text-gray-500">{t('dimensions.height')}:</div>
+          <div className="font-medium text-right">
+            {modelDimensions.height.toFixed(2)} {modelDimensions.units}
+          </div>
+          
+          <div className="col-span-2 mt-2">
+            <Badge variant="outline" className="text-xs">{modelDimensions.units.toUpperCase()}</Badge>
+          </div>
+        </div>
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="h-full w-full flex flex-col">
-        <Card className="flex-1">
-          <CardContent className="p-6 h-full flex flex-col items-center justify-center">
-            <div className="text-red-500 mb-2">{t('dxf.error_loading')}</div>
-            <div className="text-sm text-gray-500">{error}</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!svgContent) {
-    return (
-      <div className="h-full w-full flex flex-col">
-        <Card className="flex-1">
-          <CardContent className="p-6 h-full flex items-center justify-center text-gray-500">
-            {t('dxf.select_model')}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="preview" className="flex-1 flex flex-col">
-        <TabsList className="mx-auto mb-4">
-          <TabsTrigger value="preview">{t('dxf.preview')}</TabsTrigger>
-          <TabsTrigger value="code">{t('dxf.svg_code')}</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="preview">{t('preview')}</TabsTrigger>
+          <TabsTrigger value="info">{t('details')}</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="preview" className="flex-1 m-0">
-          <Card className="flex-1 h-full">
-            <CardContent className="p-1 h-full bg-white overflow-auto relative">
-              <div 
-                className="h-full w-full flex items-center justify-center"
-                style={{ 
-                  position: "relative",
-                  overflow: "hidden"
-                }}
-              >
-                <div 
-                  className="svg-container"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                    borderRadius: "8px",
-                    background: "#fff",
-                    position: "relative",
-                    overflow: "hidden",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}
-                >
-                  {/* Controls overlay */}
-                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
-                    <Toggle
-                      aria-label={t('measurement.mode')}
-                      pressed={measureMode}
-                      onPressedChange={setMeasureMode}
-                      className={`p-2 ${measureMode ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'} border-none`}
-                      title={t('measurement.toggle')}
-                    >
-                      <Ruler className="h-6 w-6" />
-                    </Toggle>
-                  </div>
-                  
-                  {/* Measurement info */}
-                  {measureMode && (
-                    <div className="absolute top-12 left-2 z-10 bg-black/70 text-white p-2 rounded max-w-xs">
-                      <div className="font-bold mb-1 flex items-center">
-                        <Ruler className="h-4 w-4 mr-2" /> 
-                        {t('measurement.mode')}
-                      </div>
-                      <div className="text-xs mb-2">
-                        {t('measurement.instructions')}
-                      </div>
-                      {measurePoints.length > 0 && (
-                        <div className="text-xs">
-                          {t('measurement.points')}: {measurePoints.length}/2
-                        </div>
-                      )}
-                      {measureDistance !== null && (
-                        <div className="mt-1 p-1 bg-blue-900/50 rounded text-center">
-                          <span className="font-bold">{t('measurement.distance')}:</span> {measureDistance.toFixed(2)} {t('measurement.units')}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Model dimensions info */}
-                  {modelDimensions && (
-                    <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded">
-                      <div className="font-bold mb-1">{t('dimensions.title')}:</div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">{t('dimensions.width')}:</span>
-                          <span className="font-mono">{modelDimensions.width.toFixed(2)} {modelDimensions.units}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">{t('dimensions.height')}:</span>
-                          <span className="font-mono">{modelDimensions.height.toFixed(2)} {modelDimensions.units}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Wrapper na SVG - zajmuje całą powierzchnię kontenera */}
-                  <div 
-                    ref={svgWrapperRef}
-                    className="svg-wrapper" 
-                    style={{ 
-                      position: "absolute", 
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      width: "100%", 
-                      height: "100%", 
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden"
-                    }}
-                    dangerouslySetInnerHTML={{ __html: svgContent }}
-                    onClick={measureMode ? handleMeasureClick : undefined}
-                  />
+        <TabsContent value="preview" className="flex-1 min-h-0 relative">
+          <Card className="h-full border-t-0 rounded-t-none flex flex-col">
+            <CardContent className="flex-1 p-0 relative">
+              <div className="w-full h-full relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {renderSvgContent()}
                 </div>
+                
+                {/* Model dimensions info */}
+                {modelDimensions && (
+                  <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded">
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <span>{t('dimensions.width')}:</span>
+                      <span className="font-bold">{modelDimensions.width.toFixed(2)} {modelDimensions.units}</span>
+                      
+                      <span>{t('dimensions.height')}:</span>
+                      <span className="font-bold">{modelDimensions.height.toFixed(2)} {modelDimensions.units}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="code" className="flex-1 m-0">
-          <Card className="flex-1 h-full">
-            <CardContent className="p-0 h-full">
-              <pre className="h-full overflow-auto bg-gray-50 p-4 text-xs">
-                {svgContent}
-              </pre>
+        <TabsContent value="info">
+          <Card className="border-t-0 rounded-t-none">
+            <CardContent className="pt-4">
+              <div className="space-y-4">
+                {renderDimensionsDetails()}
+                
+                {/* Other details can be added here */}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
