@@ -45,7 +45,15 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
     
     // Pobierz macierz transformacji od elementu SVG do przeglądarki
-    const svgCTM = entitiesGroup.getScreenCTM();
+    let svgCTM: DOMMatrix | null = null;
+    
+    // Sprawdź typ elementu i wywołaj odpowiednią metodę
+    if ('getScreenCTM' in entitiesGroup && typeof (entitiesGroup as any).getScreenCTM === 'function') {
+      svgCTM = (entitiesGroup as SVGGraphicsElement).getScreenCTM();
+    } else if (svgElement instanceof SVGSVGElement) {
+      // Fallback - użyj elementu głównego SVG
+      svgCTM = svgElement.getScreenCTM();
+    }
     
     if (!svgCTM) {
       console.error("Nie można uzyskać macierzy transformacji SVG");

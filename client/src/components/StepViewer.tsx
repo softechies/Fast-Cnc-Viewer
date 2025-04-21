@@ -103,23 +103,50 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const createMeasurePoint = (position: THREE.Vector3) => {
     if (!sceneRef.current) return;
     
-    // Stwórz geometrię i materiał dla punktu
-    const pointGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    // Usuń istniejący punkt o tej samej nazwie, jeśli istnieje
+    const pointId = `MeasurePoint_${measurePoints.length}`;
+    const existingPoint = sceneRef.current.getObjectByName(pointId);
+    if (existingPoint) {
+      sceneRef.current.remove(existingPoint);
+    }
+    
+    // Stwórz grupę dla punktu z wyróżnieniem
+    const pointGroup = new THREE.Group();
+    pointGroup.name = pointId;
+    
+    // Stwórz geometrię i materiał dla punktu - mniejszy dla lepszej precyzji
+    const pointGeometry = new THREE.SphereGeometry(0.05, 16, 16);
     const pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
     
-    // Ustaw pozycję punktu
-    pointMesh.position.copy(position);
+    // Stwórz "halo" wokół punktu dla lepszej widoczności
+    const haloGeometry = new THREE.SphereGeometry(0.07, 16, 16);
+    const haloMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xffffff, 
+      transparent: true, 
+      opacity: 0.5 
+    });
+    const haloMesh = new THREE.Mesh(haloGeometry, haloMaterial);
     
-    // Dodaj punkt do sceny z unikalną nazwą
-    const pointId = `MeasurePoint_${measurePoints.length}`;
-    pointMesh.name = pointId;
-    sceneRef.current.add(pointMesh);
+    // Ustaw pozycję punktu i halo
+    pointMesh.position.copy(position);
+    haloMesh.position.copy(position);
+    
+    // Dodaj punkt i halo do grupy
+    pointGroup.add(pointMesh);
+    pointGroup.add(haloMesh);
+    
+    // Dodaj współrzędne jako tekst przy punkcie
+    const coords = `(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`;
+    console.log(`Dodano punkt pomiarowy: ${coords}`);
+    
+    // Dodaj punkt do sceny
+    sceneRef.current.add(pointGroup);
   };
   
   // Funkcja do tworzenia linii pomiarowej i etykiety z odległością
   const createMeasureLine = (start: THREE.Vector3, end: THREE.Vector3, distance: number) => {
-    if (!sceneRef.current) return;
+    if (!sceneRef.current || !cameraRef.current) return;
     
     // Usuń istniejącą linię jeśli istnieje
     const existingLine = sceneRef.current.getObjectByName("MeasureLine");
@@ -131,18 +158,100 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     const lineGroup = new THREE.Group();
     lineGroup.name = "MeasureLine";
     
-    // Stwórz materiał dla linii
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+    // Stwórz materiał dla linii - przerywana linia dla lepszej widoczności
+    const lineMaterial = new THREE.LineDashedMaterial({ 
+      color: 0xff0000,
+      dashSize: 0.1,
+      gapSize: 0.05,
+      linewidth: 2
+    });
     
     // Stwórz geometrię dla linii
     const lineGeometry = new THREE.BufferGeometry().setFromPoints([start, end]);
     const line = new THREE.Line(lineGeometry, lineMaterial);
+    line.computeLineDistances(); // Wymagane dla LineDashedMaterial
     
     // Dodaj linię do grupy
     lineGroup.add(line);
     
+    // Oblicz środek linii dla umieszczenia etykiety
+    const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    
+    // Stwórz stożki na końcach linii jako strzałki
+    const coneLength = 0.1;
+    const coneRadius = 0.04;
+    const coneGeometry = new THREE.ConeGeometry(coneRadius, coneLength, 8);
+    const coneMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    
+    // Stożek na początku linii
+    const startCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    startCone.position.copy(start);
+    // Ustaw orientację stożka w kierunku końca linii
+    startCone.lookAt(end);
+    startCone.rotateX(Math.PI / 2); // Obróć stożek aby wskazywał we właściwym kierunku
+    
+    // Stożek na końcu linii
+    const endCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    endCone.position.copy(end);
+    // Ustaw orientację stożka w kierunku początku linii
+    endCone.lookAt(start);
+    endCone.rotateX(Math.PI / 2); // Obróć stożek aby wskazywał we właściwym kierunku
+    
+    // Dodaj stożki do grupy
+    lineGroup.add(startCone);
+    lineGroup.add(endCone);
+    
+    // Stwórz etykietę z odległością która zawsze patrzy na kamerę
+    // Zaokrąglij odległość do 2 miejsc po przecinku dla dużych wartości
+    // i do 3 miejsc po przecinku dla małych wartości
+    const distanceText = distance >= 1 
+      ? `${distance.toFixed(2)} jedn.` 
+      : `${distance.toFixed(3)} jedn.`;
+    
+    // Użyj canvas do stworzenia tekstury z etykietą
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 128;
+    const context = canvas.getContext('2d');
+    
+    if (context) {
+      context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      
+      context.strokeStyle = 'white';
+      context.lineWidth = 2;
+      context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+      
+      context.font = 'bold 36px Arial';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillStyle = 'white';
+      context.fillText(distanceText, canvas.width / 2, canvas.height / 2);
+      
+      // Stwórz teksturę z canvas
+      const texture = new THREE.CanvasTexture(canvas);
+      
+      // Stwórz materiał z teksturą
+      const labelMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true
+      });
+      
+      // Stwórz sprite z materiałem
+      const label = new THREE.Sprite(labelMaterial);
+      label.position.copy(midPoint);
+      
+      // Dostosuj rozmiar etykiety
+      label.scale.set(1, 0.5, 1);
+      
+      // Dodaj etykietę do grupy
+      lineGroup.add(label);
+    }
+    
     // Dodaj grupę do sceny
     sceneRef.current.add(lineGroup);
+    
+    console.log(`Narysowano linię pomiarową o długości: ${distance.toFixed(3)} jednostek`);
   };
 
   // Initialize Three.js scene
