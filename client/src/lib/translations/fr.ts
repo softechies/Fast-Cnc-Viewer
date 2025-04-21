@@ -70,6 +70,7 @@ const translations = {
   dragAndDrop: "Glissez-déposez votre fichier ici, ou cliquez pour parcourir",
   selectFile: "Sélectionner un fichier",
   uploadingModel: "Téléchargement du modèle...",
+  uploadProgress: "Progression du téléchargement",
   uploadComplete: "Téléchargement terminé",
   uploadFailed: "Échec du téléchargement",
   supportedFormats: "Formats pris en charge: STEP, IGES, STL, DXF, DWG",

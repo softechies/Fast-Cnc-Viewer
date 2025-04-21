@@ -71,6 +71,7 @@ const translations = {
   dragAndDrop: "Drag and drop your file here, or click to browse",
   selectFile: "Select File",
   uploadingModel: "Uploading model...",
+  uploadProgress: "Upload progress",
   uploadComplete: "Upload complete",
   uploadFailed: "Upload failed",
   supportedFormats: "Supported formats: STEP, IGES, STL, DXF, DWG",

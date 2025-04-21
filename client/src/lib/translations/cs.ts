@@ -70,6 +70,7 @@ const translations = {
   dragAndDrop: "Přetáhněte soubor sem nebo klikněte pro procházení",
   selectFile: "Vybrat soubor",
   uploadingModel: "Nahrávání modelu...",
+  uploadProgress: "Průběh nahrávání",
   uploadComplete: "Nahrávání dokončeno",
   uploadFailed: "Nahrávání selhalo",
   supportedFormats: "Podporované formáty: STEP, IGES, STL, DXF, DWG",
