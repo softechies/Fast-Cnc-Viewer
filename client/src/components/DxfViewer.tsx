@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { Ruler } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface DxfViewerProps {
   modelId: number | null;

@@ -23,6 +23,9 @@ interface StepViewerProps {
 
 // Component for viewing STL models
 export default function StepViewer({ modelId }: StepViewerProps) {
+  // Get translation function
+  const { t } = useLanguage();
+  
   // Refs for Three.js elements
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -215,8 +218,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     // Zaokrąglij odległość do 2 miejsc po przecinku dla dużych wartości
     // i do 3 miejsc po przecinku dla małych wartości
     const distanceText = distance >= 1 
-      ? `${distance.toFixed(2)} jedn.` 
-      : `${distance.toFixed(3)} jedn.`;
+      ? `${distance.toFixed(2)} ${t('measurement.units')}` 
+      : `${distance.toFixed(3)} ${t('measurement.units')}`;
     
     // Użyj canvas do stworzenia tekstury z etykietą
     const canvas = document.createElement('canvas');
@@ -861,19 +864,19 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         <div className="absolute top-12 left-2 z-10 bg-black/70 text-white p-2 rounded max-w-xs">
           <div className="font-bold mb-1 flex items-center">
             <Ruler className="h-4 w-4 mr-2" /> 
-            Tryb pomiaru
+            {t('measurement.mode')}
           </div>
           <div className="text-xs mb-2">
-            Kliknij na model, aby zaznaczyć pierwszy punkt pomiaru, a następnie kliknij ponownie, aby zaznaczyć drugi punkt i zmierzyć odległość.
+            {t('measurement.instructions')}
           </div>
           {measurePoints.length > 0 && (
             <div className="text-xs">
-              Punkty: {measurePoints.length}/2
+              {t('measurement.points')}: {measurePoints.length}/2
             </div>
           )}
           {measureDistance !== null && (
             <div className="mt-1 p-1 bg-blue-900/50 rounded text-center">
-              <span className="font-bold">Odległość:</span> {measureDistance.toFixed(3)} jednostek
+              <span className="font-bold">{t('measurement.distance')}:</span> {measureDistance.toFixed(3)} {t('measurement.units')}
             </div>
           )}
         </div>
@@ -911,22 +914,22 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             {/* Model dimensions section */}
             {modelDimensions && (
               <div className="mt-2 pt-2 border-t border-gray-600">
-                <div className="font-bold mb-1">Wymiary modelu:</div>
+                <div className="font-bold mb-1">{t('dimensions.title')}:</div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">Szerokość (X):</span>
+                    <span className="text-gray-400">{t('dimensions.width')}:</span>
                     <span className="font-mono">{modelDimensions.width.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">Wysokość (Y):</span>
+                    <span className="text-gray-400">{t('dimensions.height')}:</span>
                     <span className="font-mono">{modelDimensions.height.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">Głębokość (Z):</span>
+                    <span className="text-gray-400">{t('dimensions.depth')}:</span>
                     <span className="font-mono">{modelDimensions.depth.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">Przekątna:</span>
+                    <span className="text-gray-400">{t('dimensions.diagonal')}:</span>
                     <span className="font-mono">{modelDimensions.size.toFixed(2)}</span>
                   </div>
                 </div>
