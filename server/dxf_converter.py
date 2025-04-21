@@ -451,13 +451,14 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             
             elif entity.dxftype() == 'LWPOLYLINE':
                 points = entity.get_points()
+                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
                 if entity.closed:
-                    # Przesuń do środka i odwróć współrzędne Y
-                    points_str = " ".join([f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in points])
+                    # Przesuń do środka, skaluj i odwróć współrzędne Y
+                    points_str = " ".join([f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in points])
                     lines.append(f'<polygon points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
                 else:
-                    # Przesuń do środka i odwróć współrzędne Y
-                    points_str = " ".join([f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in points])
+                    # Przesuń do środka, skaluj i odwróć współrzędne Y
+                    points_str = " ".join([f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in points])
                     lines.append(f'<polyline points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'TEXT':
@@ -465,10 +466,12 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
                     insert = entity.dxf.insert
                     text = entity.dxf.text
                     height = entity.dxf.height
-                    # Przesuń do środka i odwróć współrzędne Y
-                    insert_x = insert[0] + offset_x
-                    insert_y = -(insert[1] + offset_y)
-                    lines.append(f'<text x="{insert_x}" y="{insert_y}" font-size="{height}">{text}</text>')
+                    # Przesuń do środka, skaluj i odwróć współrzędne Y
+                    scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
+                    insert_x = (insert[0] + offset_x) * scale_factor
+                    insert_y = -(insert[1] + offset_y) * scale_factor
+                    scaled_height = height * scale_factor
+                    lines.append(f'<text x="{insert_x}" y="{insert_y}" font-size="{scaled_height}">{text}</text>')
                 except Exception:
                     pass
         
