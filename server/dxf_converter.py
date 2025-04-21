@@ -293,10 +293,10 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         svg_width = "100%"
         svg_height = "100%"
         
-        # Zaawansowane podejście - używamy faktycznych wymiarów,
-        # skalujemy i środkujemy rysunek dla lepszego dopasowania do kontenera
+        # Zaawansowane podejście - wyśrodkowujemy rysunek względem punktu (0,0)
+        # i skalujemy dla lepszego dopasowania do kontenera
         
-        # Znajdujemy punkt środkowy rysunku
+        # Znajdujemy punkt środkowy oryginalnego rysunku
         center_x = (min_x + max_x) / 2
         center_y = (min_y + max_y) / 2
         
@@ -311,16 +311,25 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             adjusted_width = min_dimension
         if adjusted_height < min_dimension:
             adjusted_height = min_dimension
-            
-        # Obliczamy skorygowane współrzędne viewBox
-        view_min_x = center_x - (adjusted_width / 2)
-        view_max_x = center_x + (adjusted_width / 2)
-        view_min_y = center_y - (adjusted_height / 2)
-        view_max_y = center_y + (adjusted_height / 2)
         
-        # Odwracamy współrzędne Y
-        view_min_y_flipped = -view_max_y
-        view_height_flipped = adjusted_height
+        # Teraz umieszczamy punkt centralny rysunku w punkcie (0,0)
+        # Obliczamy przesunięcie dla wszystkich elementów
+        offset_x = -center_x
+        offset_y = -center_y
+            
+        # Współrzędne viewBox będą symetryczne względem środka
+        half_width = adjusted_width / 2
+        half_height = adjusted_height / 2
+        
+        # Definiujemy viewBox, który jest wyśrodkowany na (0,0)
+        view_min_x = -half_width
+        view_max_x = half_width
+        view_min_y = -half_height
+        view_max_y = half_height
+        
+        # Odwracamy współrzędne Y - w SVG oś Y rośnie w dół
+        view_min_y_flipped = -view_max_y  # górna granica
+        view_height_flipped = adjusted_height  # wysokość
         
         # Zapisujemy informacje o skalowaniu do debugowania
         with open("/tmp/dxf_debug.log", "a") as f:
@@ -380,18 +389,28 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             if entity.dxftype() == 'LINE':
                 start = entity.dxf.start
                 end = entity.dxf.end
-                # Odwracamy współrzędne Y
-                lines.append(f'<line x1="{start[0]}" y1="{-start[1]}" x2="{end[0]}" y2="{-end[1]}" stroke="black" stroke-width="0.5" />')
+                # Przesuń do środka i odwróć współrzędne Y
+                start_x = start[0] + offset_x
+                start_y = -(start[1] + offset_y)
+                end_x = end[0] + offset_x
+                end_y = -(end[1] + offset_y)
+                lines.append(f'<line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="black" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'CIRCLE':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
-                # Odwracamy współrzędne Y
-                lines.append(f'<circle cx="{center[0]}" cy="{-center[1]}" r="{radius}" stroke="black" fill="none" stroke-width="0.5" />')
+                # Przesuń do środka i odwróć współrzędne Y
+                center_x = center[0] + offset_x
+                center_y = -(center[1] + offset_y)
+                lines.append(f'<circle cx="{center_x}" cy="{center_y}" r="{radius}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'ARC':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
+                # Przesuń środek do punktu (0,0)
+                center_x = center[0] + offset_x
+                center_y = center[1] + offset_y
+                
                 # W systemie SVG kąty idą w odwrotnym kierunku niż w DXF gdy Y jest odwrócone
                 start_angle = 360 - entity.dxf.start_angle
                 end_angle = 360 - entity.dxf.end_angle
@@ -400,12 +419,12 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
                 
                 # Konwersja kątów na współrzędne punktów
                 import math
-                start_x = center[0] + radius * math.cos(math.radians(start_angle))
+                start_x = center_x + radius * math.cos(math.radians(start_angle))
                 # Odwracamy współrzędne Y
-                start_y = -center[1] + radius * math.sin(math.radians(start_angle))
-                end_x = center[0] + radius * math.cos(math.radians(end_angle))
+                start_y = -center_y + radius * math.sin(math.radians(start_angle))
+                end_x = center_x + radius * math.cos(math.radians(end_angle))
                 # Odwracamy współrzędne Y
-                end_y = -center[1] + radius * math.sin(math.radians(end_angle))
+                end_y = -center_y + radius * math.sin(math.radians(end_angle))
                 
                 large_arc = 1 if (end_angle - start_angle) % 360 > 180 else 0
                 sweep = 1  # Kierunek rysowania w SVG
@@ -414,23 +433,23 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             
             elif entity.dxftype() == 'POLYLINE':
                 if entity.is_closed:
-                    # Odwracamy współrzędne Y
-                    points = [f"{p[0]},{-p[1]}" for p in entity.points()]
+                    # Przesuń do środka i odwróć współrzędne Y
+                    points = [f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in entity.points()]
                     lines.append(f'<polygon points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
                 else:
-                    # Odwracamy współrzędne Y
-                    points = [f"{p[0]},{-p[1]}" for p in entity.points()]
+                    # Przesuń do środka i odwróć współrzędne Y
+                    points = [f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in entity.points()]
                     lines.append(f'<polyline points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'LWPOLYLINE':
                 points = entity.get_points()
                 if entity.closed:
-                    # Odwracamy współrzędne Y
-                    points_str = " ".join([f"{p[0]},{-p[1]}" for p in points])
+                    # Przesuń do środka i odwróć współrzędne Y
+                    points_str = " ".join([f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in points])
                     lines.append(f'<polygon points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
                 else:
-                    # Odwracamy współrzędne Y
-                    points_str = " ".join([f"{p[0]},{-p[1]}" for p in points])
+                    # Przesuń do środka i odwróć współrzędne Y
+                    points_str = " ".join([f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in points])
                     lines.append(f'<polyline points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'TEXT':
@@ -438,8 +457,10 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
                     insert = entity.dxf.insert
                     text = entity.dxf.text
                     height = entity.dxf.height
-                    # Odwracamy współrzędne Y
-                    lines.append(f'<text x="{insert[0]}" y="{-insert[1]}" font-size="{height}">{text}</text>')
+                    # Przesuń do środka i odwróć współrzędne Y
+                    insert_x = insert[0] + offset_x
+                    insert_y = -(insert[1] + offset_y)
+                    lines.append(f'<text x="{insert_x}" y="{insert_y}" font-size="{height}">{text}</text>')
                 except Exception:
                     pass
         
