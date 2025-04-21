@@ -107,7 +107,8 @@ const translations = {
     instructions: "Kliknij na model, aby zaznaczyć pierwszy punkt pomiaru, a następnie kliknij ponownie, aby zaznaczyć drugi punkt i zmierzyć odległość.",
     points: "Punkty",
     distance: "Odległość",
-    units: "jednostek"
+    units: "jednostek",
+    toggle: "Włącz/wyłącz tryb pomiaru"
   },
   
   // Model dimensions
@@ -271,6 +272,15 @@ const translations = {
   sharingRemoved: "Udostępnianie zostało wyłączone",
   
   // Admin panel
+  // DXF Viewer
+  dxf: {
+    preview: "Podgląd graficzny",
+    svg_code: "Kod SVG",
+    loading: "Ładowanie podglądu DXF...",
+    error_loading: "Błąd ładowania pliku DXF",
+    select_model: "Wybierz model DXF do wyświetlenia"
+  },
+  
   admin: {
     loginTitle: "Logowanie do Panelu Administratora",
     loginDescription: "Wprowadź dane uwierzytelniające, aby uzyskać dostęp do panelu administratora",

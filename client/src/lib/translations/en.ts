@@ -109,7 +109,8 @@ const translations = {
     instructions: "Click on the model to mark the first measurement point, then click again to mark the second point and measure the distance.",
     points: "Points",
     distance: "Distance",
-    units: "units"
+    units: "units",
+    toggle: "Toggle measurement mode"
   },
   
   // Model dimensions
@@ -318,6 +319,15 @@ const translations = {
   },
   
   // Admin panel
+  // DXF Viewer
+  dxf: {
+    preview: "Graphical Preview",
+    svg_code: "SVG Code",
+    loading: "Loading DXF preview...",
+    error_loading: "Error loading DXF file",
+    select_model: "Select a DXF model to display"
+  },
+  
   admin: {
     loginTitle: "Admin Panel Login",
     loginDescription: "Enter your credentials to access the admin panel",
