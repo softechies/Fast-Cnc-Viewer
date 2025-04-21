@@ -355,21 +355,19 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         # Dodajemy grupę dla wszystkich elementów
         lines.append('<g>')
         
-        # Używamy siatki bazującej na faktycznych wymiarach rysunku
-        grid_step = adjusted_width / 20  # 20 podziałek na szerokość
+        # Używamy siatki bazującej na stałym viewBox
+        grid_step = 20  # 10 podziałek na stronę (20 linii w siatce)
         lines.append(f'<g id="grid" stroke="#d0d0d0" stroke-width="0.1" opacity="0.5">')
         
         # Obsługa zakresu wartości
         try:
             # Rysujemy siatkę pionową - linie równoległe do osi Y
-            for x in np.arange(view_min_x, view_max_x, grid_step):
-                lines.append(f'<line x1="{x}" y1="{view_min_y_flipped}" x2="{x}" y2="{view_min_y_flipped + view_height_flipped}" stroke-width="0.1" />')
+            for x in range(-100, 101, grid_step):
+                lines.append(f'<line x1="{x}" y1="{fixed_viewbox_min_y}" x2="{x}" y2="{fixed_viewbox_min_y + fixed_viewbox_height}" stroke-width="0.1" />')
             
             # Rysujemy siatkę poziomą - linie równoległe do osi X
-            for y in np.arange(view_min_y, view_max_y, grid_step):
-                # Odwracamy współrzędne Y
-                y_flipped = -y
-                lines.append(f'<line x1="{view_min_x}" y1="{y_flipped}" x2="{view_max_x}" y2="{y_flipped}" stroke-width="0.1" />')
+            for y in range(-100, 101, grid_step):
+                lines.append(f'<line x1="{fixed_viewbox_min_x}" y1="{y}" x2="{fixed_viewbox_min_x + fixed_viewbox_width}" y2="{y}" stroke-width="0.1" />')
                 
         except Exception as e:
             with open("/tmp/dxf_debug.log", "a") as f:
@@ -377,14 +375,12 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         
         lines.append('</g>')
         
-        # Dodaj osie dla nowego viewBox
-        # Używamy środka obszaru viewBox jako punktu przecięcia osi
-        mid_x = view_min_x + adjusted_width / 2
-        mid_y_flipped = view_min_y_flipped + view_height_flipped / 2
+        # Dodaj osie dla nowego stałego viewBox
+        # Używamy punktu (0,0) jako przecięcia osi
         
         lines.append(f'<g id="axes">')
-        lines.append(f'<line x1="{view_min_x}" y1="{mid_y_flipped}" x2="{view_min_x + adjusted_width}" y2="{mid_y_flipped}" stroke="red" stroke-width="0.2" />')
-        lines.append(f'<line x1="{mid_x}" y1="{view_min_y_flipped}" x2="{mid_x}" y2="{view_min_y_flipped + view_height_flipped}" stroke="blue" stroke-width="0.2" />')
+        lines.append(f'<line x1="{fixed_viewbox_min_x}" y1="0" x2="{fixed_viewbox_min_x + fixed_viewbox_width}" y2="0" stroke="red" stroke-width="0.2" />')
+        lines.append(f'<line x1="0" y1="{fixed_viewbox_min_y}" x2="0" y2="{fixed_viewbox_min_y + fixed_viewbox_height}" stroke="blue" stroke-width="0.2" />')
         lines.append('</g>')
         
         # Dodaj encje
@@ -395,26 +391,32 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
                 start = entity.dxf.start
                 end = entity.dxf.end
                 # Przesuń do środka i odwróć współrzędne Y
-                start_x = start[0] + offset_x
-                start_y = -(start[1] + offset_y)
-                end_x = end[0] + offset_x
-                end_y = -(end[1] + offset_y)
+                # Używamy stałej skali proporcjonalnej dla wszystkich elementów
+                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
+                start_x = (start[0] + offset_x) * scale_factor
+                start_y = -(start[1] + offset_y) * scale_factor
+                end_x = (end[0] + offset_x) * scale_factor
+                end_y = -(end[1] + offset_y) * scale_factor
                 lines.append(f'<line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="black" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'CIRCLE':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
-                # Przesuń do środka i odwróć współrzędne Y
-                center_x = center[0] + offset_x
-                center_y = -(center[1] + offset_y)
-                lines.append(f'<circle cx="{center_x}" cy="{center_y}" r="{radius}" stroke="black" fill="none" stroke-width="0.5" />')
+                # Przesuń do środka i odwróć współrzędne Y oraz skaluj
+                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
+                center_x = (center[0] + offset_x) * scale_factor
+                center_y = -(center[1] + offset_y) * scale_factor
+                scaled_radius = radius * scale_factor
+                lines.append(f'<circle cx="{center_x}" cy="{center_y}" r="{scaled_radius}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'ARC':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
-                # Przesuń środek do punktu (0,0)
-                center_x = center[0] + offset_x
-                center_y = center[1] + offset_y
+                # Przesuń środek do punktu (0,0) i skaluj
+                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
+                center_x = (center[0] + offset_x) * scale_factor
+                center_y = (center[1] + offset_y) * scale_factor
+                scaled_radius = radius * scale_factor
                 
                 # W systemie SVG kąty idą w odwrotnym kierunku niż w DXF gdy Y jest odwrócone
                 start_angle = 360 - entity.dxf.start_angle
@@ -424,26 +426,27 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
                 
                 # Konwersja kątów na współrzędne punktów
                 import math
-                start_x = center_x + radius * math.cos(math.radians(start_angle))
+                start_x = center_x + scaled_radius * math.cos(math.radians(start_angle))
                 # Odwracamy współrzędne Y
-                start_y = -center_y + radius * math.sin(math.radians(start_angle))
-                end_x = center_x + radius * math.cos(math.radians(end_angle))
+                start_y = -center_y + scaled_radius * math.sin(math.radians(start_angle))
+                end_x = center_x + scaled_radius * math.cos(math.radians(end_angle))
                 # Odwracamy współrzędne Y
-                end_y = -center_y + radius * math.sin(math.radians(end_angle))
+                end_y = -center_y + scaled_radius * math.sin(math.radians(end_angle))
                 
                 large_arc = 1 if (end_angle - start_angle) % 360 > 180 else 0
                 sweep = 1  # Kierunek rysowania w SVG
                 
-                lines.append(f'<path d="M {start_x} {start_y} A {radius} {radius} 0 {large_arc} {sweep} {end_x} {end_y}" stroke="black" fill="none" stroke-width="0.5" />')
+                lines.append(f'<path d="M {start_x} {start_y} A {scaled_radius} {scaled_radius} 0 {large_arc} {sweep} {end_x} {end_y}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'POLYLINE':
+                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
                 if entity.is_closed:
-                    # Przesuń do środka i odwróć współrzędne Y
-                    points = [f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in entity.points()]
+                    # Przesuń do środka, skaluj i odwróć współrzędne Y
+                    points = [f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in entity.points()]
                     lines.append(f'<polygon points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
                 else:
-                    # Przesuń do środka i odwróć współrzędne Y
-                    points = [f"{p[0] + offset_x},{-(p[1] + offset_y)}" for p in entity.points()]
+                    # Przesuń do środka, skaluj i odwróć współrzędne Y
+                    points = [f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in entity.points()]
                     lines.append(f'<polyline points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
             
             elif entity.dxftype() == 'LWPOLYLINE':
