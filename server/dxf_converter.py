@@ -337,15 +337,20 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
             f.write(f"Width: {width}, Height: {height}, Center: ({center_x}, {center_y})\n")
             f.write(f"ViewBox: {view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}\n")
         
-        # Używamy prostego viewBox obejmującego cały rysunek z marginesem
+        # Używamy ustalonego viewBox, który wymusza wyśrodkowanie
+        fixed_viewbox_min_x = -100  # Stały zakres viewBox
+        fixed_viewbox_min_y = -100
+        fixed_viewbox_width = 200
+        fixed_viewbox_height = 200
+        
         lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
-          viewBox="{view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}"
+          viewBox="{fixed_viewbox_min_x} {fixed_viewbox_min_y} {fixed_viewbox_width} {fixed_viewbox_height}"
           width="{svg_width}" height="{svg_height}"
           data-units="mm"
-          preserveAspectRatio="xMidYMid slice">''')
+          preserveAspectRatio="xMidYMid meet">''')
         
-        # Dodajemy tło do lepszej wizualizacji
-        lines.append(f'<rect x="{view_min_x}" y="{view_min_y_flipped}" width="{adjusted_width}" height="{view_height_flipped}" fill="#ffffff" />')
+        # Dodajemy tło do lepszej wizualizacji - używamy ustalonego viewBox
+        lines.append(f'<rect x="{fixed_viewbox_min_x}" y="{fixed_viewbox_min_y}" width="{fixed_viewbox_width}" height="{fixed_viewbox_height}" fill="#ffffff" />')
         
         # Dodajemy grupę dla wszystkich elementów
         lines.append('<g>')

@@ -207,7 +207,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
   };
   
   // Funkcja do obsługi kliknięć w trybie pomiaru
-  const handleMeasureClick = (event: MouseEvent) => {
+  const handleMeasureClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!measureMode || !svgWrapperRef.current) return;
     
     const svgElement = svgWrapperRef.current.querySelector('svg') as SVGSVGElement;
@@ -482,7 +482,8 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     if (!svgWrapperRef.current) return;
     
     const handleClick = (event: MouseEvent) => {
-      handleMeasureClick(event);
+      // Konwersja zdarzenia DOM na React.MouseEvent
+      handleMeasureClick(event as unknown as React.MouseEvent<HTMLDivElement>);
     };
     
     // Dodaj lub usuń obsługę kliknięć w zależności od trybu pomiaru
@@ -703,6 +704,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                       justifyContent: "center"
                     }}
                     dangerouslySetInnerHTML={{ __html: svgContent }}
+                    onClick={measureMode ? handleMeasureClick : undefined}
                   />
                 </div>
               </div>

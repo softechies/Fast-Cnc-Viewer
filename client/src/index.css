@@ -14,14 +14,19 @@
 
 /* Style dla wizualizacji DXF */
 .svg-wrapper svg {
-  width: 100% !important;
-  height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 90% !important;
+  max-height: 90% !important;
   display: block;
   transform-origin: center center;
   background-color: white;
-  max-width: 800px;
-  max-height: 600px;
   margin: 0 auto;
+  /* Wymuszamy centrowanie dla iPhone */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
 }
 
 /* Zapewnienie poprawnego centrowania SVG */
