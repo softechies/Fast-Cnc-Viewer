@@ -24,10 +24,21 @@ const createMaterials = () => ({
  * Ta funkcja wykorzystuje STLLoader z three.js/examples do poprawnego ładowania geometrii
  * Zawiera ulepszoną obsługę błędów i adaptacyjne skalowanie dostosowane do modelu
  */
+// Interfejs dla wyniku ładowania modelu STL
+export interface STLLoadResult {
+  model: THREE.Group;
+  scale: number;  // Zastosowany współczynnik skalowania
+  originalDimensions?: {  // Oryginalne wymiary przed skalowaniem
+    width: number;
+    height: number;
+    depth: number;
+  }
+}
+
 export function loadSTLModel(
   url: string, 
   onProgress?: (event: ProgressEvent) => void
-): Promise<THREE.Group> {
+): Promise<STLLoadResult> {
   return new Promise((resolve, reject) => {
     console.log("Loading STL model from:", url);
     
@@ -73,6 +84,13 @@ export function loadSTLModel(
           const box = new THREE.Box3().setFromObject(mesh);
           const size = box.getSize(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
+          
+          // Zachowaj oryginalne wymiary przed skalowaniem
+          const originalDimensions = {
+            width: size.x,
+            height: size.y,
+            depth: size.z
+          };
           
           // Bardziej adaptacyjne skalowanie z zabezpieczeniem przed dzieleniem przez zero
           let scale = 1.0;
@@ -123,24 +141,29 @@ export function loadSTLModel(
             console.log("Pominięto generowanie wireframe - zbyt złożona geometria");
           }
           
-          resolve(group);
+          // Zwróć obiekt zawierający model, skalę i oryginalne wymiary
+          resolve({
+            model: group,
+            scale: scale,
+            originalDimensions: originalDimensions
+          });
         } catch (processingError: any) {
           console.error("Error processing STL geometry:", processingError);
           // W przypadku błędu podczas przetwarzania, przekieruj do obsługi błędów
-          createErrorModel(processingError instanceof Error ? processingError.message : "Unknown error", resolve);
+          createErrorModel(processingError instanceof Error ? processingError.message : "Unknown error", resolve as (value: STLLoadResult) => void);
         }
       },
       onProgress,
       (err: any) => {
         console.error("Error loading STL model:", err);
-        createErrorModel(err instanceof Error ? err.message : "Failed to load STL model", resolve);
+        createErrorModel(err instanceof Error ? err.message : "Failed to load STL model", resolve as (value: STLLoadResult) => void);
       }
     );
   });
 }
 
 // Wydzielona funkcja do tworzenia modelu błędu
-function createErrorModel(errorMessage: string, resolve: (value: THREE.Group) => void): void {
+function createErrorModel(errorMessage: string, resolve: (value: STLLoadResult) => void): void {
   // Tworzymy minimalny fallback model - bez kostek!
   const fallbackGroup = new THREE.Group();
   
@@ -180,5 +203,14 @@ function createErrorModel(errorMessage: string, resolve: (value: THREE.Group) =>
   // Zapisz informację o błędzie jako właściwość grupy
   (fallbackGroup as any).errorMessage = errorMessage;
   
-  resolve(fallbackGroup);
+  // Zwróć obiekt zgodny z interfejsem STLLoadResult
+  resolve({
+    model: fallbackGroup,
+    scale: 1.0,
+    originalDimensions: {
+      width: 0,
+      height: 0,
+      depth: 0
+    }
+  });
 }
