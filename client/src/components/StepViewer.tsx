@@ -41,6 +41,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   // Używamy tylko renderowania STL (bez STEP)
   const renderMode = 'stl_only' as const;
   
+  // Stan dla informacji o wymiarach modelu
+  type ModelDimensions = {
+    width: number; // X
+    height: number; // Y
+    depth: number; // Z
+    size: number; // Ogólny rozmiar (przekątna)
+  };
+  const [modelDimensions, setModelDimensions] = useState<ModelDimensions | null>(null);
+  
   // Stan dla trybu pomiaru
   const [measureMode, setMeasureMode] = useState(false);
   const [measurePoints, setMeasurePoints] = useState<THREE.Vector3[]>([]);
@@ -735,23 +744,85 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   };
 
   // Helper function to fit camera to object
-  function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
+  // Funkcja obliczająca i ustawiająca wymiary modelu
+  function calculateModelDimensions(object: THREE.Object3D) {
+    // Utwórz bounding box dla modelu
     const boundingBox = new THREE.Box3().setFromObject(object);
+    const size = new THREE.Vector3();
+    boundingBox.getSize(size);
+    
+    // Oblicz przekątną modelu (ogólny rozmiar)
+    const size3D = Math.sqrt(
+      Math.pow(size.x, 2) + 
+      Math.pow(size.y, 2) + 
+      Math.pow(size.z, 2)
+    );
+    
+    // Ustaw wymiary modelu
+    setModelDimensions({
+      width: size.x,  // Wymiar X
+      height: size.y, // Wymiar Y
+      depth: size.z,  // Wymiar Z
+      size: size3D,   // Przekątna 3D
+    });
+    
+    return { boundingBox, size };
+  }
+
+  function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
+    // Oblicz wymiary modelu i uzyskaj bounding box
+    const { boundingBox, size } = calculateModelDimensions(object);
     
     // Get bounding box center
     const center = new THREE.Vector3();
     boundingBox.getCenter(center);
     
+    // Get the max side of the bounding box
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    let cameraDistance = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+    
+    // Apply a factor for better fit
+    cameraDistance *= 1.5;
+    
     // Move camera to look at center
     camera.position.set(
-      center.x + 10,
-      center.y + 10,
-      center.z + 10
+      center.x + cameraDistance,
+      center.y + cameraDistance,
+      center.z + cameraDistance
     );
     camera.lookAt(center);
     
     // Update orbit controls target
     controls.target.copy(center);
+    controls.update();
+    
+    // Apply scaling for small or large models
+    let scaleFactor = 1.0;
+    const maxSide = Math.max(size.x, size.y, size.z);
+    
+    if (maxSide > 50) {
+      // Very large model, scale down
+      scaleFactor = 10.0 / maxSide;
+      console.log("Bardzo duży model, zmniejszanie skali:", scaleFactor);
+    } else if (maxSide < 0.1) {
+      // Very small model, scale up
+      scaleFactor = 5.0 / maxSide;
+      console.log("Bardzo mały model, zwiększanie skali:", scaleFactor);
+    } else if (maxSide < 5) {
+      // Small model but not tiny, scale up a bit
+      scaleFactor = 10 / maxSide;
+      console.log("Normalny model, stosowanie standardowej skali:", scaleFactor);
+    }
+    
+    // Apply scaling to the model
+    object.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    
+    // Po skalowaniu, ponownie oblicz wymiary modelu 
+    // (ważne, ponieważ wymiary zmieniły się po skalowaniu)
+    calculateModelDimensions(object);
+    
+    // Update controls after scaling
     controls.update();
   }
   
@@ -825,15 +896,42 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         style={{ minHeight: '500px' }}
       />
       
-      {/* Mode info */}
+      {/* Mode info and dimensions */}
       <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded flex flex-col gap-1">
         {stlFileInfo ? (
-          <div className="flex items-center gap-2 mt-1">
-            Format: 
-            <Badge variant="outline" className="bg-green-900/50">
-              STL
-            </Badge>
-          </div>
+          <>
+            <div className="flex items-center gap-2 mt-1">
+              Format: 
+              <Badge variant="outline" className="bg-green-900/50">
+                STL
+              </Badge>
+            </div>
+            
+            {/* Model dimensions section */}
+            {modelDimensions && (
+              <div className="mt-2 pt-2 border-t border-gray-600">
+                <div className="font-bold mb-1">Wymiary modelu:</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">Szerokość (X):</span>
+                    <span className="font-mono">{modelDimensions.width.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">Wysokość (Y):</span>
+                    <span className="font-mono">{modelDimensions.height.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">Głębokość (Z):</span>
+                    <span className="font-mono">{modelDimensions.depth.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-400">Przekątna:</span>
+                    <span className="font-mono">{modelDimensions.size.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex flex-col gap-1">
             <div className="text-gray-300 text-xs">
