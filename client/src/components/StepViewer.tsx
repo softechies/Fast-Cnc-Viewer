@@ -943,15 +943,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
                 <div className="font-bold mb-1">{t('dimensions.title')}:</div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.width')}:</span>
+                    <span className="text-gray-400">{t('dimensions.width')} (X):</span>
                     <span className="font-mono">{modelDimensions.width.toFixed(2)} mm</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.depth')}:</span>
+                    <span className="text-gray-400">{t('dimensions.depth')} (Y):</span>
                     <span className="font-mono">{modelDimensions.depth.toFixed(2)} mm</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-400">{t('dimensions.height')}:</span>
+                    <span className="text-gray-400">{t('dimensions.height')} (Z):</span>
                     <span className="font-mono">{modelDimensions.height.toFixed(2)} mm</span>
                   </div>
                 </div>
