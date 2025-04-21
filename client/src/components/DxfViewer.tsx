@@ -13,6 +13,9 @@ interface DxfViewerProps {
 }
 
 export default function DxfViewer({ modelId }: DxfViewerProps) {
+  // Get translation function
+  const { t } = useLanguage();
+  
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -351,7 +354,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     // Sformatuj odległość w jednostkach użytkownika
     // Jeśli odległość jest większa niż 10, pokaż tylko 1 miejsce po przecinku
     // W przeciwnym razie pokaż 2 miejsca po przecinku
-    text.textContent = `${distance >= 10 ? distance.toFixed(1) : distance.toFixed(2)} jedn.`;
+    text.textContent = `${distance >= 10 ? distance.toFixed(1) : distance.toFixed(2)} ${t('measurement.units')}`;
     
     // Dodaj elementy do grupy etykiet
     measureGroup.appendChild(labelGroup);
@@ -507,7 +510,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
           <CardContent className="p-0 h-full flex items-center justify-center">
             <Skeleton className="h-64 w-64 rounded-md" />
             <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              Ładowanie podglądu DXF...
+              {t('dxf.loading')}
             </div>
           </CardContent>
         </Card>
@@ -520,7 +523,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
       <div className="h-full w-full flex flex-col">
         <Card className="flex-1">
           <CardContent className="p-6 h-full flex flex-col items-center justify-center">
-            <div className="text-red-500 mb-2">Błąd ładowania pliku DXF</div>
+            <div className="text-red-500 mb-2">{t('dxf.error_loading')}</div>
             <div className="text-sm text-gray-500">{error}</div>
           </CardContent>
         </Card>
@@ -533,7 +536,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
       <div className="h-full w-full flex flex-col">
         <Card className="flex-1">
           <CardContent className="p-6 h-full flex items-center justify-center text-gray-500">
-            Wybierz model DXF do wyświetlenia
+            {t('dxf.select_model')}
           </CardContent>
         </Card>
       </div>
@@ -544,8 +547,8 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="preview" className="flex-1 flex flex-col">
         <TabsList className="mx-auto mb-4">
-          <TabsTrigger value="preview">Podgląd graficzny</TabsTrigger>
-          <TabsTrigger value="code">Kod SVG</TabsTrigger>
+          <TabsTrigger value="preview">{t('dxf.preview')}</TabsTrigger>
+          <TabsTrigger value="code">{t('dxf.svg_code')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="preview" className="flex-1 m-0">
@@ -573,11 +576,11 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                   {/* Controls overlay */}
                   <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
                     <Toggle
-                      aria-label="Tryb pomiaru"
+                      aria-label={t('measurement.mode')}
                       pressed={measureMode}
                       onPressedChange={setMeasureMode}
                       className={`p-2 ${measureMode ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'} border-none`}
-                      title="Włącz/wyłącz tryb pomiaru"
+                      title={t('measurement.toggle')}
                     >
                       <Ruler className="h-6 w-6" />
                     </Toggle>
@@ -588,19 +591,19 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                     <div className="absolute top-12 left-2 z-10 bg-black/70 text-white p-2 rounded max-w-xs">
                       <div className="font-bold mb-1 flex items-center">
                         <Ruler className="h-4 w-4 mr-2" /> 
-                        Tryb pomiaru
+                        {t('measurement.mode')}
                       </div>
                       <div className="text-xs mb-2">
-                        Kliknij na rysunek, aby zaznaczyć pierwszy punkt pomiaru, a następnie kliknij ponownie, aby zaznaczyć drugi punkt i zmierzyć odległość.
+                        {t('measurement.instructions')}
                       </div>
                       {measurePoints.length > 0 && (
                         <div className="text-xs">
-                          Punkty: {measurePoints.length}/2
+                          {t('measurement.points')}: {measurePoints.length}/2
                         </div>
                       )}
                       {measureDistance !== null && (
                         <div className="mt-1 p-1 bg-blue-900/50 rounded text-center">
-                          <span className="font-bold">Odległość:</span> {measureDistance.toFixed(2)} jednostek
+                          <span className="font-bold">{t('measurement.distance')}:</span> {measureDistance.toFixed(2)} {t('measurement.units')}
                         </div>
                       )}
                     </div>
@@ -609,18 +612,18 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                   {/* Model dimensions info */}
                   {modelDimensions && (
                     <div className="absolute bottom-2 left-2 z-10 bg-black/70 text-white text-xs p-2 rounded">
-                      <div className="font-bold mb-1">Wymiary modelu:</div>
+                      <div className="font-bold mb-1">{t('dimensions.title')}:</div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400">Szerokość (X):</span>
+                          <span className="text-gray-400">{t('dimensions.width')}:</span>
                           <span className="font-mono">{modelDimensions.width.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400">Wysokość (Y):</span>
+                          <span className="text-gray-400">{t('dimensions.height')}:</span>
                           <span className="font-mono">{modelDimensions.height.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-gray-400">Przekątna:</span>
+                          <span className="text-gray-400">{t('dimensions.diagonal')}:</span>
                           <span className="font-mono">{modelDimensions.diagonal.toFixed(2)}</span>
                         </div>
                       </div>
