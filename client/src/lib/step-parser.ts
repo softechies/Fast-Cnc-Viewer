@@ -86,12 +86,39 @@ export function loadSTLModel(
           const maxDim = Math.max(size.x, size.y, size.z);
           
           // Zachowaj oryginalne wymiary przed skalowaniem
-          // W standardzie CAD wysokość to oś Z, a głębokość to oś Y
-          const originalDimensions = {
-            width: size.x,   // Szerokość to oś X
-            depth: size.y,   // Głębokość to oś Y
-            height: size.z   // Wysokość to oś Z
-          };
+          // W standardzie CAD wysokość (najmniejszy wymiar) to oś Z
+          // Wykryjmy, który z wymiarów jest najmniejszy i przypisujemy go do wysokości (Z)
+          const dimensions = [size.x, size.y, size.z];
+          const minDimIndex = dimensions.indexOf(Math.min(...dimensions));
+          
+          let originalDimensions;
+          
+          // Automatycznie przypisz najmniejszy wymiar do osi Z (wysokość)
+          if (minDimIndex === 0) {
+            // Najmniejszy wymiar to X
+            originalDimensions = {
+              width: size.z,   // Szerokość to oryginalnie Z
+              depth: size.y,   // Głębokość to Y
+              height: size.x    // Wysokość (najmniejsza) to X
+            };
+          } else if (minDimIndex === 1) {
+            // Najmniejszy wymiar to Y
+            originalDimensions = {
+              width: size.x,   // Szerokość to X
+              depth: size.z,   // Głębokość to oryginalnie Z
+              height: size.y   // Wysokość (najmniejsza) to Y
+            };
+          } else {
+            // Najmniejszy wymiar to Z (domyślne przypisanie)
+            originalDimensions = {
+              width: size.x,   // Szerokość to X
+              depth: size.y,   // Głębokość to Y
+              height: size.z   // Wysokość (najmniejsza) to Z
+            };
+          }
+          
+          console.log("Wymiary oryginalne:", {x: size.x, y: size.y, z: size.z});
+          console.log("Przypisane wymiary:", originalDimensions);
           
           // Bardziej adaptacyjne skalowanie z zabezpieczeniem przed dzieleniem przez zero
           let scale = 1.0;

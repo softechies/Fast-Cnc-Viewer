@@ -117,9 +117,9 @@ const translations = {
   // Model dimensions
   dimensions: {
     title: "Model Dimensions",
-    width: "Width (X)",
-    height: "Height (Y)",
-    depth: "Depth (Z)",
+    width: "Width",
+    height: "Height",
+    depth: "Depth",
     diagonal: "Diagonal"
   },
   

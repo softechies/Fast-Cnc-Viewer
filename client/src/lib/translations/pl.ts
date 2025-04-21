@@ -115,9 +115,9 @@ const translations = {
   // Model dimensions
   dimensions: {
     title: "Wymiary modelu",
-    width: "Szerokość (X)",
-    height: "Wysokość (Y)",
-    depth: "Głębokość (Z)",
+    width: "Szerokość",
+    height: "Wysokość",
+    depth: "Głębokość",
     diagonal: "Przekątna"
   },
   
