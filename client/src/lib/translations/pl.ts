@@ -101,6 +101,24 @@ const translations = {
   modelNotFound: "Nie znaleziono modelu",
   errorLoadingModel: "Błąd wczytywania modelu",
   
+  // Measurement and dimensions
+  measurement: {
+    mode: "Tryb pomiaru",
+    instructions: "Kliknij na model, aby zaznaczyć pierwszy punkt pomiaru, a następnie kliknij ponownie, aby zaznaczyć drugi punkt i zmierzyć odległość.",
+    points: "Punkty",
+    distance: "Odległość",
+    units: "jednostek"
+  },
+  
+  // Model dimensions
+  dimensions: {
+    title: "Wymiary modelu",
+    width: "Szerokość (X)",
+    height: "Wysokość (Y)",
+    depth: "Głębokość (Z)",
+    diagonal: "Przekątna"
+  },
+  
   // Sharing
   shareModel: "Udostępnij model",
   shareTitle: "Udostępnij ten model CAD",

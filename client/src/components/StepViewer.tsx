@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, Ruler } from 'lucide-react';
 import { loadSTLModel } from '@/lib/step-parser';
 import { Toggle } from '@/components/ui/toggle';
+import { useLanguage } from '@/lib/LanguageContext';
 
 // Interface for STL File Information
 interface StlFileInfo {

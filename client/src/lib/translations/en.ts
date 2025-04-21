@@ -103,6 +103,24 @@ const translations = {
   modelNotFound: "Model not found",
   errorLoadingModel: "Error loading model",
   
+  // Measurement and dimensions
+  measurement: {
+    mode: "Measurement Mode",
+    instructions: "Click on the model to mark the first measurement point, then click again to mark the second point and measure the distance.",
+    points: "Points",
+    distance: "Distance",
+    units: "units"
+  },
+  
+  // Model dimensions
+  dimensions: {
+    title: "Model Dimensions",
+    width: "Width (X)",
+    height: "Height (Y)",
+    depth: "Depth (Z)",
+    diagonal: "Diagonal"
+  },
+  
   // Sharing
   shareModel: "Share Model",
   shareTitle: "Share this CAD model",
