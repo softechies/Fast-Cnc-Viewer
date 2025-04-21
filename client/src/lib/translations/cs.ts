@@ -2,10 +2,10 @@
 
 const translations = {
   // Common UI elements
-  appTitle: "CAD Prohlížeč",
-  applicationName: "CAD Prohlížeč",
-  cad_viewer: "CAD Prohlížeč",
-  powered_by: "Provozováno",
+  appTitle: "CAD Viewer",
+  applicationName: "CAD Viewer",
+  cad_viewer: "CAD Viewer",
+  powered_by: "Podporováno",
   home: "Domů",
   back_to_home: "Zpět na domovskou stránku",
   upload: "Nahrát",
@@ -28,36 +28,41 @@ const translations = {
   feature_1_title: "Pokročilá vizualizace",
   feature_1_desc: "Prohlížejte a analyzujte 3D modely s přesností a detaily",
   feature_2_title: "Bezpečné sdílení",
-  feature_2_desc: "Sdílejte své modely bezpečně s klienty a spolupracovníky",
+  feature_2_desc: "Bezpečně sdílejte modely s klienty a kolegy",
   feature_3_title: "Podpora různých formátů",
   feature_3_desc: "Podpora formátů STEP, IGES, STL, DXF a DWG",
   
   // Authentication
   login: "Přihlásit se",
+  logout: "Odhlásit se",
   register: "Registrovat se",
-  create_account_sharing: "Vytvořte si účet pro správu souborů",
+  create_account_sharing: "Vytvořte si účet pro správu vašich souborů",
   account_created: "Váš účet byl úspěšně vytvořen. Nyní jste přihlášeni.",
   enter_credentials: "Zadejte své přihlašovací údaje",
   username: "Uživatelské jméno",
+  username_optional: "Uživatelské jméno (volitelné)",
   password: "Heslo",
   create_account: "Vytvořit nový účet",
-  email: "Email",
+  email: "E-mail",
   full_name: "Celé jméno",
   company: "Společnost",
-  client_dashboard: "Panel klienta",
-
+  client_dashboard: "Klientský dashboard",
+  
   // Buttons
   button: {
     upload: "Nahrát",
     cancel: "Zrušit",
-    share: "Sdílet"
+    share: "Sdílet",
+    copy: "Zkopírováno"
   },
   
+  checking: "Kontrola...",
+  
   // Home page
-  welcome: "Vítejte v CAD Prohlížeči",
+  welcome: "Vítejte v CAD Viewer",
   welcomeMessage: "Nahrajte CAD soubor pro začátek",
   recentModels: "Nedávné modely",
-  noModels: "Žádné modely nenalezeny. Nahrajte CAD soubor pro začátek.",
+  noModels: "Nebyly nalezeny žádné modely. Nahrajte CAD soubor pro začátek.",
   noPreviousFiles: "Žádné předchozí soubory",
   
   // Upload modal
@@ -81,11 +86,11 @@ const translations = {
   assemblies: "Sestavy",
   surfaces: "Povrchy",
   solids: "Tělesa",
-  viewControls: "Ovládání zobrazení",
-  rotate: "Rotace",
-  pan: "Posunutí",
+  viewControls: "Ovládání pohledu",
+  rotate: "Otáčet",
+  pan: "Posouvat",
   zoom: "Přiblížení",
-  fitToView: "Přizpůsobit zobrazení",
+  fitToView: "Přizpůsobit pohledu",
   modelDetails: "Detaily modelu",
   format: "Formát",
   fileSize: "Velikost souboru",
@@ -97,16 +102,44 @@ const translations = {
   modelNotFound: "Model nenalezen",
   errorLoadingModel: "Chyba při načítání modelu",
   
+  // Measurement and dimensions
+  measurement: {
+    mode: "Režim měření",
+    instructions: "Klikněte na model pro označení prvního bodu měření, poté klikněte znovu pro označení druhého bodu a změření vzdálenosti.",
+    points: "Body",
+    distance: "Vzdálenost",
+    units: "jednotek",
+    toggle: "Přepnout režim měření"
+  },
+  
+  // Model dimensions
+  dimensions: {
+    title: "Rozměry modelu",
+    width: "Šířka (X)",
+    height: "Výška (Y)",
+    depth: "Hloubka (Z)",
+    diagonal: "Úhlopříčka"
+  },
+  
+  // DXF Viewer
+  dxf: {
+    preview: "Grafický náhled",
+    svg_code: "SVG kód",
+    loading: "Načítání DXF náhledu...",
+    error_loading: "Chyba při načítání DXF souboru",
+    select_model: "Vyberte DXF model pro zobrazení"
+  },
+  
   // Sharing
   shareModel: "Sdílet model",
   shareTitle: "Sdílet tento CAD model",
-  shareDescription: "Sdílet tento model s ostatními přes e-mail",
+  shareDescription: "Sdílet tento model s ostatními e-mailem",
   recipientEmail: "E-mail příjemce",
   shareWithPassword: "Sdílet s heslem",
   sharePassword: "Heslo",
   generatePassword: "Vygenerovat heslo",
-  setExpiry: "Nastavit datum expirace",
-  expiryDate: "Datum expirace",
+  setExpiry: "Nastavit datum vypršení",
+  expiryDate: "Datum vypršení",
   shareLink: "Odkaz pro sdílení",
   copyLink: "Kopírovat odkaz",
   linkCopied: "Odkaz zkopírován",
@@ -114,9 +147,31 @@ const translations = {
   disableSharing: "Zakázat sdílení",
   sharingEnabled: "Sdílení povoleno",
   sharingDisabled: "Sdílení zakázáno",
+  sharing_enabled: "Sdílení povoleno",
+  sharing_disabled: "Sdílení zakázáno",
+  sharing_enabled_success: "Model byl úspěšně sdílen",
+  sharing_disabled_success: "Model již není sdílen",
+  sharing_error: "Chyba při aktualizaci stavu sdílení",
   sendEmail: "Poslat e-mailové oznámení",
   emailSent: "E-mail odeslán",
   emailNotSent: "E-mail se nepodařilo odeslat",
+  
+  // Client dashboard
+  shared_models: "Vaše CAD knihovna",
+  shared_models_description: "Spravujte vaše nahrané a sdílené 3D modely",
+  filename: "Název souboru",
+  shared_with: "Sdíleno s",
+  status: "Stav",
+  last_accessed: "Poslední přístup",
+  active: "Aktivní",
+  inactive: "Neaktivní",
+  view_model: "Zobrazit model",
+  view_share_link: "Zobrazit odkaz pro sdílení",
+  enable_sharing: "Sdílet model",
+  disable_sharing: "Ukončit sdílení",
+  open_link: "Otevřít odkaz",
+  no_models: "Nebyly nalezeny žádné modely",
+  no_models_description: "Nahrajte svůj první model pro začátek",
   change_password: "Změnit heslo",
   new_password: "Nové heslo",
   leave_empty_to_remove: "Ponechte prázdné pro odstranění hesla",
@@ -137,14 +192,14 @@ const translations = {
   passwordProtected: "Chráněno heslem",
   incorrectPassword: "Nesprávné heslo",
   viewSharedModel: "Zobrazit sdílený model",
-  modelSharedBy: "Model sdílen uživatelem",
+  modelSharedBy: "Model sdílen",
   
   // Shared page texts
   shared: {
     protected_model: {
       title: "Chráněný model",
       description: "Tento model je chráněn heslem.",
-      password_placeholder: "Zadejte heslo k modelu"
+      password_placeholder: "Zadejte heslo modelu"
     },
     model_info: {
       shared_status: "Sdílený model"
@@ -156,9 +211,21 @@ const translations = {
     no: {
       model: "Přetáhněte soubor sem nebo klikněte pro procházení"
     },
-    loading: "Prosím počkejte, zpracováváme váš soubor",
+    loading: "Prosím čekejte, váš soubor se zpracovává",
     delete: {
-      warning: "Opravdu chcete smazat tento model? Tato akce nelze vrátit."
+      warning: "Opravdu chcete smazat tento model? Tuto akci nelze vrátit zpět.",
+      success: "Model byl úspěšně smazán"
+    },
+    share: {
+      warning: "Opravdu chcete sdílet tento model?",
+      success: "Model byl úspěšně sdílen",
+      copied: "Odkaz pro sdílení byl zkopírován do schránky"
+    },
+    revocation: {
+      sent: "E-mailové oznámení odesláno"
+    },
+    password: {
+      required: "Heslo není vyžadováno"
     }
   },
   
@@ -172,14 +239,31 @@ const translations = {
     password: "Heslo",
     "password.share": "Chráněno heslem",
     "password.share.placeholder": "Zadejte heslo pro sdílení",
-    expiry: "Datum expirace",
-    email: "Email",
-    "email.placeholder": "Zadejte email příjemce"
+    expiry: "Datum vypršení",
+    email: "E-mail",
+    "email.placeholder": "Zadejte e-mail příjemce"
   },
+  
+  // Email in upload modal
+  email_autofilled: "Vaše e-mailová adresa bude spojena s tímto modelem",
+  email_required: "Zadejte svůj e-mail pro spojení s tímto modelem",
+  upload_success: "Soubor byl úspěšně nahrán",
+  upload_failed: "Nahrávání souboru selhalo",
   
   // Layout
   app: {
-    footer: "CAD Prohlížeč - © 2025 Všechna práva vyhrazena"
+    footer: "CAD Viewer - © 2025 Všechna práva vyhrazena"
+  },
+
+  // Headers
+  header: {
+    error: "Chyba",
+    shared: {
+      model: "Sdílený model"
+    },
+    no: {
+      model: "Požadovaný model nebyl nalezen nebo není k dispozici."
+    }
   },
 
   // Error messages
@@ -191,14 +275,15 @@ const translations = {
   invalidEmail: "Neplatná e-mailová adresa",
   email_already_exists: "Tento e-mail je již registrován. Prosím, přihlaste se.",
   warning: "Varování",
-  email_exists_warning: "Tento e-mail již existuje v našem systému. Prosím, nejprve se přihlaste.",
+  email_exists_warning: "Tento e-mail již existuje v našem systému. Prosím, nejdříve se přihlaste.",
   login_button: "Přihlásit se",
   
   // Specific error messages
   errors: {
     title: "Chyba",
     share: "Chyba při sdílení modelu",
-    password_required: "Požadováno heslo",
+    password_required: "Heslo je vyžadováno",
+    required: "je vyžadováno",
     model: {
       fetch: "Nepodařilo se načíst informace o modelu",
       access: "Nepodařilo se získat přístup k modelu",
@@ -212,16 +297,80 @@ const translations = {
   },
   
   // Actions
-  actions: {
-    back_to_home: "Zpět na hlavní stránku",
-    access: "Získat přístup",
+  actions: "Akce",
+  action: {
+    back_to_home: "Zpět na domovskou stránku",
+    access: "Přístup",
     verifying: "Ověřování...",
     go_to_app: "Přejít do aplikace"
   },
   
   // Success messages
   sharingSaved: "Nastavení sdílení uloženo",
-  sharingRemoved: "Sdílení bylo zakázáno"
+  sharingRemoved: "Sdílení bylo zakázáno",
+  
+  // Delete share page
+  deleteShare: {
+    title: "Smazat sdílení modelu",
+    description: "Potvrdit smazání odkazu sdíleného modelu",
+    confirmMessage: "Opravdu chcete smazat tento odkaz na sdílený model? Tuto akci nelze vrátit zpět a model již nebude přístupný ostatním.",
+    confirm: "Smazat sdílení",
+    cancel: "Zrušit",
+    deleting: "Mazání...",
+    successTitle: "Sdílení smazáno",
+    successMessage: "Odkaz na sdílený model byl úspěšně smazán a již není přístupný.",
+    errorTitle: "Mazání selhalo",
+    unknownError: "Při mazání došlo k neznámé chybě.",
+    connectionError: "Chyba připojení. Zkuste to prosím později.",
+    invalidToken: "Neplatný nebo prošlý bezpečnostní token.",
+    backToHome: "Zpět na domovskou stránku"
+  },
+  
+  // Admin panel
+  admin: {
+    loginTitle: "Přihlášení do administrace",
+    loginDescription: "Zadejte své přihlašovací údaje pro přístup do administračního panelu",
+    username: "Uživatelské jméno",
+    usernamePlaceholder: "admin",
+    password: "Heslo",
+    loginButton: "Přihlásit se",
+    loggingIn: "Přihlašování...",
+    dashboardTitle: "Administrační panel",
+    sharedModelsTitle: "Sdílené modely",
+    sharedModelsDescription: "Spravujte všechny odkazy na sdílené modely v systému",
+    refresh: "Obnovit",
+    logout: "Odhlásit se",
+    notAuthenticated: "Neautentizováno",
+    pleaseLogin: "Prosím, přihlaste se pro přístup do administračního panelu",
+    loadError: "Chyba načítání dat",
+    unknownError: "Došlo k neznámé chybě",
+    linkCopied: "Odkaz zkopírován",
+    linkCopiedDescription: "Odkaz byl zkopírován do schránky",
+    sharingRevoked: "Sdílení odvoláno",
+    sharingRevokedDescription: "Sdílení modelu bylo úspěšně zakázáno",
+    revokeError: "Chyba při odvolání sdílení",
+    loggedOut: "Odhlášeno",
+    loggedOutDescription: "Byli jste úspěšně odhlášeni",
+    filename: "Název souboru",
+    format: "Formát",
+    sharedWith: "Sdíleno s",
+    createdDate: "Vytvořeno",
+    lastAccessed: "Poslední přístup",
+    expiryDate: "Datum vypršení",
+    passwordProtection: "Heslo",
+    actions: "Akce",
+    shareLink: "Odkaz",
+    shareLinkTitle: "Odkaz pro sdílení",
+    openLink: "Otevřít odkaz",
+    revoke: "Odvolat",
+    protected: "Chráněno",
+    notProtected: "Nechráněno",
+    noSharedModels: "Nebyly nalezeny žádné sdílené modely",
+    revokeConfirmTitle: "Potvrdit odvolání",
+    revokeConfirmDescription: "Opravdu chcete odvolat sdílení pro tento model? Tuto akci nelze vrátit zpět.",
+    cancel: "Zrušit",
+    confirmRevoke: "Ano, odvolat"
+  }
 };
 
 export default translations;

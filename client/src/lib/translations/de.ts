@@ -5,8 +5,8 @@ const translations = {
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",
   cad_viewer: "CAD Viewer",
-  powered_by: "Betrieben von",
-  home: "Start",
+  powered_by: "Unterstützt von",
+  home: "Startseite",
   back_to_home: "Zurück zur Startseite",
   upload: "Hochladen",
   uploadModel: "Modell hochladen",
@@ -16,7 +16,7 @@ const translations = {
   cancel: "Abbrechen",
   save: "Speichern",
   back: "Zurück",
-  loadingGeneric: "Laden...",
+  loadingGeneric: "Wird geladen...",
   refresh: "Aktualisieren",
   error: "Fehler",
   success: "Erfolg",
@@ -24,16 +24,17 @@ const translations = {
   confirm: "Bestätigen",
   
   // Auth Page
-  app_description: "Eine umfassende Webanwendung für fortgeschrittene 3D-CAD-Dateianalyse und -visualisierung",
-  feature_1_title: "Fortgeschrittene Visualisierung",
-  feature_1_desc: "Betrachten und analysieren Sie 3D-Modelle mit Präzision und Detailgenauigkeit",
+  app_description: "Eine umfassende Webanwendung für fortschrittliche 3D-CAD-Dateianalyse und -Visualisierung",
+  feature_1_title: "Fortschrittliche Visualisierung",
+  feature_1_desc: "Betrachten und analysieren Sie 3D-Modelle mit Präzision und Detail",
   feature_2_title: "Sicheres Teilen",
-  feature_2_desc: "Teilen Sie Ihre Modelle sicher mit Kunden und Mitarbeitern",
-  feature_3_title: "Format-Unterstützung",
+  feature_2_desc: "Teilen Sie Ihre Modelle sicher mit Kunden und Kollegen",
+  feature_3_title: "Unterstützung verschiedener Formate",
   feature_3_desc: "Unterstützung für STEP, IGES, STL, DXF und DWG Formate",
   
   // Authentication
   login: "Anmelden",
+  logout: "Abmelden",
   register: "Registrieren",
   create_account_sharing: "Erstellen Sie ein Konto, um Ihre Dateien zu verwalten",
   account_created: "Ihr Konto wurde erfolgreich erstellt. Sie sind jetzt angemeldet.",
@@ -51,19 +52,22 @@ const translations = {
   button: {
     upload: "Hochladen",
     cancel: "Abbrechen",
-    share: "Teilen"
+    share: "Teilen",
+    copy: "Kopiert"
   },
   
+  checking: "Überprüfung...",
+  
   // Home page
-  welcome: "Willkommen beim CAD Viewer",
+  welcome: "Willkommen bei CAD Viewer",
   welcomeMessage: "Laden Sie eine CAD-Datei hoch, um zu beginnen",
-  recentModels: "Neueste Modelle",
+  recentModels: "Letzte Modelle",
   noModels: "Keine Modelle gefunden. Laden Sie eine CAD-Datei hoch, um zu beginnen.",
   noPreviousFiles: "Keine früheren Dateien",
   
   // Upload modal
   dropFileHere: "CAD-Datei hier ablegen",
-  dragAndDrop: "Ziehen und ablegen Sie Ihre Datei hier oder klicken Sie zum Durchsuchen",
+  dragAndDrop: "Ziehen Sie Ihre Datei hierher oder klicken Sie zum Durchsuchen",
   selectFile: "Datei auswählen",
   uploadingModel: "Modell wird hochgeladen...",
   uploadComplete: "Hochladen abgeschlossen",
@@ -81,11 +85,11 @@ const translations = {
   assembly: "Baugruppe",
   assemblies: "Baugruppen",
   surfaces: "Oberflächen",
-  solids: "Volumenkörper",
-  viewControls: "Ansichtssteuerung",
+  solids: "Festkörper",
+  viewControls: "Ansichtsteuerung",
   rotate: "Drehen",
   pan: "Verschieben",
-  zoom: "Zoomen",
+  zoom: "Zoom",
   fitToView: "An Ansicht anpassen",
   modelDetails: "Modelldetails",
   format: "Format",
@@ -98,11 +102,39 @@ const translations = {
   modelNotFound: "Modell nicht gefunden",
   errorLoadingModel: "Fehler beim Laden des Modells",
   
+  // Measurement and dimensions
+  measurement: {
+    mode: "Messmodus",
+    instructions: "Klicken Sie auf das Modell, um den ersten Messpunkt zu markieren, und klicken Sie dann erneut, um den zweiten Punkt zu markieren und den Abstand zu messen.",
+    points: "Punkte",
+    distance: "Abstand",
+    units: "Einheiten",
+    toggle: "Messmodus umschalten"
+  },
+  
+  // Model dimensions
+  dimensions: {
+    title: "Modellabmessungen",
+    width: "Breite (X)",
+    height: "Höhe (Y)",
+    depth: "Tiefe (Z)",
+    diagonal: "Diagonale"
+  },
+  
+  // DXF Viewer
+  dxf: {
+    preview: "Grafische Vorschau",
+    svg_code: "SVG-Code",
+    loading: "DXF-Vorschau wird geladen...",
+    error_loading: "Fehler beim Laden der DXF-Datei",
+    select_model: "Wählen Sie ein DXF-Modell zur Anzeige"
+  },
+  
   // Sharing
   shareModel: "Modell teilen",
   shareTitle: "Dieses CAD-Modell teilen",
   shareDescription: "Teilen Sie dieses Modell mit anderen per E-Mail",
-  recipientEmail: "E-Mail-Adresse des Empfängers",
+  recipientEmail: "E-Mail des Empfängers",
   shareWithPassword: "Mit Passwort teilen",
   sharePassword: "Passwort",
   generatePassword: "Passwort generieren",
@@ -115,15 +147,37 @@ const translations = {
   disableSharing: "Teilen deaktivieren",
   sharingEnabled: "Teilen aktiviert",
   sharingDisabled: "Teilen deaktiviert",
+  sharing_enabled: "Teilen aktiviert",
+  sharing_disabled: "Teilen deaktiviert",
+  sharing_enabled_success: "Modell wurde erfolgreich geteilt",
+  sharing_disabled_success: "Modell wird nicht mehr geteilt",
+  sharing_error: "Fehler beim Aktualisieren des Freigabestatus",
   sendEmail: "E-Mail-Benachrichtigung senden",
   emailSent: "E-Mail gesendet",
   emailNotSent: "E-Mail konnte nicht gesendet werden",
+  
+  // Client dashboard
+  shared_models: "Ihre CAD-Bibliothek",
+  shared_models_description: "Verwalten Sie Ihre hochgeladenen und geteilten 3D-Modelle",
+  filename: "Dateiname",
+  shared_with: "Geteilt mit",
+  status: "Status",
+  last_accessed: "Letzter Zugriff",
+  active: "Aktiv",
+  inactive: "Inaktiv",
+  view_model: "Modell anzeigen",
+  view_share_link: "Teilungslink anzeigen",
+  enable_sharing: "Modell teilen",
+  disable_sharing: "Teilen beenden",
+  open_link: "Link öffnen",
+  no_models: "Keine Modelle gefunden",
+  no_models_description: "Laden Sie Ihr erstes Modell hoch, um zu beginnen",
   change_password: "Passwort ändern",
   new_password: "Neues Passwort",
-  leave_empty_to_remove: "Leer lassen, um Passwort zu entfernen",
+  leave_empty_to_remove: "Lassen Sie das Feld leer, um das Passwort zu entfernen",
   password_updated: "Passwort aktualisiert",
   password_update_success: "Passwort wurde erfolgreich aktualisiert",
-  password_update_error: "Fehler bei der Aktualisierung des Passworts",
+  password_update_error: "Fehler beim Aktualisieren des Passworts",
   model_is_password_protected: "Dieses Modell ist passwortgeschützt",
   open_in_browser: "Im Browser öffnen",
   model_deleted: "Modell gelöscht",
@@ -145,7 +199,7 @@ const translations = {
     protected_model: {
       title: "Geschütztes Modell",
       description: "Dieses Modell ist passwortgeschützt.",
-      password_placeholder: "Passwort für das Modell eingeben"
+      password_placeholder: "Geben Sie das Modellpasswort ein"
     },
     model_info: {
       shared_status: "Geteiltes Modell"
@@ -159,7 +213,19 @@ const translations = {
     },
     loading: "Bitte warten, Ihre Datei wird verarbeitet",
     delete: {
-      warning: "Sind Sie sicher, dass Sie dieses Modell löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+      warning: "Sind Sie sicher, dass Sie dieses Modell löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      success: "Modell erfolgreich gelöscht"
+    },
+    share: {
+      warning: "Sind Sie sicher, dass Sie dieses Modell teilen möchten?",
+      success: "Modell erfolgreich geteilt",
+      copied: "Teilungslink wurde in die Zwischenablage kopiert"
+    },
+    revocation: {
+      sent: "E-Mail-Benachrichtigung gesendet an"
+    },
+    password: {
+      required: "Passwort nicht erforderlich"
     }
   },
   
@@ -172,19 +238,36 @@ const translations = {
     },
     password: "Passwort",
     "password.share": "Passwortgeschützt",
-    "password.share.placeholder": "Passwort für Freigabe eingeben",
+    "password.share.placeholder": "Passwort für die Freigabe eingeben",
     expiry: "Ablaufdatum",
-    email: "Email",
-    "email.placeholder": "Email des Empfängers eingeben"
+    email: "E-Mail",
+    "email.placeholder": "E-Mail des Empfängers eingeben"
   },
+  
+  // Email in upload modal
+  email_autofilled: "Ihre E-Mail-Adresse wird mit diesem Modell verknüpft",
+  email_required: "Bitte geben Sie Ihre E-Mail-Adresse an, um sie mit diesem Modell zu verknüpfen",
+  upload_success: "Datei erfolgreich hochgeladen",
+  upload_failed: "Datei-Upload fehlgeschlagen",
   
   // Layout
   app: {
     footer: "CAD Viewer - © 2025 Alle Rechte vorbehalten"
   },
 
+  // Headers
+  header: {
+    error: "Fehler",
+    shared: {
+      model: "Geteiltes Modell"
+    },
+    no: {
+      model: "Das angeforderte Modell wurde nicht gefunden oder ist nicht verfügbar."
+    }
+  },
+
   // Error messages
-  genericError: "Ein Fehler ist aufgetreten",
+  genericError: "Etwas ist schiefgelaufen",
   connectionError: "Verbindungsfehler",
   fileNotSupported: "Dateiformat wird nicht unterstützt",
   fileTooLarge: "Datei ist zu groß",
@@ -203,7 +286,7 @@ const translations = {
     required: "ist erforderlich",
     model: {
       fetch: "Modellinformationen konnten nicht abgerufen werden",
-      access: "Zugriff auf das Modell nicht möglich",
+      access: "Zugriff auf das Modell fehlgeschlagen",
       display_failed: "Modell kann nicht angezeigt werden"
     }
   },
@@ -214,16 +297,80 @@ const translations = {
   },
   
   // Actions
-  actions: {
+  actions: "Aktionen",
+  action: {
     back_to_home: "Zurück zur Startseite",
-    access: "Zugriff erhalten",
+    access: "Zugriff",
     verifying: "Überprüfung...",
     go_to_app: "Zur Anwendung"
   },
   
   // Success messages
   sharingSaved: "Freigabeeinstellungen gespeichert",
-  sharingRemoved: "Freigabe wurde deaktiviert"
+  sharingRemoved: "Freigabe wurde deaktiviert",
+  
+  // Delete share page
+  deleteShare: {
+    title: "Modellfreigabe löschen",
+    description: "Löschen des geteilten Modelllinks bestätigen",
+    confirmMessage: "Sind Sie sicher, dass Sie diesen geteilten Modelllink löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und das Modell wird für andere nicht mehr zugänglich sein.",
+    confirm: "Freigabe löschen",
+    cancel: "Abbrechen",
+    deleting: "Wird gelöscht...",
+    successTitle: "Freigabe gelöscht",
+    successMessage: "Der geteilte Modelllink wurde erfolgreich gelöscht und ist nicht mehr zugänglich.",
+    errorTitle: "Löschen fehlgeschlagen",
+    unknownError: "Ein unbekannter Fehler ist beim Löschen aufgetreten.",
+    connectionError: "Verbindungsfehler. Bitte versuchen Sie es später erneut.",
+    invalidToken: "Ungültiges oder abgelaufenes Sicherheitstoken.",
+    backToHome: "Zurück zur Startseite"
+  },
+  
+  // Admin panel
+  admin: {
+    loginTitle: "Admin-Panel Login",
+    loginDescription: "Geben Sie Ihre Anmeldedaten ein, um auf das Admin-Panel zuzugreifen",
+    username: "Benutzername",
+    usernamePlaceholder: "admin",
+    password: "Passwort",
+    loginButton: "Anmelden",
+    loggingIn: "Anmeldung...",
+    dashboardTitle: "Admin-Dashboard",
+    sharedModelsTitle: "Geteilte Modelle",
+    sharedModelsDescription: "Verwalten Sie alle geteilten Modelllinks im System",
+    refresh: "Aktualisieren",
+    logout: "Abmelden",
+    notAuthenticated: "Nicht authentifiziert",
+    pleaseLogin: "Bitte melden Sie sich an, um auf das Admin-Panel zuzugreifen",
+    loadError: "Fehler beim Laden der Daten",
+    unknownError: "Ein unbekannter Fehler ist aufgetreten",
+    linkCopied: "Link kopiert",
+    linkCopiedDescription: "Link wurde in die Zwischenablage kopiert",
+    sharingRevoked: "Freigabe widerrufen",
+    sharingRevokedDescription: "Die Modellfreigabe wurde erfolgreich deaktiviert",
+    revokeError: "Fehler beim Widerrufen der Freigabe",
+    loggedOut: "Abgemeldet",
+    loggedOutDescription: "Sie wurden erfolgreich abgemeldet",
+    filename: "Dateiname",
+    format: "Format",
+    sharedWith: "Geteilt mit",
+    createdDate: "Erstellt",
+    lastAccessed: "Letzter Zugriff",
+    expiryDate: "Ablaufdatum",
+    passwordProtection: "Passwort",
+    actions: "Aktionen",
+    shareLink: "Link",
+    shareLinkTitle: "Freigabelink",
+    openLink: "Link öffnen",
+    revoke: "Widerrufen",
+    protected: "Geschützt",
+    notProtected: "Nicht geschützt",
+    noSharedModels: "Keine geteilten Modelle gefunden",
+    revokeConfirmTitle: "Widerruf bestätigen",
+    revokeConfirmDescription: "Sind Sie sicher, dass Sie die Freigabe für dieses Modell widerrufen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    cancel: "Abbrechen",
+    confirmRevoke: "Ja, widerrufen"
+  }
 };
 
 export default translations;

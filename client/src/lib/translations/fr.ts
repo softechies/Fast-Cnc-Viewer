@@ -2,8 +2,10 @@
 
 const translations = {
   // Common UI elements
-  appTitle: "Visualiseur CAD",
-  applicationName: "Visualiseur CAD",
+  appTitle: "CAD Viewer",
+  applicationName: "CAD Viewer",
+  cad_viewer: "CAD Viewer",
+  powered_by: "Propulsé par",
   home: "Accueil",
   back_to_home: "Retour à l'accueil",
   upload: "Télécharger",
@@ -21,14 +23,24 @@ const translations = {
   close: "Fermer",
   confirm: "Confirmer",
   
+  // Auth Page
+  app_description: "Une application web complète pour l'analyse et la visualisation avancées de fichiers CAO 3D",
+  feature_1_title: "Visualisation avancée",
+  feature_1_desc: "Visualisez et analysez des modèles 3D avec précision et détail",
+  feature_2_title: "Partage sécurisé",
+  feature_2_desc: "Partagez vos modèles en toute sécurité avec des clients et des collaborateurs",
+  feature_3_title: "Support multi-formats",
+  feature_3_desc: "Support des formats STEP, IGES, STL, DXF et DWG",
+  
   // Authentication
-  login: "Se connecter",
+  login: "Connexion",
+  logout: "Déconnexion",
   register: "S'inscrire",
-  create_account_sharing: "Créer un compte pour gérer vos fichiers",
+  create_account_sharing: "Créez un compte pour gérer vos fichiers",
   account_created: "Votre compte a été créé avec succès. Vous êtes maintenant connecté.",
   enter_credentials: "Entrez vos identifiants",
   username: "Nom d'utilisateur",
-  username_optional: "Le nom d'utilisateur est facultatif",
+  username_optional: "Nom d'utilisateur (optionnel)",
   password: "Mot de passe",
   create_account: "Créer un nouveau compte",
   email: "Email",
@@ -40,19 +52,22 @@ const translations = {
   button: {
     upload: "Télécharger",
     cancel: "Annuler",
-    share: "Partager"
+    share: "Partager",
+    copy: "Copié"
   },
   
+  checking: "Vérification...",
+  
   // Home page
-  welcome: "Bienvenue sur le Visualiseur CAD",
-  welcomeMessage: "Téléchargez un fichier CAD pour commencer",
+  welcome: "Bienvenue sur CAD Viewer",
+  welcomeMessage: "Téléchargez un fichier CAO pour commencer",
   recentModels: "Modèles récents",
-  noModels: "Aucun modèle trouvé. Téléchargez un fichier CAD pour commencer.",
+  noModels: "Aucun modèle trouvé. Téléchargez un fichier CAO pour commencer.",
   noPreviousFiles: "Aucun fichier précédent",
   
   // Upload modal
-  dropFileHere: "Déposez votre fichier CAD ici",
-  dragAndDrop: "Glissez et déposez votre fichier ici, ou cliquez pour parcourir",
+  dropFileHere: "Déposez votre fichier CAO ici",
+  dragAndDrop: "Glissez-déposez votre fichier ici, ou cliquez pour parcourir",
   selectFile: "Sélectionner un fichier",
   uploadingModel: "Téléchargement du modèle...",
   uploadComplete: "Téléchargement terminé",
@@ -87,12 +102,40 @@ const translations = {
   modelNotFound: "Modèle non trouvé",
   errorLoadingModel: "Erreur lors du chargement du modèle",
   
+  // Measurement and dimensions
+  measurement: {
+    mode: "Mode de mesure",
+    instructions: "Cliquez sur le modèle pour marquer le premier point de mesure, puis cliquez à nouveau pour marquer le deuxième point et mesurer la distance.",
+    points: "Points",
+    distance: "Distance",
+    units: "unités",
+    toggle: "Activer/désactiver le mode de mesure"
+  },
+  
+  // Model dimensions
+  dimensions: {
+    title: "Dimensions du modèle",
+    width: "Largeur (X)",
+    height: "Hauteur (Y)",
+    depth: "Profondeur (Z)",
+    diagonal: "Diagonale"
+  },
+  
+  // DXF Viewer
+  dxf: {
+    preview: "Aperçu graphique",
+    svg_code: "Code SVG",
+    loading: "Chargement de l'aperçu DXF...",
+    error_loading: "Erreur lors du chargement du fichier DXF",
+    select_model: "Sélectionnez un modèle DXF à afficher"
+  },
+  
   // Sharing
   shareModel: "Partager le modèle",
-  shareTitle: "Partager ce modèle CAD",
-  shareDescription: "Partagez ce modèle avec d'autres par e-mail",
-  recipientEmail: "E-mail du destinataire",
-  shareWithPassword: "Partager avec mot de passe",
+  shareTitle: "Partager ce modèle CAO",
+  shareDescription: "Partagez ce modèle avec d'autres par email",
+  recipientEmail: "Email du destinataire",
+  shareWithPassword: "Partager avec un mot de passe",
   sharePassword: "Mot de passe",
   generatePassword: "Générer un mot de passe",
   setExpiry: "Définir une date d'expiration",
@@ -104,9 +147,44 @@ const translations = {
   disableSharing: "Désactiver le partage",
   sharingEnabled: "Partage activé",
   sharingDisabled: "Partage désactivé",
-  sendEmail: "Envoyer une notification par e-mail",
-  emailSent: "E-mail envoyé",
-  emailNotSent: "L'e-mail n'a pas pu être envoyé",
+  sharing_enabled: "Partage activé",
+  sharing_disabled: "Partage désactivé",
+  sharing_enabled_success: "Le modèle a été partagé avec succès",
+  sharing_disabled_success: "Le modèle n'est plus partagé",
+  sharing_error: "Erreur lors de la mise à jour du statut de partage",
+  sendEmail: "Envoyer une notification par email",
+  emailSent: "Email envoyé",
+  emailNotSent: "L'email n'a pas pu être envoyé",
+  
+  // Client dashboard
+  shared_models: "Votre bibliothèque CAO",
+  shared_models_description: "Gérez vos modèles 3D téléchargés et partagés",
+  filename: "Nom de fichier",
+  shared_with: "Partagé avec",
+  status: "Statut",
+  last_accessed: "Dernier accès",
+  active: "Actif",
+  inactive: "Inactif",
+  view_model: "Voir le modèle",
+  view_share_link: "Voir le lien de partage",
+  enable_sharing: "Partager le modèle",
+  disable_sharing: "Arrêter le partage",
+  open_link: "Ouvrir le lien",
+  no_models: "Aucun modèle trouvé",
+  no_models_description: "Téléchargez votre premier modèle pour commencer",
+  change_password: "Changer le mot de passe",
+  new_password: "Nouveau mot de passe",
+  leave_empty_to_remove: "Laissez vide pour supprimer le mot de passe",
+  password_updated: "Mot de passe mis à jour",
+  password_update_success: "Le mot de passe a été mis à jour avec succès",
+  password_update_error: "Erreur lors de la mise à jour du mot de passe",
+  model_is_password_protected: "Ce modèle est protégé par un mot de passe",
+  open_in_browser: "Ouvrir dans le navigateur",
+  model_deleted: "Modèle supprimé",
+  model_delete_success: "Le modèle a été supprimé avec succès",
+  model_delete_error: "Erreur lors de la suppression du modèle",
+  delete_model: "Supprimer le modèle",
+  delete_model_confirmation: "Êtes-vous sûr de vouloir supprimer ce modèle? Cette action ne peut pas être annulée.",
   
   // Shared model access
   sharedModel: "Modèle partagé",
@@ -120,7 +198,7 @@ const translations = {
   shared: {
     protected_model: {
       title: "Modèle protégé",
-      description: "Ce modèle est protégé par mot de passe.",
+      description: "Ce modèle est protégé par un mot de passe.",
       password_placeholder: "Entrez le mot de passe du modèle"
     },
     model_info: {
@@ -131,11 +209,23 @@ const translations = {
   // Messages
   message: {
     no: {
-      model: "Déposez votre fichier ici ou cliquez pour parcourir"
+      model: "Déposez le fichier ici ou cliquez pour parcourir"
     },
-    loading: "Veuillez patienter, nous traitons votre fichier",
+    loading: "Veuillez patienter, traitement de votre fichier en cours",
     delete: {
-      warning: "Êtes-vous sûr de vouloir supprimer ce modèle? Cette action ne peut pas être annulée."
+      warning: "Êtes-vous sûr de vouloir supprimer ce modèle? Cette action ne peut pas être annulée.",
+      success: "Modèle supprimé avec succès"
+    },
+    share: {
+      warning: "Êtes-vous sûr de vouloir partager ce modèle?",
+      success: "Modèle partagé avec succès",
+      copied: "Lien de partage copié dans le presse-papiers"
+    },
+    revocation: {
+      sent: "Notification par email envoyée à"
+    },
+    password: {
+      required: "Mot de passe non requis"
     }
   },
   
@@ -148,15 +238,32 @@ const translations = {
     },
     password: "Mot de passe",
     "password.share": "Protégé par mot de passe",
-    "password.share.placeholder": "Entrez le mot de passe pour partage",
+    "password.share.placeholder": "Entrez le mot de passe pour le partage",
     expiry: "Date d'expiration",
     email: "Email",
     "email.placeholder": "Entrez l'email du destinataire"
   },
   
+  // Email in upload modal
+  email_autofilled: "Votre adresse email sera associée à ce modèle",
+  email_required: "Veuillez fournir votre email pour l'associer à ce modèle",
+  upload_success: "Fichier téléchargé avec succès",
+  upload_failed: "Échec du téléchargement du fichier",
+  
   // Layout
   app: {
-    footer: "Visualiseur CAD - © 2025 Tous droits réservés"
+    footer: "CAD Viewer - © 2025 Tous droits réservés"
+  },
+
+  // Headers
+  header: {
+    error: "Erreur",
+    shared: {
+      model: "Modèle partagé"
+    },
+    no: {
+      model: "Le modèle demandé n'a pas été trouvé ou n'est pas disponible."
+    }
   },
 
   // Error messages
@@ -165,10 +272,10 @@ const translations = {
   fileNotSupported: "Format de fichier non pris en charge",
   fileTooLarge: "Le fichier est trop volumineux",
   invalidPassword: "Mot de passe invalide",
-  invalidEmail: "Adresse e-mail invalide",
-  email_already_exists: "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
+  invalidEmail: "Adresse email invalide",
+  email_already_exists: "Cet email est déjà enregistré. Veuillez vous connecter à la place.",
   warning: "Avertissement",
-  email_exists_warning: "Cet e-mail existe déjà dans notre système. Veuillez d'abord vous connecter.",
+  email_exists_warning: "Cet email existe déjà dans notre système. Veuillez vous connecter d'abord.",
   login_button: "Se connecter",
   
   // Specific error messages
@@ -176,9 +283,10 @@ const translations = {
     title: "Erreur",
     share: "Erreur lors du partage du modèle",
     password_required: "Mot de passe requis",
+    required: "est requis",
     model: {
-      fetch: "Impossible de récupérer les informations du modèle",
-      access: "Impossible d'accéder au modèle",
+      fetch: "Échec de récupération des informations du modèle",
+      access: "Échec d'accès au modèle",
       display_failed: "Impossible d'afficher le modèle"
     }
   },
@@ -189,16 +297,80 @@ const translations = {
   },
   
   // Actions
-  actions: {
-    back_to_home: "Retour à l'accueil",
+  actions: "Actions",
+  action: {
+    back_to_home: "Retour à la page d'accueil",
     access: "Accéder",
     verifying: "Vérification...",
-    go_to_app: "Aller à l'application"
+    go_to_app: "Accéder à l'application"
   },
   
   // Success messages
   sharingSaved: "Paramètres de partage enregistrés",
-  sharingRemoved: "Le partage a été désactivé"
+  sharingRemoved: "Le partage a été désactivé",
+  
+  // Delete share page
+  deleteShare: {
+    title: "Supprimer le partage du modèle",
+    description: "Confirmer la suppression du lien de modèle partagé",
+    confirmMessage: "Êtes-vous sûr de vouloir supprimer ce lien de modèle partagé? Cette action ne peut pas être annulée et le modèle ne sera plus accessible aux autres.",
+    confirm: "Supprimer le partage",
+    cancel: "Annuler",
+    deleting: "Suppression...",
+    successTitle: "Partage supprimé",
+    successMessage: "Le lien de modèle partagé a été supprimé avec succès et n'est plus accessible.",
+    errorTitle: "Échec de la suppression",
+    unknownError: "Une erreur inconnue s'est produite lors de la suppression.",
+    connectionError: "Erreur de connexion. Veuillez réessayer plus tard.",
+    invalidToken: "Jeton de sécurité invalide ou expiré.",
+    backToHome: "Retour à l'accueil"
+  },
+  
+  // Admin panel
+  admin: {
+    loginTitle: "Connexion au panneau d'administration",
+    loginDescription: "Entrez vos identifiants pour accéder au panneau d'administration",
+    username: "Nom d'utilisateur",
+    usernamePlaceholder: "admin",
+    password: "Mot de passe",
+    loginButton: "Se connecter",
+    loggingIn: "Connexion...",
+    dashboardTitle: "Tableau de bord administrateur",
+    sharedModelsTitle: "Modèles partagés",
+    sharedModelsDescription: "Gérez tous les liens de modèles partagés dans le système",
+    refresh: "Actualiser",
+    logout: "Déconnexion",
+    notAuthenticated: "Non authentifié",
+    pleaseLogin: "Veuillez vous connecter pour accéder au panneau d'administration",
+    loadError: "Erreur de chargement des données",
+    unknownError: "Une erreur inconnue s'est produite",
+    linkCopied: "Lien copié",
+    linkCopiedDescription: "Le lien a été copié dans le presse-papiers",
+    sharingRevoked: "Partage révoqué",
+    sharingRevokedDescription: "Le partage du modèle a été désactivé avec succès",
+    revokeError: "Erreur lors de la révocation du partage",
+    loggedOut: "Déconnecté",
+    loggedOutDescription: "Vous avez été déconnecté avec succès",
+    filename: "Nom de fichier",
+    format: "Format",
+    sharedWith: "Partagé avec",
+    createdDate: "Créé",
+    lastAccessed: "Dernier accès",
+    expiryDate: "Date d'expiration",
+    passwordProtection: "Mot de passe",
+    actions: "Actions",
+    shareLink: "Lien",
+    shareLinkTitle: "Lien de partage",
+    openLink: "Ouvrir le lien",
+    revoke: "Révoquer",
+    protected: "Protégé",
+    notProtected: "Non protégé",
+    noSharedModels: "Aucun modèle partagé trouvé",
+    revokeConfirmTitle: "Confirmer la révocation",
+    revokeConfirmDescription: "Êtes-vous sûr de vouloir révoquer le partage pour ce modèle? Cette action ne peut pas être annulée.",
+    cancel: "Annuler",
+    confirmRevoke: "Oui, révoquer"
+  }
 };
 
 export default translations;
