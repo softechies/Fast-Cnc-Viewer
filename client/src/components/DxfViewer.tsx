@@ -27,11 +27,11 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
   type ModelDimensions2D = {
     width: number;   // Szerokość (X)
     height: number;  // Wysokość (Y)
-    diagonal: number; // Przekątna
     minX: number;    // Minimalna wartość X
     minY: number;    // Minimalna wartość Y
     maxX: number;    // Maksymalna wartość X
     maxY: number;    // Maksymalna wartość Y
+    units: string;   // Jednostki miary (domyślnie mm)
   };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions2D | null>(null);
   
@@ -54,7 +54,11 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
     
     try {
-      // Podejście 1: Użyj viewBox, jeśli jest ustawiony
+      // Sprawdź czy mamy informację o jednostkach
+      // Ezdxf zazwyczaj ustawia ten atrybut dla SVG
+      const units = svgElement.getAttribute('data-units') || 'mm';
+      
+      // Szukaj najpierw viewBox, potem width/height, na końcu oblicz z elementów
       const viewBox = svgElement.getAttribute('viewBox');
       if (viewBox) {
         // viewBox jest w formacie: "minX minY width height"
@@ -68,27 +72,53 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
         const maxX = minX + width;
         const maxY = minY + height;
         
-        // Oblicz przekątną
-        const diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
-        
         setModelDimensions({
           width,
           height,
-          diagonal,
           minX,
           minY,
           maxX,
-          maxY
+          maxY,
+          units
         });
         
         console.log("Wymiary modelu DXF (z viewBox):", { 
-          width, height, diagonal, 
+          width, height, units,
           minX, minY, maxX, maxY 
         });
         return;
       }
       
-      // Podejście 2: Oblicz granice wszystkich elementów
+      // Podejście 2: Spróbuj użyć atrybutów width i height
+      const svgWidth = svgElement.getAttribute('width');
+      const svgHeight = svgElement.getAttribute('height');
+      
+      if (svgWidth && svgHeight) {
+        // Konwertuj szerokość i wysokość na liczby
+        // Usuń jednostki jak 'px', 'mm', itp.
+        const width = parseFloat(svgWidth);
+        const height = parseFloat(svgHeight);
+        
+        if (!isNaN(width) && !isNaN(height)) {
+          setModelDimensions({
+            width,
+            height,
+            minX: 0,
+            minY: 0,
+            maxX: width,
+            maxY: height,
+            units
+          });
+          
+          console.log("Wymiary modelu DXF (z atrybutów width/height):", { 
+            width, height, units,
+            minX: 0, minY: 0, maxX: width, maxY: height 
+          });
+          return;
+        }
+      }
+      
+      // Podejście 3: Oblicz granice wszystkich elementów
       // Inicjalizuj wartości graniczne z ekstremalnymi wartościami
       let minX = Infinity;
       let minY = Infinity;
@@ -96,12 +126,21 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
       let maxY = -Infinity;
       
       // Znajdź wszystkie elementy, które mogą mieć współrzędne
-      const elements = entitiesGroup.querySelectorAll('path, line, circle, rect, polyline, polygon');
+      // Dla ezdxf, szukamy szczególnie elementów w grupie 'content' lub 'modelspace'
+      const contentGroup = svgElement.querySelector('#content') || 
+                           svgElement.querySelector('#modelspace') || 
+                           entitiesGroup;
+      
+      const elements = contentGroup.querySelectorAll('path, line, circle, rect, polyline, polygon');
+      
+      // Uwaga: Ezdxf może używać innej struktury, więc sprawdzamy wszystkie możliwe grupy elementów
+      let elementCount = 0;
       
       elements.forEach((element) => {
         try {
           // Pobierz bounding box elementu - musimy rzutować na SVGGraphicsElement
           const bbox = (element as SVGGraphicsElement).getBBox();
+          elementCount++;
           
           // Zaktualizuj granice
           minX = Math.min(minX, bbox.x);
@@ -115,29 +154,52 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
       });
       
       // Jeśli nie znaleziono elementów lub granice są nieprawidłowe
-      if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) {
+      if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity || elementCount === 0) {
         console.log("Nie można obliczyć wymiarów modelu - brak elementów z wymiarami");
+        
+        // Ostatnia szansa: sprawdź czy plik SVG ma jakąś informację o rozmiarze
+        const svgStyle = window.getComputedStyle(svgElement);
+        const width = parseFloat(svgStyle.width);
+        const height = parseFloat(svgStyle.height);
+        
+        if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+          setModelDimensions({
+            width,
+            height,
+            minX: 0,
+            minY: 0,
+            maxX: width,
+            maxY: height,
+            units
+          });
+          
+          console.log("Wymiary modelu DXF (z CSS):", { 
+            width, height, units,
+            minX: 0, minY: 0, maxX: width, maxY: height 
+          });
+        }
+        
         return;
       }
       
-      // Oblicz szerokość, wysokość i przekątną
+      // Oblicz szerokość i wysokość
       const width = maxX - minX;
       const height = maxY - minY;
-      const diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
       
       setModelDimensions({
         width,
         height,
-        diagonal,
         minX,
         minY,
         maxX,
-        maxY
+        maxY,
+        units
       });
       
-      console.log("Wymiary modelu DXF (obliczone):", { 
-        width, height, diagonal, 
-        minX, minY, maxX, maxY 
+      console.log("Wymiary modelu DXF (obliczone z elementów):", { 
+        width, height, units,
+        minX, minY, maxX, maxY,
+        elements: elementCount
       });
     } catch (error) {
       console.error("Błąd podczas obliczania wymiarów SVG:", error);
@@ -616,15 +678,11 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">{t('dimensions.width')}:</span>
-                          <span className="font-mono">{modelDimensions.width.toFixed(2)}</span>
+                          <span className="font-mono">{modelDimensions.width.toFixed(2)} {modelDimensions.units}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">{t('dimensions.height')}:</span>
-                          <span className="font-mono">{modelDimensions.height.toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">{t('dimensions.diagonal')}:</span>
-                          <span className="font-mono">{modelDimensions.diagonal.toFixed(2)}</span>
+                          <span className="font-mono">{modelDimensions.height.toFixed(2)} {modelDimensions.units}</span>
                         </div>
                       </div>
                     </div>

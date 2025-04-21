@@ -332,6 +332,7 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
           viewBox="{view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}"
           width="{svg_width}" height="{svg_height}"
+          data-units="mm"
           preserveAspectRatio="xMidYMid slice">''')
         
         # Dodajemy tło do lepszej wizualizacji
