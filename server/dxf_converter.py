@@ -293,8 +293,7 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         svg_width = "100%"
         svg_height = "100%"
         
-        # Zaawansowane podejście - wyśrodkowujemy rysunek względem punktu (0,0)
-        # i skalujemy dla lepszego dopasowania do kontenera
+        # Całkowicie przebudowane podejście - używamy stałego viewBoxa i skalujemy zawartość
         
         # Znajdujemy punkt środkowy oryginalnego rysunku
         center_x = (min_x + max_x) / 2
@@ -306,30 +305,31 @@ def convert_dxf_to_svg(dxf_path, svg_path=None):
         adjusted_height = height + 2 * padding
         
         # Zapewniamy minimalne wymiary, by uniknąć zbyt małych rysunków
-        min_dimension = 100
+        min_dimension = 200  # zwiększamy minimalny wymiar dla lepszej widoczności
         if adjusted_width < min_dimension:
             adjusted_width = min_dimension
         if adjusted_height < min_dimension:
             adjusted_height = min_dimension
-        
-        # Teraz umieszczamy punkt centralny rysunku w punkcie (0,0)
-        # Obliczamy przesunięcie dla wszystkich elementów
+            
+        # Przekształcamy układ współrzędnych, by środek rysunku był w (0,0)
+        # To jest kluczowa zmiana - przesuwamy wszystkie elementy tak, by centrum rysunku było na środku
         offset_x = -center_x
         offset_y = -center_y
             
-        # Współrzędne viewBox będą symetryczne względem środka
+        # Ustalamy viewBox jako symetryczny prostokąt centrowany na (0,0)
         half_width = adjusted_width / 2
         half_height = adjusted_height / 2
         
-        # Definiujemy viewBox, który jest wyśrodkowany na (0,0)
         view_min_x = -half_width
-        view_max_x = half_width
         view_min_y = -half_height
+        view_max_x = half_width
         view_max_y = half_height
         
-        # Odwracamy współrzędne Y - w SVG oś Y rośnie w dół
-        view_min_y_flipped = -view_max_y  # górna granica
-        view_height_flipped = adjusted_height  # wysokość
+        # W SVG oś Y rośnie w dół, przeciwnie niż w układzie kartezjańskim
+        # Odwracamy współrzędne Y
+        view_min_y_flipped = -view_max_y
+        view_max_y_flipped = -view_min_y
+        view_height_flipped = adjusted_height
         
         # Zapisujemy informacje o skalowaniu do debugowania
         with open("/tmp/dxf_debug.log", "a") as f:
