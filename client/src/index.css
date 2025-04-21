@@ -19,6 +19,9 @@
   display: block;
   transform-origin: center center;
   background-color: white;
+  max-width: 800px;
+  max-height: 600px;
+  margin: 0 auto;
 }
 
 /* Zapewnienie poprawnego centrowania SVG */
@@ -48,6 +51,9 @@
 .svg-wrapper svg polygon {
   vector-effect: non-scaling-stroke;
 }
+
+/* SVG używa atrybutów, nie bezpośrednio właściwości CSS */
+/* Używamy JavaScript, aby ustawić atrybut preserveAspectRatio */
 
 /* Poprawka dla wyświetlania tekstu w SVG */
 .svg-wrapper svg text {

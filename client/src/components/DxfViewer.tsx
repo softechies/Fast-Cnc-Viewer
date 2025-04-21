@@ -698,6 +698,9 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
                       left: 0,
                       width: "100%", 
                       height: "100%", 
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
                     }}
                     dangerouslySetInnerHTML={{ __html: svgContent }}
                   />
