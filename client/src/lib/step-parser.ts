@@ -88,9 +88,9 @@ export function loadSTLModel(
           // Zachowaj oryginalne wymiary przed skalowaniem
           // W standardzie CAD wysokość to oś Z, a głębokość to oś Y
           const originalDimensions = {
-            width: size.x,
-            height: size.z,  // Wysokość to oś Z
-            depth: size.y    // Głębokość to oś Y
+            width: size.x,   // Szerokość to oś X
+            depth: size.y,   // Głębokość to oś Y
+            height: size.z   // Wysokość to oś Z
           };
           
           // Bardziej adaptacyjne skalowanie z zabezpieczeniem przed dzieleniem przez zero
@@ -209,9 +209,9 @@ function createErrorModel(errorMessage: string, resolve: (value: STLLoadResult) 
     model: fallbackGroup,
     scale: 1.0,
     originalDimensions: {
-      width: 0,   // X
-      height: 0,  // Z (wysokość)
-      depth: 0    // Y (głębokość)
+      width: 0,   // X (szerokość)
+      depth: 0,   // Y (głębokość) 
+      height: 0   // Z (wysokość)
     }
   });
 }
