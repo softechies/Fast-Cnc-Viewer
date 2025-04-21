@@ -31,15 +31,38 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
   const handleMeasureClick = (event: MouseEvent) => {
     if (!measureMode || !svgWrapperRef.current) return;
     
-    const svgElement = svgWrapperRef.current.querySelector('svg');
+    const svgElement = svgWrapperRef.current.querySelector('svg') as SVGSVGElement;
     if (!svgElement) return;
     
     // Pobierz pozycję SVG
     const svgRect = svgElement.getBoundingClientRect();
     
-    // Oblicz pozycję kliknięcia względem SVG
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
+    // Przygotuj punkt w układzie współrzędnych strony
+    const point = new DOMPoint(event.clientX, event.clientY);
+    
+    // Konwersja punktu z układu współrzędnych strony do układu SVG
+    // Uwzględnia transformacje, skalowanie, viewBox itp.
+    const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
+    
+    // Pobierz macierz transformacji od elementu SVG do przeglądarki
+    const svgCTM = entitiesGroup.getScreenCTM();
+    
+    if (!svgCTM) {
+      console.error("Nie można uzyskać macierzy transformacji SVG");
+      return;
+    }
+    
+    // Odwróć macierz, aby przejść od przeglądarki do SVG
+    const inverseCTM = svgCTM.inverse();
+    
+    // Przekształć punkt kliknięcia na współrzędne SVG
+    const svgPoint = point.matrixTransform(inverseCTM);
+    
+    // Zapisz punkt z dokładnymi współrzędnymi SVG
+    const x = svgPoint.x;
+    const y = svgPoint.y;
+    
+    console.log("Punkt kliknięcia w układzie SVG:", { x, y });
     
     // Dodaj punkt do listy punktów pomiaru
     setMeasurePoints(prev => {
@@ -62,7 +85,7 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
       const point1 = measurePoints[0];
       const point2 = { x, y };
       
-      // Oblicz odległość między punktami
+      // Oblicz odległość między punktami w jednostkach SVG
       const distance = calculateDistance(point1, point2);
       setMeasureDistance(distance);
       
@@ -83,18 +106,64 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     const svgElement = svgWrapperRef.current.querySelector('svg');
     if (!svgElement) return;
     
+    // Znajdź grupę elementów - najlepiej używać tej samej grupy, co zawiera elementy rysunku
+    const entitiesGroup = svgElement.querySelector('#entities') || svgElement;
+    
+    // Utwórz warstwę pomiarową, jeśli nie istnieje
+    let measureGroup = svgElement.querySelector('#measurement-layer');
+    if (!measureGroup) {
+      measureGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      measureGroup.setAttribute('id', 'measurement-layer');
+      svgElement.appendChild(measureGroup);
+    }
+    
     // Tworzenie punktu jako element SVG
     const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     point.setAttribute('cx', String(x));
     point.setAttribute('cy', String(y));
-    point.setAttribute('r', '5');
+    point.setAttribute('r', '3');  // Zmniejszamy nieco rozmiar punktu
     point.setAttribute('fill', 'red');
+    point.setAttribute('stroke', 'white');
+    point.setAttribute('stroke-width', '1');
     
-    // Dodaj punkt do SVG
-    svgElement.appendChild(point);
+    // Dodaj punkt do warstwy pomiarów
+    measureGroup.appendChild(point);
     
     // Zapisz element do późniejszego usunięcia
     setMeasureElements(prev => [...prev, point]);
+    
+    // Dodaj etykietę z współrzędnymi dla pierwszego punktu
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', String(x + 5));
+    label.setAttribute('y', String(y - 5));
+    label.setAttribute('fill', 'red');
+    label.setAttribute('font-size', '10');
+    label.textContent = `(${x.toFixed(1)}, ${y.toFixed(1)})`;
+    
+    // Dodaj tło dla etykiety
+    const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    labelBg.setAttribute('fill', 'white');
+    labelBg.setAttribute('fill-opacity', '0.7');
+    
+    // Dodaj elementy do warstwy pomiarów
+    measureGroup.appendChild(labelBg);
+    measureGroup.appendChild(label);
+    
+    // Ustaw wymiary tła po dodaniu etykiety do SVG
+    setTimeout(() => {
+      try {
+        const bbox = label.getBBox();
+        labelBg.setAttribute('x', String(bbox.x - 2));
+        labelBg.setAttribute('y', String(bbox.y - 2));
+        labelBg.setAttribute('width', String(bbox.width + 4));
+        labelBg.setAttribute('height', String(bbox.height + 4));
+      } catch (e) {
+        console.error("Błąd przy pozycjonowaniu etykiety:", e);
+      }
+    }, 0);
+    
+    // Zapisz elementy do późniejszego usunięcia
+    setMeasureElements(prev => [...prev, label, labelBg]);
   };
   
   // Funkcja do tworzenia linii między punktami
@@ -104,6 +173,14 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     const svgElement = svgWrapperRef.current.querySelector('svg');
     if (!svgElement) return;
     
+    // Znajdź warstwę pomiarową, lub utwórz ją jeśli nie istnieje
+    let measureGroup = svgElement.querySelector('#measurement-layer');
+    if (!measureGroup) {
+      measureGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      measureGroup.setAttribute('id', 'measurement-layer');
+      svgElement.appendChild(measureGroup);
+    }
+    
     // Tworzenie linii jako element SVG
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', String(p1.x));
@@ -111,47 +188,95 @@ export default function DxfViewer({ modelId }: DxfViewerProps) {
     line.setAttribute('x2', String(p2.x));
     line.setAttribute('y2', String(p2.y));
     line.setAttribute('stroke', 'red');
-    line.setAttribute('stroke-width', '2');
-    line.setAttribute('stroke-dasharray', '5,5');
+    line.setAttribute('stroke-width', '1.5'); // Nieco cieńsza linia
+    line.setAttribute('stroke-dasharray', '3,3'); // Mniejszy wzór przerywania
     
-    // Dodaj linię do SVG
-    svgElement.appendChild(line);
+    // Dodaj linię do warstwy pomiarów
+    measureGroup.appendChild(line);
     
     // Zapisz element do późniejszego usunięcia
     setMeasureElements(prev => [...prev, line]);
     
-    // Dodaj tekst z odległością
+    // Oblicz punkt środkowy i odległość
     const midX = (p1.x + p2.x) / 2;
     const midY = (p1.y + p2.y) / 2;
-    
     const distance = calculateDistance(p1, p2);
     
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', String(midX));
-    text.setAttribute('y', String(midY - 10));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('fill', 'red');
-    text.setAttribute('font-size', '14');
-    text.setAttribute('font-weight', 'bold');
-    text.textContent = `${distance.toFixed(2)} jednostek`;
+    // Oblicz kąt linii do poziomej osi, aby umieścić etykietę równolegle do linii
+    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
     
-    // Dodaj tło dla tekstu
+    // Utwórz grupę dla etykiety, aby móc ją obrócić
+    const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    labelGroup.setAttribute('transform', `translate(${midX}, ${midY}) rotate(${angle}) translate(0, -10)`);
+    
+    // Tło dla tekstu
     const textRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    const padding = 5;
-    const rect = text.getBBox ? text.getBBox() : { x: midX - 50, y: midY - 25, width: 100, height: 20 };
-    textRect.setAttribute('x', String(rect.x - padding));
-    textRect.setAttribute('y', String(rect.y - padding));
-    textRect.setAttribute('width', String(rect.width + 2 * padding));
-    textRect.setAttribute('height', String(rect.height + 2 * padding));
     textRect.setAttribute('fill', 'white');
     textRect.setAttribute('fill-opacity', '0.8');
+    textRect.setAttribute('rx', '3'); // Zaokrąglone rogi
+    textRect.setAttribute('ry', '3');
     
-    // Dodaj elementy do SVG
-    svgElement.appendChild(textRect);
-    svgElement.appendChild(text);
+    // Tworzymy tekst
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', '0');
+    text.setAttribute('y', '0');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', 'red');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', 'bold');
+    
+    // Sformatuj odległość w jednostkach użytkownika
+    // Jeśli odległość jest większa niż 10, pokaż tylko 1 miejsce po przecinku
+    // W przeciwnym razie pokaż 2 miejsca po przecinku
+    text.textContent = `${distance >= 10 ? distance.toFixed(1) : distance.toFixed(2)} jedn.`;
+    
+    // Dodaj elementy do grupy etykiet
+    measureGroup.appendChild(labelGroup);
+    labelGroup.appendChild(textRect);
+    labelGroup.appendChild(text);
+    
+    // Dostosuj tło do tekstu po wyrenderowaniu
+    setTimeout(() => {
+      try {
+        const bbox = text.getBBox();
+        textRect.setAttribute('x', String(bbox.x - 5));
+        textRect.setAttribute('y', String(bbox.y - 5));
+        textRect.setAttribute('width', String(bbox.width + 10));
+        textRect.setAttribute('height', String(bbox.height + 10));
+      } catch (e) {
+        console.error("Błąd przy pozycjonowaniu tła etykiety:", e);
+      }
+    }, 0);
     
     // Zapisz elementy do późniejszego usunięcia
-    setMeasureElements(prev => [...prev, textRect, text]);
+    setMeasureElements(prev => [...prev, line, labelGroup, textRect, text]);
+    
+    // Dodaj strzałki na końcach linii dla lepszej wizualizacji
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    arrowMarker.setAttribute('id', 'arrow');
+    arrowMarker.setAttribute('viewBox', '0 0 10 10');
+    arrowMarker.setAttribute('refX', '5');
+    arrowMarker.setAttribute('refY', '5');
+    arrowMarker.setAttribute('markerWidth', '4');
+    arrowMarker.setAttribute('markerHeight', '4');
+    arrowMarker.setAttribute('orient', 'auto-start-reverse');
+    
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    arrow.setAttribute('fill', 'red');
+    
+    arrowMarker.appendChild(arrow);
+    marker.appendChild(arrowMarker);
+    measureGroup.appendChild(marker);
+    
+    // Dodaj strzałki do linii
+    line.setAttribute('marker-end', 'url(#arrow)');
+    line.setAttribute('marker-start', 'url(#arrow)');
+    
+    // Zapisz markery do usunięcia
+    setMeasureElements(prev => [...prev, marker]);
   };
   
   // Funkcja do usuwania wszystkich elementów pomiaru
