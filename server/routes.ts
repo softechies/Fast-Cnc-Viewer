@@ -88,21 +88,33 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
       return null;
     }
     
-    // Najpierw spróbuj z matplotlib konwerterem
+    // Najpierw próbuj użyć rozszerzonego konwertera DXF
+    const enhancedScript = path.join(__dirname, 'enhanced_dxf_converter.py');
     const matplotlibScript = path.join(__dirname, 'dxf_matplotlib_converter.py');
     const fallbackScript = path.join(__dirname, 'dxf_converter.py');
     
-    let scriptToUse = matplotlibScript;
+    // Określ, którego skryptu konwersji użyć, z odpowiednim fallbackiem
+    let scriptToUse = enhancedScript;
+    let scriptName = "enhanced";
     
-    if (!fs.existsSync(matplotlibScript)) {
-      console.warn("Matplotlib DXF converter script not found, falling back to original converter");
+    // Sprawdź dostępność skryptów
+    if (!fs.existsSync(enhancedScript)) {
+      console.warn("Enhanced DXF converter not found, falling back to matplotlib converter");
       
-      if (!fs.existsSync(fallbackScript)) {
-        console.error("Fallback DXF converter script not found:", fallbackScript);
-        return null;
+      if (!fs.existsSync(matplotlibScript)) {
+        console.warn("Matplotlib DXF converter script not found, falling back to original converter");
+        
+        if (!fs.existsSync(fallbackScript)) {
+          console.error("No DXF converter scripts found");
+          return null;
+        }
+        
+        scriptToUse = fallbackScript;
+        scriptName = "fallback";
+      } else {
+        scriptToUse = matplotlibScript;
+        scriptName = "matplotlib";
       }
-      
-      scriptToUse = fallbackScript;
     }
     
     // Utwórz tymczasowy plik dla SVG
@@ -120,11 +132,11 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
         // Odczytaj plik SVG
         const svgContent = fs.readFileSync(tempSvgPath, 'utf8');
         
-        // Usuń plik tymczasowy
-        try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
+        // Usuń plik tymczasowy (ale pozostaw go na razie dla debugowania)
+        // try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
         
         if (svgContent) {
-          console.log(`Successfully converted DXF to SVG using ${path.basename(scriptToUse)}`);
+          console.log(`Successfully converted DXF to SVG using ${scriptName} converter`);
           return svgContent;
         } else {
           console.error("Empty SVG file created");
@@ -135,10 +147,10 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
         return null;
       }
     } catch (error) {
-      console.error(`Error executing DXF to SVG conversion with ${path.basename(scriptToUse)}:`, error);
+      console.error(`Error executing DXF to SVG conversion with ${scriptName} converter:`, error);
       
       // Sprawdź czy istnieje plik debugowania
-      const debugLogPath = '/tmp/dxf_debug.log';
+      const debugLogPath = '/tmp/enhanced_dxf_converter.log';
       let debugInfo = "";
       
       if (fs.existsSync(debugLogPath)) {
@@ -148,8 +160,48 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
         } catch (e) { /* ignore */ }
       }
       
-      // Jeśli używaliśmy matplotlib i wystąpił błąd, spróbuj z fallbackiem
-      if (scriptToUse === matplotlibScript && fs.existsSync(fallbackScript)) {
+      // Kaskadowy fallback - spróbuj użyć kolejnych konwerterów, jeśli aktualny zawiedzie
+      if (scriptToUse === enhancedScript && fs.existsSync(matplotlibScript)) {
+        console.log("Enhanced converter failed, trying matplotlib converter");
+        
+        try {
+          await execPromise(`python3 "${matplotlibScript}" "${dxfFilePath}" svg "${tempSvgPath}"`);
+          
+          if (fs.existsSync(tempSvgPath)) {
+            const svgContent = fs.readFileSync(tempSvgPath, 'utf8');
+            // try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
+            
+            if (svgContent) {
+              console.log("Successfully converted DXF to SVG using matplotlib converter");
+              return svgContent;
+            }
+          }
+        } catch (matplotlibError) {
+          console.error("Matplotlib conversion also failed:", matplotlibError);
+          
+          // Jeśli matplotlib również zawiedzie, spróbuj oryginalny konwerter
+          if (fs.existsSync(fallbackScript)) {
+            console.log("Trying original fallback converter");
+            
+            try {
+              await execPromise(`python3 "${fallbackScript}" "${dxfFilePath}" svg "${tempSvgPath}"`);
+              
+              if (fs.existsSync(tempSvgPath)) {
+                const svgContent = fs.readFileSync(tempSvgPath, 'utf8');
+                // try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
+                
+                if (svgContent) {
+                  console.log("Successfully converted DXF to SVG using original fallback converter");
+                  return svgContent;
+                }
+              }
+            } catch (fallbackError) {
+              console.error("All converters failed");
+            }
+          }
+        }
+      } else if (scriptToUse === matplotlibScript && fs.existsSync(fallbackScript)) {
+        // Jeśli używaliśmy matplotlib i wystąpił błąd, spróbuj z fallbackiem
         console.log("Matplotlib converter failed, trying fallback converter");
         
         try {
@@ -157,7 +209,7 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
           
           if (fs.existsSync(tempSvgPath)) {
             const svgContent = fs.readFileSync(tempSvgPath, 'utf8');
-            try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
+            // try { fs.unlinkSync(tempSvgPath); } catch (e) { /* ignore */ }
             
             if (svgContent) {
               console.log("Successfully converted DXF to SVG using fallback converter");
