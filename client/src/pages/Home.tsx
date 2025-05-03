@@ -11,11 +11,19 @@ import { Box, InfoIcon, Upload } from "lucide-react";
 import { ModelInfo as ModelInfoType } from "@shared/schema";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 
 export default function Home() {
-  const { t } = useLanguage();
-  const [location] = useLocation();
+  const { language, t } = useLanguage();
+  const [location, setLocation] = useLocation();
+  const [isRoot] = useRoute("/");
+  
+  // Przekieruj z głównej strony bez prefiksu językowego na stronę z prefiksem
+  useEffect(() => {
+    if (isRoot) {
+      setLocation(`/${language}`);
+    }
+  }, [isRoot, language]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("info");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);

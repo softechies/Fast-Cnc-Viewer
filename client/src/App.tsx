@@ -39,9 +39,10 @@ function AppContent() {
 // Sprawdza czy jesteśmy na stronie udostępnionego modelu
 function SharedModelLayout() {
   const [isSharedRoute] = useRoute("/shared/:shareId");
+  const [isLanguageSharedRoute] = useRoute("/:lang(en|pl|cs|de|fr)/shared/:shareId");
   const { t } = useLanguage();
   
-  if (isSharedRoute) {
+  if (isSharedRoute || isLanguageSharedRoute) {
     return (
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow">
@@ -65,12 +66,59 @@ function SharedModelLayout() {
   return null;
 }
 
+// Helper function to create routes with language prefix
+function createLocalizedRoutes() {
+  const { language, t } = useLanguage();
+  const routes = [
+    { path: "/", component: Home },
+    { path: "/auth", component: AuthPage },
+    { path: "/client/dashboard", component: () => (
+      <ProtectedRoute allowClient={true} allowAdmin={false}>
+        <ClientDashboardPage />
+      </ProtectedRoute>
+    )},
+    { path: "/upload", component: FileUploadTest },
+    { path: "/test3d", component: Test3D },
+    { path: "/shared/:shareId", component: SharedModelPage },
+    { path: "/delete-share/:shareId/:token", component: DeleteSharePage },
+    { path: "/admin/login", component: AdminLoginPage },
+    { path: "/admin/dashboard", component: () => (
+      <AdminProtectedRoute>
+        <AdminDashboardPage />
+      </AdminProtectedRoute>
+    )},
+  ];
+  
+  return (
+    <>
+      {/* Language prefixed routes (e.g. /en/auth, /pl/shared/123) */}
+      {routes.map(({ path, component: Component }) => {
+        // Create both /[lang]/route and /[lang] (for root path)
+        const localizedPath = path === "/" 
+          ? `/:lang(en|pl|cs|de|fr)` 
+          : `/:lang(en|pl|cs|de|fr)${path}`;
+        
+        return <Route key={`lang-${path}`} path={localizedPath} component={Component} />;
+      })}
+      
+      {/* Also keep original routes without language prefix for backward compatibility */}
+      {routes.map(({ path, component: Component }) => (
+        <Route key={`original-${path}`} path={path} component={Component} />
+      ))}
+      
+      {/* Catch all route */}
+      <Route component={NotFound} />
+    </>
+  );
+}
+
 function Router() {
   const [isSharedRoute] = useRoute("/shared/:shareId");
+  const [isLanguageSharedRoute] = useRoute("/:lang(en|pl|cs|de|fr)/shared/:shareId");
   const { t } = useLanguage();
   
   // Jeśli jesteśmy na trasie udostępnionego modelu, użyj innego layoutu
-  if (isSharedRoute) {
+  if (isSharedRoute || isLanguageSharedRoute) {
     return <SharedModelLayout />;
   }
   
@@ -78,24 +126,7 @@ function Router() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/client/dashboard">
-            <ProtectedRoute allowClient={true} allowAdmin={false}>
-              <ClientDashboardPage />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/upload" component={FileUploadTest} />
-          <Route path="/test3d" component={Test3D} />
-          <Route path="/shared/:shareId" component={SharedModelPage} />
-          <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
-          <Route path="/admin/login" component={AdminLoginPage} />
-          <Route path="/admin/dashboard">
-            <AdminProtectedRoute>
-              <AdminDashboardPage />
-            </AdminProtectedRoute>
-          </Route>
-          <Route component={NotFound} />
+          {createLocalizedRoutes()}
         </Switch>
       </main>
       <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">

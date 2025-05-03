@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import translations, { Language } from './translations';
-import { useQuery } from '@tanstack/react-query';
+import translations, { Language, languages } from './translations';
+import { useLocation, useRoute } from 'wouter';
 
 const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 
@@ -25,8 +25,21 @@ function getNestedValue(obj: any, path: string): any {
   }, obj);
 }
 
+// Helper function to extract language from URL path
+function getLanguageFromUrl(pathname: string): Language | null {
+  // Check if the pathname starts with a language code
+  const pathLangMatch = pathname.match(/^\/(en|pl|cs|de|fr)(\/|$)/);
+  if (pathLangMatch) {
+    const langCode = pathLangMatch[1] as Language;
+    return langCode;
+  }
+  return null;
+}
+
 // Main provider component
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
+  
   // Function to get stored language from localStorage
   const getStoredLanguage = (): Language | null => {
     try {
@@ -39,9 +52,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     return null;
   };
+  
+  // Function to get language from different sources in order of priority
+  const getInitialLanguage = (): Language => {
+    // 1. First check URL for language code
+    const urlLanguage = getLanguageFromUrl(location);
+    if (urlLanguage) return urlLanguage;
+    
+    // 2. Then check localStorage
+    const storedLanguage = getStoredLanguage();
+    if (storedLanguage) return storedLanguage;
+    
+    // 3. Default to English
+    return 'en';
+  };
 
-  // Start with the stored language or English as a default
-  const [language, setLanguageState] = useState<Language>(getStoredLanguage() || 'en');
+  // Start with language from URL, stored preference, or English as default
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage());
   
   // Ręczne wykrywanie języka zamiast useQuery
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
@@ -103,13 +130,42 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return formatTranslation(value, params);
   };
 
-  // Set language and save to localStorage
+  const [, setLocation] = useLocation();
+
+  // Set language, save to localStorage and update URL if needed
   const setLanguage = (lang: Language) => {
+    // Update state
     setLanguageState(lang);
+    
+    // Save to localStorage
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     } catch (e) {
       console.error('Failed to save language preference:', e);
+    }
+    
+    // Update URL to include language prefix
+    const urlLang = getLanguageFromUrl(location);
+    
+    // Only update URL if language change or no language in URL
+    if (urlLang !== lang) {
+      // Get current path without language prefix if it exists
+      let currentPath = location;
+      if (urlLang) {
+        // Remove current language prefix from path
+        currentPath = currentPath.replace(new RegExp(`^\/${urlLang}(\/|$)`), '/');
+        if (currentPath === '') currentPath = '/';
+      }
+      
+      // For root path, just use the language
+      if (currentPath === '/') {
+        setLocation(`/${lang}`);
+      } else {
+        // For other paths, prefix with language
+        // Remove leading slash to avoid double slashes
+        const cleanPath = currentPath.startsWith('/') ? currentPath.substring(1) : currentPath;
+        setLocation(`/${lang}/${cleanPath}`);
+      }
     }
   };
 
@@ -117,6 +173,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+  
+  // Listen for URL changes and update language if needed
+  useEffect(() => {
+    const urlLang = getLanguageFromUrl(location);
+    if (urlLang && urlLang !== language) {
+      setLanguageState(urlLang);
+      try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, urlLang);
+      } catch (e) {
+        console.error('Failed to save language preference:', e);
+      }
+    }
+  }, [location]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isDetecting }}>
