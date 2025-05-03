@@ -73,24 +73,38 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Ręczne wykrywanie języka zamiast useQuery
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   
-  // Zoptymalizowane wykrywanie języka przy ładowaniu komponentu
+  // Automatyczne przekierowanie z '/' do wersji z prefixem językowym 
   useEffect(() => {
-    // Sprawdzamy tylko jeśli nie mamy ustawionego języka w URL ani w localStorage
-    if (!getLanguageFromUrl(location) && !getStoredLanguage()) {
+    // Sprawdzamy tylko dla głównej ścieżki '/' bez prefiksu językowego
+    if (location === '/') {
+      // 1. Najpierw sprawdzamy localStorage
+      const storedLanguage = getStoredLanguage();
+      if (storedLanguage) {
+        // Jeśli użytkownik wcześniej wybrał język, przekieruj do wersji z tym językiem
+        setLocation(`/${storedLanguage}`);
+        return;
+      }
+
+      // 2. Jeśli nie ma języka w localStorage, dopiero wtedy sprawdzamy API
       const fetchLanguagePreference = async () => {
         try {
           // Ustawienie flagi wykrywania języka
           setIsDetecting(true);
           
-          // Używamy timeout, żeby uniknąć blokowania renderowania
-          const timeoutPromise = new Promise(resolve => setTimeout(resolve, 100));
-          await timeoutPromise;
-          
           const response = await fetch('/api/language-preference');
           const data = await response.json();
           
           if (data.detectedLanguage && Object.keys(translations).includes(data.detectedLanguage)) {
-            setLanguage(data.detectedLanguage as Language);
+            // Przekieruj od razu do wersji z wykrytym językiem
+            setLanguageState(data.detectedLanguage as Language);
+            setLocation(`/${data.detectedLanguage}`);
+            
+            // Zapisz do localStorage
+            try {
+              localStorage.setItem(LANGUAGE_STORAGE_KEY, data.detectedLanguage);
+            } catch (e) {
+              console.error('Failed to save language preference:', e);
+            }
           }
         } catch (error) {
           console.error('Error fetching language preference:', error);
@@ -101,6 +115,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       };
       
       fetchLanguagePreference();
+    } else {
+      // Dla adresów z prefixem językowym nie robimy nic - przejmuje to inny useEffect
     }
   }, [location]);
 
