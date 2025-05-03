@@ -1,4 +1,4 @@
-import { Switch, Route, Link, useRoute } from "wouter";
+import { Switch, Route, Link, useRoute, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,6 +17,7 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
+import { useEffect } from "react";
 
 function App() {
   return (
@@ -60,81 +61,85 @@ function SharedModelLayout({ shareId, language }: { shareId: string, language?: 
   );
 }
 
-// Helper function to create routes with language prefix
-function createLocalizedRoutes() {
-  const { language, t } = useLanguage();
-  const routes = [
-    { path: "/", component: Home },
-    { path: "/client/dashboard", component: () => (
-      <ProtectedRoute allowClient={true} allowAdmin={false}>
-        <ClientDashboardPage />
-      </ProtectedRoute>
-    )},
-    { path: "/upload", component: FileUploadTest },
-    { path: "/test3d", component: Test3D },
-    { path: "/delete-share/:shareId/:token", component: DeleteSharePage },
-    { path: "/admin/login", component: AdminLoginPage },
-    { path: "/admin/dashboard", component: () => (
-      <AdminProtectedRoute>
-        <AdminDashboardPage />
-      </AdminProtectedRoute>
-    )},
-  ];
-  
-  // Obsługa specjalnych tras
-  const specialRoutes = [
-    // Strona autoryzacji z prefiksem językowym
-    <Route key="auth-lang" path="/:lang(en|pl|cs|de|fr)/auth">
-      {() => <AuthPage />}
-    </Route>,
-    // Strona autoryzacji bez prefiksu językowego (dla wstecznej kompatybilności)
-    <Route key="auth-no-lang" path="/auth">
-      {() => <AuthPage />}
-    </Route>,
-    // Udostępniony model bez prefiksu językowego
-    <Route key="shared-no-lang" path="/shared/:shareId">
-      {(params) => <SharedModelPage shareId={params?.shareId} />}
-    </Route>,
-    // Udostępniony model z prefiksem językowym
-    <Route key="shared-lang" path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
-      {(params) => <SharedModelPage shareId={params?.shareId} language={params?.lang} />}
-    </Route>
-  ];
-  
+// Helper function to create all application routes
+function createRoutes() {
   return (
     <>
-      {/* Specjalne trasy z obsługą parametrów */}
-      {specialRoutes}
-      
-      {/* Language prefixed routes (e.g. /en/client/dashboard) */}
-      {routes.map(({ path, component: Component }) => {
-        // Create both /[lang]/route and /[lang] (for root path)
-        const localizedPath = path === "/" 
-          ? `/:lang(en|pl|cs|de|fr)` 
-          : `/:lang(en|pl|cs|de|fr)${path}`;
-        
-        return <Route key={`lang-${path}`} path={localizedPath} component={Component} />;
-      })}
-      
-      {/* Also keep original routes without language prefix for backward compatibility */}
-      {routes.map(({ path, component: Component }) => (
-        <Route key={`original-${path}`} path={path} component={Component} />
-      ))}
-      
-      {/* Catch all route */}
+      {/* Strony bez prefiksu językowego (dla wstecznej kompatybilności) */}
+      <Route path="/" component={Home} />
+      <Route path="/auth">
+        {() => <AuthPage />}
+      </Route>
+      <Route path="/shared/:shareId">
+        {(params) => <SharedModelPage shareId={params?.shareId} />}
+      </Route>
+      <Route path="/client/dashboard">
+        {() => (
+          <ProtectedRoute allowClient={true} allowAdmin={false}>
+            <ClientDashboardPage />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/upload" component={FileUploadTest} />
+      <Route path="/test3d" component={Test3D} />
+      <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
+      <Route path="/admin/login" component={AdminLoginPage} />
+      <Route path="/admin/dashboard">
+        {() => (
+          <AdminProtectedRoute>
+            <AdminDashboardPage />
+          </AdminProtectedRoute>
+        )}
+      </Route>
+
+      {/* Strony z prefiksem językowym */}
+      <Route path="/:lang(en|pl|cs|de|fr)" component={Home} />
+      <Route path="/:lang(en|pl|cs|de|fr)/auth">
+        {() => <AuthPage />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
+        {(params: any) => <SharedModelPage shareId={params?.shareId} language={params?.lang} />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/client/dashboard">
+        {() => (
+          <ProtectedRoute allowClient={true} allowAdmin={false}>
+            <ClientDashboardPage />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/upload" component={FileUploadTest} />
+      <Route path="/:lang(en|pl|cs|de|fr)/test3d" component={Test3D} />
+      <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
+      <Route path="/:lang(en|pl|cs|de|fr)/admin/login" component={AdminLoginPage} />
+      <Route path="/:lang(en|pl|cs|de|fr)/admin/dashboard">
+        {() => (
+          <AdminProtectedRoute>
+            <AdminDashboardPage />
+          </AdminProtectedRoute>
+        )}
+      </Route>
+
+      {/* Strona 404 dla nieistniejących tras */}
       <Route component={NotFound} />
     </>
   );
 }
 
 function Router() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [, setLocation] = useLocation();
+  
+  // Efekt dla aktualizacji języka w URL
+  useEffect(() => {
+    // Tu można dodać logikę dla automatycznego przekierowania
+    // na strony z prefiksem językowym, jeśli jest to potrzebne
+  }, [language]);
   
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         <Switch>
-          {createLocalizedRoutes()}
+          {createRoutes()}
         </Switch>
       </main>
       <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">

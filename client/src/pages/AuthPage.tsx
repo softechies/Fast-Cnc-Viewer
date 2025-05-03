@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { Redirect, Link } from "wouter";
+import { Redirect, Link, useRoute } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
 
@@ -66,8 +66,12 @@ export default function AuthPage() {
   
   // Przekieruj do głównej strony jeśli użytkownik jest zalogowany
   const { language } = useLanguage();
+  const [, params] = useRoute("/:lang(en|pl|cs|de|fr)/auth");
+  
+  // Jeśli użytkownik jest zalogowany, przekieruj na stronę główną z zachowaniem języka z URL
   if (user) {
-    return <Redirect to={`/${language}`} />;
+    const lang = params?.lang || language;
+    return <Redirect to={`/${lang}`} />;
   }
   
   const isLoginDisabled = !loginData.email || !loginData.password || loginMutation.isPending;
