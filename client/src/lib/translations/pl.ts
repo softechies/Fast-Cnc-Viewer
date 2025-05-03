@@ -8,6 +8,7 @@ const translations = {
   powered_by: "Obsługiwane przez",
   home: "Strona główna",
   back_to_home: "Powrót do strony głównej",
+  language_detecting: "Wykrywanie...",
   upload: "Prześlij",
   uploadModel: "Prześlij model",
   view: "Podgląd",

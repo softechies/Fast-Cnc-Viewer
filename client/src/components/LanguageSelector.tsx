@@ -30,7 +30,7 @@ export default function LanguageSelector() {
             {isDetecting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="hidden sm:inline">Wykrywanie...</span>
+                <span className="hidden sm:inline">{t('language_detecting')}</span>
               </>
             ) : (
               <>

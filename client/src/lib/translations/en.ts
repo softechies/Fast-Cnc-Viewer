@@ -8,6 +8,7 @@ const translations = {
   powered_by: "Powered by",
   home: "Home",
   back_to_home: "Back to Home",
+  language_detecting: "Detecting...",
   
   // Authentication
   login: "Log In",
