@@ -88,7 +88,7 @@ function Router() {
             {(params) => <SharedModelPage shareId={params.shareId} />}
           </Route>
           <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
-            {(params) => <SharedModelPage shareId={params.shareId} language={params.lang} />}
+            {(params) => <SharedModelPage shareId={params.shareId} language={params.lang as Language} />}
           </Route>
           
           {/* Strony chronione */}

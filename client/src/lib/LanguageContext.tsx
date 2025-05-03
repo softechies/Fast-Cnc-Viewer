@@ -73,21 +73,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Ręczne wykrywanie języka zamiast useQuery
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   
-  // Wykrywanie języka przy ładowaniu komponentu
+  // Zoptymalizowane wykrywanie języka przy ładowaniu komponentu
   useEffect(() => {
-    const fetchLanguagePreference = async () => {
-      if (!getStoredLanguage()) {
+    // Sprawdzamy tylko jeśli nie mamy ustawionego języka w URL ani w localStorage
+    if (!getLanguageFromUrl(location) && !getStoredLanguage()) {
+      const fetchLanguagePreference = async () => {
         try {
           // Ustawienie flagi wykrywania języka
           setIsDetecting(true);
           
+          // Używamy timeout, żeby uniknąć blokowania renderowania
+          const timeoutPromise = new Promise(resolve => setTimeout(resolve, 100));
+          await timeoutPromise;
+          
           const response = await fetch('/api/language-preference');
           const data = await response.json();
           
-          if (data.detectedLanguage) {
-            if (Object.keys(translations).includes(data.detectedLanguage)) {
-              setLanguage(data.detectedLanguage as Language);
-            }
+          if (data.detectedLanguage && Object.keys(translations).includes(data.detectedLanguage)) {
+            setLanguage(data.detectedLanguage as Language);
           }
         } catch (error) {
           console.error('Error fetching language preference:', error);
@@ -95,11 +98,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           // Zakończenie wykrywania języka
           setIsDetecting(false);
         }
-      }
-    };
-    
-    fetchLanguagePreference();
-  }, []);
+      };
+      
+      fetchLanguagePreference();
+    }
+  }, [location]);
 
   // Format translation string with parameters
   const formatTranslation = (translation: string, params?: Record<string, string | number>): string => {
