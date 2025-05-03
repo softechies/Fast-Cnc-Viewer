@@ -8,12 +8,14 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
+  isDetecting: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: () => {},
-  t: (key: string, params?: Record<string, string | number>) => key
+  t: (key: string, params?: Record<string, string | number>) => key,
+  isDetecting: false
 });
 
 // Helper function to get a nested value from an object using a dot-separated path
@@ -41,23 +43,36 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Start with the stored language or English as a default
   const [language, setLanguageState] = useState<Language>(getStoredLanguage() || 'en');
   
-  // Query the server for language preference
-  const { isLoading: isLoadingLanguage } = useQuery({
-    queryKey: ['languagePreference'],
-    queryFn: async () => {
-      const response = await fetch('/api/language-preference');
-      return await response.json();
-    },
-    enabled: !getStoredLanguage(), // Only run if we don't have a stored preference
-    onSuccess: (data) => {
-      if (data.detectedLanguage && !getStoredLanguage()) {
-        // Only set if we don't have a stored preference
-        if (Object.keys(translations).includes(data.detectedLanguage)) {
-          setLanguage(data.detectedLanguage as Language);
+  // Ręczne wykrywanie języka zamiast useQuery
+  const [isDetecting, setIsDetecting] = useState<boolean>(false);
+  
+  // Wykrywanie języka przy ładowaniu komponentu
+  useEffect(() => {
+    const fetchLanguagePreference = async () => {
+      if (!getStoredLanguage()) {
+        try {
+          // Ustawienie flagi wykrywania języka
+          setIsDetecting(true);
+          
+          const response = await fetch('/api/language-preference');
+          const data = await response.json();
+          
+          if (data.detectedLanguage) {
+            if (Object.keys(translations).includes(data.detectedLanguage)) {
+              setLanguage(data.detectedLanguage as Language);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching language preference:', error);
+        } finally {
+          // Zakończenie wykrywania języka
+          setIsDetecting(false);
         }
       }
-    }
-  });
+    };
+    
+    fetchLanguagePreference();
+  }, []);
 
   // Format translation string with parameters
   const formatTranslation = (translation: string, params?: Record<string, string | number>): string => {
@@ -104,7 +119,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isDetecting }}>
       {children}
     </LanguageContext.Provider>
   );

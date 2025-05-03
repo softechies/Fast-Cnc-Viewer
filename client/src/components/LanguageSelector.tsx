@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '@/lib/LanguageContext';
 import { languages, languageNames, Language } from '@/lib/translations';
-import { Check, ChevronDown, Globe } from 'lucide-react';
+import { Check, ChevronDown, Globe, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default function LanguageSelector() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, isDetecting } = useLanguage();
   const [open, setOpen] = useState(false);
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -27,9 +27,18 @@ export default function LanguageSelector() {
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">{currentLanguageLabel}</span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+            {isDetecting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="hidden sm:inline">Wykrywanie...</span>
+              </>
+            ) : (
+              <>
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline">{currentLanguageLabel}</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </>
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
