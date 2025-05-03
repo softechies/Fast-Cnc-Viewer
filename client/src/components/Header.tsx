@@ -80,7 +80,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>{t('logout')}</span>
+                  <span>{t('logout', 'Log Out')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

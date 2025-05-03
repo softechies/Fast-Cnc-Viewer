@@ -7,7 +7,7 @@ const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: string, params?: Record<string, string | number> | string) => string;
   isDetecting: boolean;
 }
 
@@ -111,11 +111,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   // Get translation function
-  const t = (key: string, params?: Record<string, string | number>): string => {
+  const t = (key: string, params?: Record<string, string | number> | string): string => {
     const currentTranslations = translations[language] || translations.en;
     
     // Get the nested value using helper function
     const value = getNestedValue(currentTranslations, key);
+    
+    // Handle case when second parameter is a fallback string
+    if (typeof params === 'string') {
+      if (value === undefined) {
+        return params; // Return fallback string
+      }
+      return typeof value === 'string' ? value : key;
+    }
     
     if (value === undefined) {
       console.warn(`Translation key not found: ${key}`);
@@ -127,7 +135,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       return key;
     }
     
-    return formatTranslation(value, params);
+    return formatTranslation(value, params as Record<string, string | number>);
   };
 
   const [, setLocation] = useLocation();

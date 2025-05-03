@@ -23,7 +23,7 @@ export default function NotFound() {
           <div className="mt-6 flex justify-end">
             <Link href="/">
               <Button variant="outline">
-                {t('button.back')}
+                {t('action.back_to_home')}
               </Button>
             </Link>
           </div>
