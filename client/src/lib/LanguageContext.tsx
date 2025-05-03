@@ -14,7 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: () => {},
-  t: (key: string, params?: Record<string, string | number>) => key,
+  t: (key: string, params?: Record<string, string | number> | string) => key,
   isDetecting: false
 });
 

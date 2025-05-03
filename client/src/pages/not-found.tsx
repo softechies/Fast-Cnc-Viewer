@@ -17,13 +17,13 @@ export default function NotFound() {
           </div>
 
           <p className="mt-4 text-sm text-gray-600">
-            {t('header.no.model')}
+            {t('header.no.model', 'The requested model was not found or is not available.')}
           </p>
           
           <div className="mt-6 flex justify-end">
             <Link href="/">
               <Button variant="outline">
-                {t('action.back_to_home')}
+                {t('action.back_to_home', 'Back to home page')}
               </Button>
             </Link>
           </div>
