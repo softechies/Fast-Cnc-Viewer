@@ -1,4 +1,4 @@
-import { Switch, Route, Link, useRoute, useLocation } from "wouter";
+import { Switch, Route, Link, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,7 +17,6 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
-import { useEffect } from "react";
 
 function App() {
   return (
@@ -61,109 +60,76 @@ function SharedModelLayout({ shareId, language }: { shareId: string, language?: 
   );
 }
 
-// Helper function to create all application routes
-function createRoutes() {
-  return (
-    <>
-      {/* Trasę główną obsługujemy osobno - zarówno / jak i /:lang */}
-      <Route path="/">
-        {() => <Home />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)">
-        {() => <Home />}
-      </Route>
-
-      {/* Strona logowania/rejestracji */}
-      <Route path="/auth">
-        {() => <AuthPage />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/auth">
-        {() => <AuthPage />}
-      </Route>
-      
-      {/* Pozostałe strony bez prefiksu językowego */}
-      <Route path="/shared/:shareId">
-        {(params) => <SharedModelPage shareId={params?.shareId} />}
-      </Route>
-      <Route path="/client/dashboard">
-        {() => (
-          <ProtectedRoute allowClient={true} allowAdmin={false}>
-            <ClientDashboardPage />
-          </ProtectedRoute>
-        )}
-      </Route>
-      <Route path="/upload">
-        {() => <FileUploadTest />}
-      </Route>
-      <Route path="/test3d">
-        {() => <Test3D />}
-      </Route>
-      <Route path="/delete-share/:shareId/:token">
-        {(params) => <DeleteSharePage />}
-      </Route>
-      <Route path="/admin/login">
-        {() => <AdminLoginPage />}
-      </Route>
-      <Route path="/admin/dashboard">
-        {() => (
-          <AdminProtectedRoute>
-            <AdminDashboardPage />
-          </AdminProtectedRoute>
-        )}
-      </Route>
-
-      {/* Pozostałe strony z prefiksem językowym */}
-      <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
-        {(params: any) => <SharedModelPage shareId={params?.shareId} language={params?.lang} />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/client/dashboard">
-        {() => (
-          <ProtectedRoute allowClient={true} allowAdmin={false}>
-            <ClientDashboardPage />
-          </ProtectedRoute>
-        )}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/upload">
-        {() => <FileUploadTest />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/test3d">
-        {() => <Test3D />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token">
-        {(params) => <DeleteSharePage />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/admin/login">
-        {() => <AdminLoginPage />}
-      </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/admin/dashboard">
-        {() => (
-          <AdminProtectedRoute>
-            <AdminDashboardPage />
-          </AdminProtectedRoute>
-        )}
-      </Route>
-
-      {/* Strona 404 dla nieistniejących tras - MUSI BYĆ NA KOŃCU */}
-      <Route path="*">
-        {() => <NotFound />}
-      </Route>
-    </>
-  );
-}
-
+// Uproszczona wersja routingu
 function Router() {
-  const { t, language } = useLanguage();
-  const [, setLocation] = useLocation();
-  const [path] = useLocation();
+  const { t } = useLanguage();
+  const [location] = useLocation();
   
   // Sprawdzamy czy jesteśmy na stronie głównej
-  const isMainRoute = path === '/' || path.match(/^\/([a-z]{2})\/?(\?.*)?$/);
+  const isMainRoute = location === '/' || /^\/([a-z]{2})\/?$/.test(location);
   
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         <Switch>
-          {createRoutes()}
+          {/* Trasy podstawowe */}
+          <Route path="/" component={Home} />
+          <Route path="/:lang(en|pl|cs|de|fr)" component={Home} />
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/auth" component={AuthPage} />
+          
+          {/* Pozostałe trasy */}
+          <Route path="/shared/:shareId">
+            {(params) => <SharedModelPage shareId={params.shareId} />}
+          </Route>
+          <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
+            {(params) => <SharedModelPage shareId={params.shareId} language={params.lang} />}
+          </Route>
+          
+          {/* Strony chronione */}
+          <Route path="/client/dashboard">
+            {() => (
+              <ProtectedRoute allowClient={true} allowAdmin={false}>
+                <ClientDashboardPage />
+              </ProtectedRoute>
+            )}
+          </Route>
+          <Route path="/:lang(en|pl|cs|de|fr)/client/dashboard">
+            {() => (
+              <ProtectedRoute allowClient={true} allowAdmin={false}>
+                <ClientDashboardPage />
+              </ProtectedRoute>
+            )}
+          </Route>
+          
+          {/* Pozostałe trasy */}
+          <Route path="/upload" component={FileUploadTest} />
+          <Route path="/:lang(en|pl|cs|de|fr)/upload" component={FileUploadTest} />
+          <Route path="/test3d" component={Test3D} />
+          <Route path="/:lang(en|pl|cs|de|fr)/test3d" component={Test3D} />
+          <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
+          
+          {/* Strony administracyjne */}
+          <Route path="/admin/login" component={AdminLoginPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/admin/login" component={AdminLoginPage} />
+          <Route path="/admin/dashboard">
+            {() => (
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            )}
+          </Route>
+          <Route path="/:lang(en|pl|cs|de|fr)/admin/dashboard">
+            {() => (
+              <AdminProtectedRoute>
+                <AdminDashboardPage />
+              </AdminProtectedRoute>
+            )}
+          </Route>
+
+          {/* Strona 404 dla nieistniejących tras - na końcu */}
+          <Route component={NotFound} />
         </Switch>
       </main>
       {isMainRoute && (

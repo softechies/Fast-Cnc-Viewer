@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader2, ArrowLeft } from "lucide-react";
-import { Redirect, Link, useRoute } from "wouter";
+import { Redirect, Link, useLocation } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
 
