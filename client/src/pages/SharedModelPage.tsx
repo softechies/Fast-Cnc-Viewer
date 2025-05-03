@@ -23,9 +23,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export default function SharedModelPage() {
+interface SharedModelPageProps {
+  shareId?: string;
+  language?: string;
+}
+
+export default function SharedModelPage({ shareId: propShareId, language }: SharedModelPageProps = {}) {
+  // Obsługa ID udostępnienia z props lub z URL
   const [, params] = useRoute("/shared/:shareId");
-  const shareId = params?.shareId;
+  const [, langParams] = useRoute("/:lang(en|pl|cs|de|fr)/shared/:shareId");
+  
+  // Priorytet: props > URL params
+  const shareId = propShareId || params?.shareId || langParams?.shareId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useLanguage();
