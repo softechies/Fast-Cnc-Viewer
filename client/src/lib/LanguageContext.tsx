@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import translations, { Language } from './translations';
+import { useQuery } from '@tanstack/react-query';
 
 const LANGUAGE_STORAGE_KEY = 'cadviewer_language';
 
@@ -24,8 +25,8 @@ function getNestedValue(obj: any, path: string): any {
 
 // Main provider component
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Get initial language from localStorage or browser settings
-  const getInitialLanguage = (): Language => {
+  // Function to get stored language from localStorage
+  const getStoredLanguage = (): Language | null => {
     try {
       const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
       if (savedLanguage && Object.keys(translations).includes(savedLanguage)) {
@@ -34,16 +35,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error('Failed to read language preference:', e);
     }
-    
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang && Object.keys(translations).includes(browserLang as Language)) {
-      return browserLang as Language;
-    }
-    
-    return 'en';
+    return null;
   };
 
-  const [language, setLanguageState] = useState<Language>(getInitialLanguage());
+  // Start with the stored language or English as a default
+  const [language, setLanguageState] = useState<Language>(getStoredLanguage() || 'en');
+  
+  // Query the server for language preference
+  const { isLoading: isLoadingLanguage } = useQuery({
+    queryKey: ['languagePreference'],
+    queryFn: async () => {
+      const response = await fetch('/api/language-preference');
+      return await response.json();
+    },
+    enabled: !getStoredLanguage(), // Only run if we don't have a stored preference
+    onSuccess: (data) => {
+      if (data.detectedLanguage && !getStoredLanguage()) {
+        // Only set if we don't have a stored preference
+        if (Object.keys(translations).includes(data.detectedLanguage)) {
+          setLanguage(data.detectedLanguage as Language);
+        }
+      }
+    }
+  });
 
   // Format translation string with parameters
   const formatTranslation = (translation: string, params?: Record<string, string | number>): string => {

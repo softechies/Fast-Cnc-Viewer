@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg preserveAspectRatio="xMidYMid meet" xmlns:xlink="http://www.w3.org/1999/xlink" width="576pt" height="416pt" viewBox="0 0 576 416" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>1980-01-01T00:00:00+00:00</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 416 
+L 576 416 
+L 576 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 73.44 370.24 
+L 516.96 370.24 
+L 516.96 49.92 
+L 73.44 49.92 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 110.4 86.88 
+L 480 86.88 
+L 480 333.28 
+L 110.4 333.28 
+L 110.4 86.88 
+z
+" clip-path="url(#pdef90a192b)" style="fill: none; stroke: #000000; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 114.096 329.584 
+L 476.304 329.584 
+L 476.304 90.576 
+L 114.096 90.576 
+L 114.096 329.584 
+z
+" clip-path="url(#pdef90a192b)" style="fill: none; stroke: #000000; stroke-width: 0.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="matplotlib.axis_1"/>
+   <g id="matplotlib.axis_2"/>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pdef90a192b">
+   <rect x="73.44" y="49.92" width="443.52" height="320.32"/>
+  </clipPath>
+ </defs>
+
+  <metadata>
+    <dimensions>
+      <width>180.0</width>
+      <height>130.0</height>
+      <minX>-90.0</minX>
+      <minY>-65.0</minY>
+      <maxX>90.0</maxX>
+      <maxY>65.0</maxY>
+      <units>mm</units>
+    </dimensions>
+  </metadata>
+</svg>

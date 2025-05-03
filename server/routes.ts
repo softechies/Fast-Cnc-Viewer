@@ -504,6 +504,30 @@ function generateModelTree(filename: string, filePath?: string): any {
   }
 }
 
+// Helper function to detect language from Accept-Language header
+function detectLanguageFromHeader(acceptLanguageHeader?: string): string | null {
+  if (!acceptLanguageHeader) return null;
+  
+  // Parse Accept-Language header - format like 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7'
+  const languages = acceptLanguageHeader.split(',').map(lang => {
+    const [code, quality] = lang.trim().split(';');
+    return {
+      code: code.split('-')[0], // Get primary language code
+      quality: quality ? parseFloat(quality.split('=')[1]) : 1.0 // Default quality is 1.0
+    };
+  }).sort((a, b) => b.quality - a.quality); // Sort by quality
+
+  // Return highest quality language that we support
+  const supportedLanguages = ['en', 'pl', 'cs', 'de', 'fr'];
+  for (const lang of languages) {
+    if (supportedLanguages.includes(lang.code)) {
+      return lang.code;
+    }
+  }
+
+  return null;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Upewnij się, że katalogi do przechowywania plików istnieją
   try {
@@ -552,6 +576,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Get user's preferred language based on browser settings
+  app.get("/api/language-preference", (req, res) => {
+    // Get Accept-Language header
+    const acceptLanguage = req.headers['accept-language'];
+    const detectedLanguage = detectLanguageFromHeader(acceptLanguage);
+    
+    // Get IP address
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    res.json({
+      detectedLanguage: detectedLanguage || 'en',
+      acceptLanguage: acceptLanguage || '',
+      ip: ip
+    });
   });
   
   // Get all models
