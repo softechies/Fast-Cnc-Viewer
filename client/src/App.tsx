@@ -67,16 +67,21 @@ function Router() {
   
   // Sprawdzamy czy jesteśmy na stronie głównej
   const isMainRoute = location === '/' || /^\/([a-z]{2})\/?$/.test(location);
+  console.log("Current location:", location); // Diagnostic log
   
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         <Switch>
-          {/* Trasy podstawowe */}
+          {/* Trasy podstawowe - UWAGA: kolejność ma znaczenie */}
+          <Route path="/auth">
+            {() => <AuthPage />}
+          </Route>
+          <Route path="/:lang(en|pl|cs|de|fr)/auth">
+            {() => <AuthPage />}
+          </Route>
           <Route path="/" component={Home} />
           <Route path="/:lang(en|pl|cs|de|fr)" component={Home} />
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/:lang(en|pl|cs|de|fr)/auth" component={AuthPage} />
           
           {/* Pozostałe trasy */}
           <Route path="/shared/:shareId">
