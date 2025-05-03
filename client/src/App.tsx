@@ -65,11 +65,23 @@ function SharedModelLayout({ shareId, language }: { shareId: string, language?: 
 function createRoutes() {
   return (
     <>
-      {/* Strony bez prefiksu językowego (dla wstecznej kompatybilności) */}
-      <Route path="/" component={Home} />
+      {/* Trasę główną obsługujemy osobno - zarówno / jak i /:lang */}
+      <Route path="/">
+        {() => <Home />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)">
+        {() => <Home />}
+      </Route>
+
+      {/* Strona logowania/rejestracji */}
       <Route path="/auth">
         {() => <AuthPage />}
       </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/auth">
+        {() => <AuthPage />}
+      </Route>
+      
+      {/* Pozostałe strony bez prefiksu językowego */}
       <Route path="/shared/:shareId">
         {(params) => <SharedModelPage shareId={params?.shareId} />}
       </Route>
@@ -80,10 +92,18 @@ function createRoutes() {
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/upload" component={FileUploadTest} />
-      <Route path="/test3d" component={Test3D} />
-      <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
-      <Route path="/admin/login" component={AdminLoginPage} />
+      <Route path="/upload">
+        {() => <FileUploadTest />}
+      </Route>
+      <Route path="/test3d">
+        {() => <Test3D />}
+      </Route>
+      <Route path="/delete-share/:shareId/:token">
+        {(params) => <DeleteSharePage />}
+      </Route>
+      <Route path="/admin/login">
+        {() => <AdminLoginPage />}
+      </Route>
       <Route path="/admin/dashboard">
         {() => (
           <AdminProtectedRoute>
@@ -92,11 +112,7 @@ function createRoutes() {
         )}
       </Route>
 
-      {/* Strony z prefiksem językowym */}
-      <Route path="/:lang(en|pl|cs|de|fr)" component={Home} />
-      <Route path="/:lang(en|pl|cs|de|fr)/auth">
-        {() => <AuthPage />}
-      </Route>
+      {/* Pozostałe strony z prefiksem językowym */}
       <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
         {(params: any) => <SharedModelPage shareId={params?.shareId} language={params?.lang} />}
       </Route>
@@ -107,10 +123,18 @@ function createRoutes() {
           </ProtectedRoute>
         )}
       </Route>
-      <Route path="/:lang(en|pl|cs|de|fr)/upload" component={FileUploadTest} />
-      <Route path="/:lang(en|pl|cs|de|fr)/test3d" component={Test3D} />
-      <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
-      <Route path="/:lang(en|pl|cs|de|fr)/admin/login" component={AdminLoginPage} />
+      <Route path="/:lang(en|pl|cs|de|fr)/upload">
+        {() => <FileUploadTest />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/test3d">
+        {() => <Test3D />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token">
+        {(params) => <DeleteSharePage />}
+      </Route>
+      <Route path="/:lang(en|pl|cs|de|fr)/admin/login">
+        {() => <AdminLoginPage />}
+      </Route>
       <Route path="/:lang(en|pl|cs|de|fr)/admin/dashboard">
         {() => (
           <AdminProtectedRoute>
@@ -119,8 +143,10 @@ function createRoutes() {
         )}
       </Route>
 
-      {/* Strona 404 dla nieistniejących tras */}
-      <Route component={NotFound} />
+      {/* Strona 404 dla nieistniejących tras - MUSI BYĆ NA KOŃCU */}
+      <Route path="*">
+        {() => <NotFound />}
+      </Route>
     </>
   );
 }
@@ -128,12 +154,10 @@ function createRoutes() {
 function Router() {
   const { t, language } = useLanguage();
   const [, setLocation] = useLocation();
+  const [path] = useLocation();
   
-  // Efekt dla aktualizacji języka w URL
-  useEffect(() => {
-    // Tu można dodać logikę dla automatycznego przekierowania
-    // na strony z prefiksem językowym, jeśli jest to potrzebne
-  }, [language]);
+  // Sprawdzamy czy jesteśmy na stronie głównej
+  const isMainRoute = path === '/' || path.match(/^\/([a-z]{2})\/?(\?.*)?$/);
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -142,9 +166,11 @@ function Router() {
           {createRoutes()}
         </Switch>
       </main>
-      <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">
-        {t('app.footer', 'CAD Viewer')}
-      </footer>
+      {isMainRoute && (
+        <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">
+          {t('app.footer', 'CAD Viewer')}
+        </footer>
+      )}
     </div>
   );
 }
