@@ -46,18 +46,28 @@ export default function AuthPage() {
   // Obsługa logowania
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate(loginData);
+    loginMutation.mutate({
+      email: loginData.email,
+      password: loginData.password
+    });
   };
   
   // Obsługa rejestracji
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    registerMutation.mutate(registerData);
+    registerMutation.mutate({
+      username: registerData.username,
+      email: registerData.email,
+      password: registerData.password,
+      fullName: registerData.fullName,
+      company: registerData.company || ""
+    });
   };
   
   // Przekieruj do głównej strony jeśli użytkownik jest zalogowany
+  const { language } = useLanguage();
   if (user) {
-    return <Redirect to="/" />;
+    return <Redirect to={`/${language}`} />;
   }
   
   const isLoginDisabled = !loginData.email || !loginData.password || loginMutation.isPending;
@@ -72,9 +82,9 @@ export default function AuthPage() {
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
             <Button variant="ghost" asChild className="mr-4">
-              <Link href="/">
+              <Link href={`/${language}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('back_to_home')}
+                {t('back_to_home', 'Back to home')}
               </Link>
             </Button>
             <h1 className="text-2xl font-semibold text-gray-800">{t('login')}</h1>
