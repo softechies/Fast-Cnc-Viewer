@@ -77,11 +77,11 @@ export function setupAuth(app: Express): void {
           return done(null, false, { message: "Nieprawidłowy email lub hasło" });
         }
         
-        // Sprawdzamy hasło dla administratora logującego się przez nazwę użytkownika
+        // Check password for admin logging in with username
         const isMatch = await comparePasswords(password, adminUser.password);
         
         if (!isMatch) {
-          return done(null, false, { message: "Nieprawidłowy email lub hasło" });
+          return done(null, false, { message: "Invalid email or password" });
         }
         
         // Aktualizacja daty ostatniego logowania dla admina
@@ -100,11 +100,11 @@ export function setupAuth(app: Express): void {
         });
       }
       
-      // Sprawdzamy hasło dla użytkownika logującego się przez email
+      // Check password for user logging in with email
       const isMatch = await comparePasswords(password, user.password);
       
       if (!isMatch) {
-        return done(null, false, { message: "Nieprawidłowy email lub hasło" });
+        return done(null, false, { message: "Invalid email or password" });
       }
       
       // Aktualizacja daty ostatniego logowania
@@ -157,7 +157,7 @@ export function setupAuth(app: Express): void {
     if (req.isAuthenticated()) {
       return next();
     }
-    return res.status(401).json({ error: "Niezalogowany" });
+    return res.status(401).json({ error: "Not logged in" });
   }
 
   // Middleware do sprawdzania czy użytkownik jest adminem
@@ -165,7 +165,7 @@ export function setupAuth(app: Express): void {
     if (req.isAuthenticated() && req.user.isAdmin) {
       return next();
     }
-    return res.status(403).json({ error: "Brak dostępu" });
+    return res.status(403).json({ error: "Access denied" });
   }
 
   // Middleware do sprawdzania czy użytkownik jest klientem
@@ -173,7 +173,7 @@ export function setupAuth(app: Express): void {
     if (req.isAuthenticated() && req.user.isClient) {
       return next();
     }
-    return res.status(403).json({ error: "Brak dostępu" });
+    return res.status(403).json({ error: "Access denied" });
   }
 
   // Rejestracja endpointów autentykacji
@@ -317,7 +317,7 @@ export function setupAuth(app: Express): void {
   // Endpoint zwracający informacje o aktualnie zalogowanym użytkowniku
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Niezalogowany" });
+      return res.status(401).json({ error: "Not logged in" });
     }
     res.json(req.user);
   });

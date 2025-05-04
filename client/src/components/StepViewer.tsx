@@ -751,7 +751,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     infoPlane.position.y = 0.5;
     group.add(infoPlane);
     
-    // Dodaj osie pomocnicze
+    // Add helper axes
     const axesHelper = new THREE.AxesHelper(5);
     group.add(axesHelper);
     
