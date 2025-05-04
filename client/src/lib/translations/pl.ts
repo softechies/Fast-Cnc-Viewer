@@ -282,7 +282,8 @@ const translations = {
   },
   
   // Actions
-  actions: {
+  actions: "Akcje",
+  action: {
     back_to_home: "Powrót do strony głównej",
     access: "Uzyskaj dostęp",
     verifying: "Weryfikacja...",

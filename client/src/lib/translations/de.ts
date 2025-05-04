@@ -324,7 +324,7 @@ const translations = {
     back_to_home: "Zurück zur Startseite",
     access: "Zugriff",
     verifying: "Überprüfung...",
-    go_to_app: "Zur Anwendung"
+    go_to_app: "Zur Anwendung gehen"
   },
   
   // Success messages
