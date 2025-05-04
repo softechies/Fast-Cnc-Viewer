@@ -89,7 +89,11 @@ function Router() {
             {(params) => <SharedModelPage shareId={params.shareId} />}
           </Route>
           <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
-            {(params) => <SharedModelPage shareId={params.shareId} language={params.lang as string} />}
+            {(params) => {
+              // Params jako string literal dla TypeScript
+              const paramsLang = params.lang as 'en' | 'pl' | 'cs' | 'de' | 'fr';
+              return <SharedModelPage shareId={params.shareId} language={paramsLang} />;
+            }}
           </Route>
           
           {/* Strony chronione */}
@@ -117,8 +121,8 @@ function Router() {
           <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
           
           {/* Strona kontaktowa */}
-          <Route path="/contact" component={ContactPage} />
-          <Route path="/:lang(en|pl|cs|de|fr)/contact" component={ContactPage} />
+          <Route path="/quote" component={ContactPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/quote" component={ContactPage} />
           
           {/* Strony administracyjne */}
           <Route path="/admin/login" component={AdminLoginPage} />

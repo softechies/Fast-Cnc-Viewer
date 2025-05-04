@@ -18,11 +18,12 @@ export default function Home() {
   const [isRoot] = useRoute("/");
   
   // Przekieruj z głównej strony bez prefiksu językowego na stronę z prefiksem
+  // ale tylko jeśli jesteśmy dokładnie na stronie głównej
   useEffect(() => {
-    if (isRoot) {
+    if (isRoot && location === '/') {
       setLocation(`/${language}`);
     }
-  }, [isRoot, language]);
+  }, [isRoot, language, location]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("info");
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
