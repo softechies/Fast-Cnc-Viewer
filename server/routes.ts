@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User, models, type StlModelMetadata, type CadModelMetadata } from "@shared/schema";
+import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User, models, type StlModelMetadata, type CadModelMetadata, updateModelTagsSchema } from "@shared/schema";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
@@ -2761,6 +2761,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating model password:", error);
       res.status(500).json({ error: "Błąd podczas aktualizacji hasła modelu" });
+    }
+  });
+
+  // Endpoint do wyszukiwania/pobierania modeli z otwartej biblioteki
+  app.get("/api/library", async (req: Request, res: Response) => {
+    try {
+      // Pobierz parametry wyszukiwania
+      const query = req.query.query as string | undefined;
+      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
+      const page = parseInt(req.query.page as string || '1');
+      const limit = parseInt(req.query.limit as string || '20');
+      
+      // Pobierz modele z biblioteki (nie chronione hasłem i udostępnione)
+      const libraryModels = await storage.getLibraryModels({
+        query,
+        tags,
+        page,
+        limit
+      });
+      
+      res.json(libraryModels);
+    } catch (error) {  
+      console.error('Error fetching library models:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Endpoint do aktualizacji tagów modeli (tylko dla właściciela modelu)
+  app.post("/api/models/:id/tags", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const modelId = parseInt(id);
+      
+      // Sprawdź czy model istnieje i czy użytkownik ma do niego dostęp
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: 'Model not found' });
+      }
+      
+      // Sprawdź uprawnienia - tylko właściciel lub admin mogą edytować tagi
+      if (!req.isAuthenticated() || (req.user.id !== model.userId && !req.user.isAdmin)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Przeprowadź walidację danych wejściowych
+      const updateTagsData = updateModelTagsSchema.parse({
+        modelId,
+        tags: req.body.tags || [],
+      });
+      
+      // Aktualizuj tagi modelu
+      const updatedModel = await storage.updateModelTags(modelId, updateTagsData.tags);
+      
+      res.json({
+        success: true,
+        model: updatedModel,
+        message: 'Model tags updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating model tags:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      }
+      
+      res.status(500).json({ error: 'Internal server error' });
     }
   });
 

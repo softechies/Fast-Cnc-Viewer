@@ -61,6 +61,7 @@ export const models = pgTable("models", {
   shareEmail: text("share_email"), // Email osoby, której udostępniono model
   shareNotificationSent: boolean("share_notification_sent").default(false), // Czy powiadomienie zostało wysłane
   shareLastAccessed: text("share_last_accessed"), // Ostatni dostęp do udostępnionego modelu
+  tags: text("tags").array(), // Tablica tagów dla łatwego wyszukiwania
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({
@@ -96,6 +97,7 @@ export const modelInfoSchema = z.object({
   shareExpiryDate: z.string().optional(),
   shareLastAccessed: z.string().optional(),
   shareDeleteToken: z.string().optional(),
+  tags: z.array(z.string()).optional(), // Lista tagów do wyszukiwania
 });
 
 // Schemat danych użytkownika do rejestracji podczas udostępniania
@@ -191,6 +193,20 @@ export const updateSharedModelSchema = z.object({
   expiryDate: z.string().optional(),
 });
 
+// Define schema for updating model tags
+export const updateModelTagsSchema = z.object({
+  modelId: z.number(),
+  tags: z.array(z.string()),
+});
+
+// Define schema for searching library models
+export const searchLibrarySchema = z.object({
+  query: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  page: z.number().optional().default(1),
+  limit: z.number().optional().default(20),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type ClientRegistration = z.infer<typeof clientRegistrationSchema>;
@@ -201,6 +217,8 @@ export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type Model = typeof models.$inferSelect;
 export type InsertModel = z.infer<typeof insertModelSchema>;
 export type UpdateSharedModel = z.infer<typeof updateSharedModelSchema>;
+export type UpdateModelTags = z.infer<typeof updateModelTagsSchema>;
+export type SearchLibrary = z.infer<typeof searchLibrarySchema>;
 // Definicje typów metadanych dla różnych rodzajów modeli
 export const stlModelMetadataSchema = z.object({
   filePath: z.string(),

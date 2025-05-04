@@ -36,6 +36,10 @@ export interface IStorage {
   recordModelView(viewData: InsertModelView): Promise<ModelView>;
   getModelViewStats(modelId: number): Promise<ModelViewStats>;
   getModelViewCount(modelId: number): Promise<number>;
+  
+  // Library operations
+  getLibraryModels(options: { query?: string; tags?: string[]; page?: number; limit?: number; }): Promise<Model[]>;
+  updateModelTags(modelId: number, tags: string[]): Promise<Model | undefined>;
 }
 
 // In-memory storage implementation
@@ -113,9 +117,10 @@ export class MemStorage implements IStorage {
       id,
       isAdmin: insertUser.isAdmin ?? false,
       isClient: insertUser.isClient ?? false,
-      email: insertUser.email ?? null,
+      email: insertUser.email ?? "",
       fullName: insertUser.fullName ?? null,
       company: insertUser.company ?? null,
+      username: insertUser.username ?? null,
       createdAt: new Date(),
       lastLogin: null,
       resetToken: null,
@@ -128,8 +133,9 @@ export class MemStorage implements IStorage {
   async createModel(insertModel: InsertModel): Promise<Model> {
     const id = this.modelIdCounter++;
     // Ensure all nullable fields are explicitly null rather than undefined
-    const modelData = { 
+    const model: Model = { 
       ...insertModel, 
+      id,
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
@@ -140,9 +146,10 @@ export class MemStorage implements IStorage {
       shareExpiryDate: insertModel.shareExpiryDate ?? null,
       shareEmail: insertModel.shareEmail ?? null,
       shareNotificationSent: insertModel.shareNotificationSent ?? false,
-      shareLastAccessed: insertModel.shareLastAccessed ?? null
+      shareLastAccessed: insertModel.shareLastAccessed ?? null,
+      shareDeleteToken: insertModel.shareDeleteToken ?? null,
+      tags: insertModel.tags ?? null
     };
-    const model: Model = { ...modelData, id };
     this.models.set(id, model);
     return model;
   }
@@ -306,6 +313,67 @@ export class MemStorage implements IStorage {
   async getModelViewCount(modelId: number): Promise<number> {
     const views = this.modelViews.get(modelId) || [];
     return views.length;
+  }
+  
+  // Implementacja metod dla otwartej biblioteki
+  async getLibraryModels(options: { query?: string; tags?: string[]; page?: number; limit?: number; }): Promise<Model[]> {
+    const { query, tags, page = 1, limit = 20 } = options;
+    const offset = (page - 1) * limit;
+    
+    // Filtruj modele: tylko te udostępnione i bez hasła
+    let filteredModels = Array.from(this.models.values()).filter(
+      (model) => model.shareEnabled === true && (!model.sharePassword || model.sharePassword === '')
+    );
+    
+    // Filtruj po nazwie pliku lub tagach
+    if (query) {
+      const queryLowerCase = query.toLowerCase();
+      filteredModels = filteredModels.filter(
+        (model) => {
+          // Sprawdzamy nazwę pliku
+          const filenameMatch = model.filename.toLowerCase().includes(queryLowerCase);
+          
+          // Sprawdzamy tagi
+          const tagsMatch = model.tags?.some(tag => tag.toLowerCase().includes(queryLowerCase));
+          
+          return filenameMatch || tagsMatch;
+        }
+      );
+    }
+    
+    // Filtruj po konkretnych tagach
+    if (tags && tags.length > 0) {
+      const tagsLowerCase = tags.map(tag => tag.toLowerCase());
+      filteredModels = filteredModels.filter(
+        (model) => {
+          if (!model.tags || model.tags.length === 0) return false;
+          
+          // Sprawdź czy model zawiera wszystkie podane tagi
+          const modelTagsLowerCase = model.tags.map(tag => tag.toLowerCase());
+          return tagsLowerCase.every(tagToFind => modelTagsLowerCase.includes(tagToFind));
+        }
+      );
+    }
+    
+    // Sortuj po dacie utworzenia (od najnowszych)
+    filteredModels.sort((a, b) => {
+      const dateA = new Date(a.created).getTime();
+      const dateB = new Date(b.created).getTime();
+      return dateB - dateA;
+    });
+    
+    // Paginacja
+    return filteredModels.slice(offset, offset + limit);
+  }
+  
+  async updateModelTags(modelId: number, tags: string[]): Promise<Model | undefined> {
+    const model = this.models.get(modelId);
+    if (!model) return undefined;
+    
+    const updatedModel = { ...model, tags: tags.length > 0 ? tags : null };
+    this.models.set(modelId, updatedModel);
+    
+    return updatedModel;
   }
 }
 
@@ -570,6 +638,67 @@ export class PostgresStorage implements IStorage {
       .where(eq(modelViews.modelId, modelId));
 
     return countResult[0]?.count || 0;
+  }
+  
+  // Implementacja metod dla biblioteki otwartej
+  async getLibraryModels(options: { query?: string; tags?: string[]; page?: number; limit?: number; }): Promise<Model[]> {
+    try {
+      const { query, tags, page = 1, limit = 20 } = options;
+      const offset = (page - 1) * limit;
+      
+      // Podstawowe zapytanie - modele udostępnione bez hasła
+      let baseQuery = and(
+        eq(models.shareEnabled, true),
+        sql`${models.sharePassword} IS NULL OR ${models.sharePassword} = ''`
+      );
+      
+      // Dodaj filtrowanie po nazwie pliku lub tagach, jeśli zostały podane
+      if (query) {
+        baseQuery = and(
+          baseQuery,
+          or(
+            like(models.filename, `%${query}%`),
+            // Używamy PostgreSQL-owej składni dla sprawdzania tablicy JSON
+            sql`${models.tags}::jsonb @> ${JSON.stringify([query])}::jsonb`
+          )
+        );
+      }
+      
+      // Dodaj filtrowanie po tagach, jeśli zostały podane
+      if (tags && tags.length > 0) {
+        baseQuery = and(
+          baseQuery,
+          sql`${models.tags}::jsonb @> ${JSON.stringify(tags)}::jsonb`
+        );
+      }
+      
+      // Wykonaj zapytanie z pełnym filtrowaniem
+      const result = await db.select()
+        .from(models)
+        .where(baseQuery)
+        .orderBy(desc(models.created))
+        .limit(limit)
+        .offset(offset);
+      
+      return result;
+    } catch (error) {
+      console.error("Error getting library models:", error);
+      return [];
+    }
+  }
+  
+  async updateModelTags(modelId: number, tags: string[]): Promise<Model | undefined> {
+    try {
+      const [updatedModel] = await db.update(models)
+        .set({ tags: tags.length > 0 ? tags : null })
+        .where(eq(models.id, modelId))
+        .returning();
+      
+      return updatedModel;
+    } catch (error) {
+      console.error("Error updating model tags:", error);
+      return undefined;
+    }
   }
 }
 
