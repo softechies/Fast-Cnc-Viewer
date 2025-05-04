@@ -286,16 +286,31 @@ export default function ClientDashboardPage() {
       isLoggedIn: !!user
     });
     
+    // Dodajemy parametr autoShare=true, aby model był automatycznie udostępniany po przesłaniu
+    // Ten parametr jest używany w endpointach upload-stl, upload-cad i upload
+    const queryParams = [];
+    
     // Jeśli podano userEmail z komponentu UploadModal, użyj go
     if (userEmail) {
-      uploadUrl += `?email=${encodeURIComponent(userEmail)}`;
-      console.log("[CLIENT] Dodano email otrzymany z UploadModal:", uploadUrl);
+      queryParams.push(`email=${encodeURIComponent(userEmail)}`);
+      console.log("[CLIENT] Dodano email otrzymany z UploadModal");
     }
     // Jeśli nie ma userEmail, ale użytkownik jest zalogowany, używamy email z konta
     else if (user?.email) {
-      uploadUrl += `?email=${encodeURIComponent(user.email)}`;
-      console.log("[CLIENT] Dodano email zalogowanego użytkownika:", uploadUrl);
+      queryParams.push(`email=${encodeURIComponent(user.email)}`);
+      console.log("[CLIENT] Dodano email zalogowanego użytkownika");
     }
+    
+    // Dodajemy parametr autoShare=true
+    queryParams.push('autoShare=true');
+    console.log("[CLIENT] Dodano parametr autoShare=true");
+    
+    // Dodajemy parametry do URL
+    if (queryParams.length > 0) {
+      uploadUrl += `?${queryParams.join('&')}`;
+    }
+    
+    console.log("[CLIENT] Finalny URL uploadu:", uploadUrl);
     
     upload(file, uploadUrl);
   };
