@@ -127,6 +127,10 @@ const translations = {
   modelStatus: {
     loaded: "Model loaded (format: {format})"
   },
+  loadingModel: "Loading model...",
+  loading3DComponent: "Loading 3D component...",
+  loading2DComponent: "Loading 2D component...",
+  selectModelToDisplay: "Select a model to display",
   
   // Measurement and dimensions
   measurement: {
@@ -305,8 +309,13 @@ const translations = {
       fetch: "Failed to fetch model information",
       access: "Failed to access the model",
       display_failed: "Cannot display the model"
-    }
+    },
+    render3D: "3D Rendering Problem", 
+    render3DDetails: "There was an issue loading the 3D rendering component. Check if your browser supports WebGL.",
+    render2D: "2D Rendering Problem",
+    render2DDetails: "There was an issue loading the 2D file rendering component."
   },
+  refreshPage: "Refresh Page",
   
   // Loading states
   loadingState: {

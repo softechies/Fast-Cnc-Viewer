@@ -159,7 +159,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
                 <div className="text-center max-w-md p-4">
                   <AlertCircle size={40} className="mx-auto text-red-500 mb-2" />
-                  <h3 className="text-lg font-medium mb-1">Błąd ładowania modelu</h3>
+                  <h3 className="text-lg font-medium mb-1">{t('errorLoadingModel')}</h3>
                   <p className="text-sm text-slate-600">{error}</p>
                 </div>
               </div>
@@ -179,13 +179,12 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <ErrorBoundary fallback={
                       <div className="p-8 text-center">
                         <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 3D</h3>
+                        <h3 className="text-lg font-medium mb-2">{t('errors.render3D')}</h3>
                         <p className="text-sm text-slate-600 mb-4">
-                          Wystąpił problem z załadowaniem komponentu do renderowania 3D. 
-                          Sprawdź czy Twoja przeglądarka wspiera WebGL.
+                          {t('errors.render3DDetails')}
                         </p>
                         <Button onClick={() => window.location.reload()}>
-                          Odśwież stronę
+                          {t('refreshPage')}
                         </Button>
                       </div>
                     }>
@@ -206,12 +205,12 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <ErrorBoundary fallback={
                       <div className="p-8 text-center">
                         <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 2D</h3>
+                        <h3 className="text-lg font-medium mb-2">{t('errors.render2D')}</h3>
                         <p className="text-sm text-slate-600 mb-4">
-                          Wystąpił problem z załadowaniem komponentu do renderowania plików 2D.
+                          {t('errors.render2DDetails')}
                         </p>
                         <Button onClick={() => window.location.reload()}>
-                          Odśwież stronę
+                          {t('refreshPage')}
                         </Button>
                       </div>
                     }>
