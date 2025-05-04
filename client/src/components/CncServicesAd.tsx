@@ -1,8 +1,8 @@
 import React from 'react';
-import { LucideScissors, Cog, Wrench, FileType } from 'lucide-react';
+import { Scissors, Cog, Wrench, FileType } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/lib/LanguageContext';
-import fastCncLogoPath from '@assets/cropped-Fast-Cnc-scaled-e1723725217643.jpg';
+import fastCncLogoPath from '@/assets/cropped-Fast-Cnc-scaled-e1723725217643.jpg';
 
 interface CncServicesAdProps {
   modelType: '3d' | '2d' | 'unknown';
@@ -30,7 +30,7 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
           {modelType === '2d' ? (
             <div className="flex items-start">
               <div className="bg-blue-500 p-2 rounded-full mr-4">
-                <Laser className="h-5 w-5 text-white" />
+                <Scissors className="h-5 w-5 text-white" />
               </div>
               <div>
                 <h3 className="font-medium text-blue-800">{t('services.laser_cutting', 'Cięcie laserowe')}</h3>
@@ -97,7 +97,7 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow">
               <div className="flex items-center mb-2">
-                <Laser className="h-5 w-5 text-blue-600 mr-2" />
+                <Scissors className="h-5 w-5 text-blue-600 mr-2" />
                 <h4 className="font-medium">{t('services.laser_cutting', 'Cięcie laserowe')}</h4>
               </div>
               <p className="text-sm text-gray-600">

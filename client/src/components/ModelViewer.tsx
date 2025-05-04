@@ -97,115 +97,134 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
   }, [modelId]);
   
   return (
-    <div className="w-full h-full flex flex-col min-h-[400px]">
-      {/* Kontrolki widoku */}
-      <div className="h-10 bg-slate-100 border-b border-slate-200 flex items-center px-3 justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{t('mode')}:</span>
+    <div className="w-full h-full flex flex-col md:flex-row min-h-[400px]">
+      <div className="flex flex-col flex-grow w-3/4">
+        {/* Kontrolki widoku */}
+        <div className="h-10 bg-slate-100 border-b border-slate-200 flex items-center px-3 justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{t('mode')}:</span>
+            
+            <Badge variant={modelType === '3d' ? 'default' : 'outline'}>
+              3D
+            </Badge>
+            
+            <Badge variant={modelType === '2d' ? 'default' : 'outline'}>
+              2D
+            </Badge>
+            
+            {modelInfo?.filename && (
+              <span className="text-xs text-slate-500 ml-3">
+                {modelInfo.filename}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Obszar widoku modelu */}
+        <div className="flex-1 relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <p className="mt-2 text-sm">Ładowanie modelu...</p>
+              </div>
+            </div>
+          )}
           
-          <Badge variant={modelType === '3d' ? 'default' : 'outline'}>
-            3D
-          </Badge>
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+              <div className="text-center max-w-md p-4">
+                <AlertCircle size={40} className="mx-auto text-red-500 mb-2" />
+                <h3 className="text-lg font-medium mb-1">Błąd ładowania modelu</h3>
+                <p className="text-sm text-slate-600">{error}</p>
+              </div>
+            </div>
+          )}
           
-          <Badge variant={modelType === '2d' ? 'default' : 'outline'}>
-            2D
-          </Badge>
-          
-          {modelInfo?.filename && (
-            <span className="text-xs text-slate-500 ml-3">
-              {modelInfo.filename}
-            </span>
+          {!isLoading && !error && (
+            <>
+              {modelType === '3d' && (
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <p className="mt-2 text-sm">Ładowanie komponentu 3D...</p>
+                    </div>
+                  </div>
+                }>
+                  <ErrorBoundary fallback={
+                    <div className="p-8 text-center">
+                      <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 3D</h3>
+                      <p className="text-sm text-slate-600 mb-4">
+                        Wystąpił problem z załadowaniem komponentu do renderowania 3D. 
+                        Sprawdź czy Twoja przeglądarka wspiera WebGL.
+                      </p>
+                      <Button onClick={() => window.location.reload()}>
+                        Odśwież stronę
+                      </Button>
+                    </div>
+                  }>
+                    <StepViewer modelId={modelId} />
+                  </ErrorBoundary>
+                </Suspense>
+              )}
+              
+              {modelType === '2d' && (
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <p className="mt-2 text-sm">Ładowanie komponentu 2D...</p>
+                    </div>
+                  </div>
+                }>
+                  <ErrorBoundary fallback={
+                    <div className="p-8 text-center">
+                      <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 2D</h3>
+                      <p className="text-sm text-slate-600 mb-4">
+                        Wystąpił problem z załadowaniem komponentu do renderowania plików 2D.
+                      </p>
+                      <Button onClick={() => window.location.reload()}>
+                        Odśwież stronę
+                      </Button>
+                    </div>
+                  }>
+                    <DxfViewer modelId={modelId} />
+                  </ErrorBoundary>
+                </Suspense>
+              )}
+              
+              {modelType === 'unknown' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
+                  <div className="text-center">
+                    <p className="text-lg font-medium mb-2">Wybierz model do wyświetlenia</p>
+                    <p className="text-sm text-slate-500">
+                      Obsługiwane formaty: STL, DXF, DWG
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
       
-      {/* Obszar widoku modelu */}
-      <div className="flex-1 relative">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
-            <div className="text-center">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="mt-2 text-sm">Ładowanie modelu...</p>
-            </div>
-          </div>
-        )}
-        
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
-            <div className="text-center max-w-md p-4">
-              <AlertCircle size={40} className="mx-auto text-red-500 mb-2" />
-              <h3 className="text-lg font-medium mb-1">Błąd ładowania modelu</h3>
-              <p className="text-sm text-slate-600">{error}</p>
-            </div>
-          </div>
-        )}
-        
-        {!isLoading && !error && (
-          <>
-            {modelType === '3d' && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="mt-2 text-sm">Ładowanie komponentu 3D...</p>
-                  </div>
-                </div>
-              }>
-                <ErrorBoundary fallback={
-                  <div className="p-8 text-center">
-                    <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 3D</h3>
-                    <p className="text-sm text-slate-600 mb-4">
-                      Wystąpił problem z załadowaniem komponentu do renderowania 3D. 
-                      Sprawdź czy Twoja przeglądarka wspiera WebGL.
-                    </p>
-                    <Button onClick={() => window.location.reload()}>
-                      Odśwież stronę
-                    </Button>
-                  </div>
-                }>
-                  <StepViewer modelId={modelId} />
-                </ErrorBoundary>
-              </Suspense>
-            )}
-            
-            {modelType === '2d' && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="mt-2 text-sm">Ładowanie komponentu 2D...</p>
-                  </div>
-                </div>
-              }>
-                <ErrorBoundary fallback={
-                  <div className="p-8 text-center">
-                    <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 2D</h3>
-                    <p className="text-sm text-slate-600 mb-4">
-                      Wystąpił problem z załadowaniem komponentu do renderowania plików 2D.
-                    </p>
-                    <Button onClick={() => window.location.reload()}>
-                      Odśwież stronę
-                    </Button>
-                  </div>
-                }>
-                  <DxfViewer modelId={modelId} />
-                </ErrorBoundary>
-              </Suspense>
-            )}
-            
-            {modelType === 'unknown' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
-                <div className="text-center">
-                  <p className="text-lg font-medium mb-2">Wybierz model do wyświetlenia</p>
-                  <p className="text-sm text-slate-500">
-                    Obsługiwane formaty: STL, DXF, DWG
-                  </p>
-                </div>
+      {/* Sekcja z reklamą usług CNC */}
+      <div className="w-full md:w-1/4 border-l border-gray-200 overflow-auto">
+        {!isLoading && modelInfo && (
+          <Suspense fallback={
+            <div className="p-4 animate-pulse space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
               </div>
-            )}
-          </>
+            </div>
+          }>
+            <CncServicesAd modelType={modelType} modelInfo={modelInfo} />
+          </Suspense>
         )}
       </div>
     </div>
