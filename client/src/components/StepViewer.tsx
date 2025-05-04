@@ -555,7 +555,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       } else {
         // Jeśli nie ma STL, wyświetl informację
-        setDebugInfo("Ten format pliku nie jest obsługiwany. Tylko pliki STL są obsługiwane.");
+        setDebugInfo("This file format is not supported. Only STL files are supported.");
         
         // Dodaj prosty placeholder informacyjny
         const infoGroup = new THREE.Group();
@@ -590,8 +590,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       }
     } catch (error) {
-      console.error("Błąd renderowania modelu:", error);
-      setDebugInfo(`Błąd renderowania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+      console.error("Model rendering error:", error);
+      setDebugInfo(`Rendering error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       
       // W przypadku całkowitego błędu, spróbuj wyświetlić cokolwiek
       try {
@@ -623,12 +623,12 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           controlsRef.current.update();
         }
       } catch (fallbackError) {
-        console.error("Nawet wyświetlenie modelu błędu nie powiodło się:", fallbackError);
+        console.error("Even displaying the error model failed:", fallbackError);
       }
     }
   }
   
-  // Efekt do obsługi kliknięć w trybie pomiaru
+  // Effect to handle clicks in measurement mode
   useEffect(() => {
     if (!containerRef.current) return;
     
@@ -636,7 +636,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       handleMeasureClick(event);
     };
     
-    // Dodaj lub usuń obsługę kliknięć w zależności od trybu pomiaru
+    // Add or remove click handling depending on measurement mode
     if (measureMode) {
       containerRef.current.addEventListener('click', handleClick);
     }
@@ -649,10 +649,10 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     };
   }, [measureMode, measurePoints]);
   
-  // Efekt do czyszczenia punktów pomiarowych przy wyłączaniu trybu pomiaru
+  // Effect to clear measurement points when disabling measurement mode
   useEffect(() => {
     if (!measureMode && sceneRef.current) {
-      // Usuń punkty pomiarowe
+      // Remove measurement points
       for (let i = 0; i < 2; i++) {
         const point = sceneRef.current.getObjectByName(`MeasurePoint_${i}`);
         if (point) {
@@ -660,13 +660,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         }
       }
       
-      // Usuń linię pomiaru
+      // Remove measurement line
       const measureLine = sceneRef.current.getObjectByName("MeasureLine");
       if (measureLine) {
         sceneRef.current.remove(measureLine);
       }
       
-      // Zresetuj stan
+      // Reset state
       setMeasurePoints([]);
       setMeasureDistance(null);
     }
@@ -679,14 +679,14 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     // Load model from file
     const loadModel = async () => {
       try {
-        setDebugInfo("Przetwarzanie modelu...");
+        setDebugInfo("Processing model...");
         
         // Read file as text
         const reader = new FileReader();
         
         reader.onload = (event) => {
           if (!event.target || !event.target.result || !sceneRef.current) {
-            setDebugInfo("Błąd odczytu pliku");
+            setDebugInfo("File reading error");
             return;
           }
           
@@ -699,21 +699,21 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             renderModel(fileContent);
             
           } catch (error) {
-            console.error("Błąd przetwarzania modelu:", error);
-            setDebugInfo(`Błąd przetwarzania: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+            console.error("Error processing model:", error);
+            setDebugInfo(`Processing error: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
         };
         
         reader.onerror = () => {
-          setDebugInfo("Błąd odczytu pliku");
+          setDebugInfo("File reading error");
         };
         
         // Start reading
         reader.readAsText(fileData);
         
       } catch (error) {
-        console.error("Błąd ładowania modelu:", error);
-        setDebugInfo(`Błąd: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+        console.error("Error loading model:", error);
+        setDebugInfo(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
     
@@ -732,13 +732,13 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     };
   }, [fileData, renderMode, stlFileInfo]);
   
-  // Helper function to create a simple model representation (bez zbędnych kostek)
+  // Helper function to create a simple model representation (without unnecessary cubes)
   function createSimpleModelRepresentation(complexity: number) {
     const group = new THREE.Group();
     
-    // Dodaj tylko informacyjne elementy, bez niepotrzebnych kostek
+    // Add only informational elements, without unnecessary boxes
     
-    // Dodaj płaszczyznę informacyjną
+    // Add an information plane
     const infoPlaneGeometry = new THREE.PlaneGeometry(8, 4);
     const infoPlaneMaterial = new THREE.MeshBasicMaterial({ 
       color: 0xf0f0f0, 
@@ -758,51 +758,51 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     return group;
   }
   
-  // Funkcja odświeżania modelu - ponowne renderowanie
+  // Model refresh function - re-rendering
   const refreshModel = () => {
     if (!fileContentRef.current || !sceneRef.current) {
-      setDebugInfo("Brak danych do ponownego renderowania");
+      setDebugInfo("No data for re-rendering");
       return;
     }
     
-    setDebugInfo("Odświeżanie modelu...");
+    setDebugInfo("Refreshing model...");
     
-    // Wywołaj renderModel z zapisaną wcześniej zawartością pliku
+    // Call renderModel with previously saved file content
     renderModel(fileContentRef.current);
   };
 
   // Helper function to fit camera to object
-  // Funkcja obliczająca i ustawiająca wymiary modelu
+  // Function for calculating and setting model dimensions
   function calculateModelDimensions(object: THREE.Object3D, currentScaleFactor: number = 1.0) {
-    // Utwórz bounding box dla modelu
+    // Create bounding box for the model
     const boundingBox = new THREE.Box3().setFromObject(object);
     const threeSize = new THREE.Vector3();
     boundingBox.getSize(threeSize);
     
-    // Odwróć skalowanie, aby uzyskać rzeczywiste wymiary modelu
+    // Reverse scaling to get real model dimensions
     const realSize = {
       x: threeSize.x / currentScaleFactor,
       y: threeSize.y / currentScaleFactor,
       z: threeSize.z / currentScaleFactor
     };
     
-    // Ustaw wymiary modelu jako rzeczywiste wymiary, nie przeskalowane
-    // W standardzie CAD wysokość to oś Z, a głębokość to oś Y
+    // Set model dimensions as real dimensions, not scaled
+    // In CAD standard, height is Z axis, and depth is Y axis
     setModelDimensions({
-      width: realSize.x,  // Rzeczywisty wymiar X - szerokość
-      depth: realSize.y,  // Rzeczywisty wymiar Y - głębokość
-      height: realSize.z, // Rzeczywisty wymiar Z - wysokość
-      scale: currentScaleFactor // Współczynnik skalowania użyty do renderowania
+      width: realSize.x,  // Real X dimension - width
+      depth: realSize.y,  // Real Y dimension - depth
+      height: realSize.z, // Real Z dimension - height
+      scale: currentScaleFactor // Scaling factor used for rendering
     });
     
-    // Zwracamy bounding box i wektor wymiarów threejs na potrzeby obliczeń kamery
-    return { boundingBox, size: threeSize };
+    // Return bounding box and threejs dimensions vector for camera calculations
+    return { boundingBox, threeSize: threeSize };
   }
 
-  // Ta funkcja nie jest już używana, ale zostawiamy ją dla zachowania zgodności
-  // Używamy zamiast niej prostszą wersję ustawienia kamery w renderModel
+  // This function is no longer used, but we keep it for compatibility
+  // Instead, we use a simpler version of camera setup in renderModel
   function fitCameraToObject(object: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: OrbitControls) {
-    // Oblicz wymiary modelu i uzyskaj bounding box (bez uwzględnienia skalowania)
+    // Calculate model dimensions and get bounding box (without considering scaling)
     const boundingBox = new THREE.Box3().setFromObject(object);
     const size = new THREE.Vector3();
     boundingBox.getSize(size);
@@ -838,15 +838,15 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     if (maxSide > 50) {
       // Very large model, scale down
       scaleFactor = 10.0 / maxSide;
-      console.log("Bardzo duży model, zmniejszanie skali:", scaleFactor);
+      console.log("Very large model, reducing scale:", scaleFactor);
     } else if (maxSide < 0.1) {
       // Very small model, scale up
       scaleFactor = 5.0 / maxSide;
-      console.log("Bardzo mały model, zwiększanie skali:", scaleFactor);
+      console.log("Very small model, increasing scale:", scaleFactor);
     } else if (maxSide < 5) {
       // Small model but not tiny, scale up a bit
       scaleFactor = 10 / maxSide;
-      console.log("Normalny model, stosowanie standardowej skali:", scaleFactor);
+      console.log("Normal model, applying standard scale:", scaleFactor);
     }
     
     // Apply scaling to the model
