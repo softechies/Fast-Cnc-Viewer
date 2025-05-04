@@ -146,11 +146,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      {isMainRoute && (
-        <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm">
-          {t('app.footer', 'CAD Viewer')}
-        </footer>
-      )}
+      {/* Usunięta stopka z tekstem copyright */}
     </div>
   );
 }
