@@ -150,7 +150,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
                 <div className="text-center">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="mt-2 text-sm">Ładowanie modelu...</p>
+                  <p className="mt-2 text-sm">{t('loadingModel')}</p>
                 </div>
               </div>
             )}
@@ -172,7 +172,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
                         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="mt-2 text-sm">Ładowanie komponentu 3D...</p>
+                        <p className="mt-2 text-sm">{t('loading3DComponent')}</p>
                       </div>
                     </div>
                   }>
@@ -199,7 +199,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
                         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="mt-2 text-sm">Ładowanie komponentu 2D...</p>
+                        <p className="mt-2 text-sm">{t('loading2DComponent')}</p>
                       </div>
                     </div>
                   }>
@@ -223,9 +223,9 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                 {modelType === 'unknown' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
                     <div className="text-center">
-                      <p className="text-lg font-medium mb-2">Wybierz model do wyświetlenia</p>
+                      <p className="text-lg font-medium mb-2">{t('selectModelToDisplay')}</p>
                       <p className="text-sm text-slate-500">
-                        Obsługiwane formaty: STL, DXF, DWG
+                        {t('supportedFormats')}
                       </p>
                     </div>
                   </div>
