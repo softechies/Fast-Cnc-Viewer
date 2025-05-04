@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import fastCncLogo from '@/assets/cropped-Fast-Cnc-scaled-e1723725217643.jpg';
 
 interface ModelInfo {
@@ -19,11 +19,19 @@ interface ModelInfo {
 
 export default function ContactPage() {
   const { t } = useLanguage();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
   // Pobierz ID modelu z parametrów URL
   const [modelId, setModelId] = useState<string | null>(null);
+  
+  // Zabezpieczenie przed auto-przekierowaniem na stronę główną
+  useEffect(() => {
+    // Zatrzymujemy działanie jakichkolwiek przekierowań, gdy jesteśmy na stronie kontaktowej
+    if (location.includes('/contact')) {
+      return; // Celowo przerywamy efekt przekierowania
+    }
+  }, [location]);
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
