@@ -216,21 +216,38 @@
       submitButton.disabled = true;
       submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Senden...';
       
-      // Senden simulieren (in einer echten Implementierung wäre hier eine API-Anfrage)
-      setTimeout(() => {
+      // Daten an die API senden
+      fetch('/api/contact-form?lang=de', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
         // Fehler ausblenden, falls angezeigt
         errorContainer.classList.add('hidden');
         
-        // Erfolgsmeldung anzeigen
-        successContainer.classList.remove('hidden');
-        
-        // Formular zurücksetzen
-        form.reset();
-        
+        if (data.success) {
+          // Erfolgsmeldung anzeigen
+          successContainer.classList.remove('hidden');
+          // Formular zurücksetzen
+          form.reset();
+        } else {
+          // Fehlermeldung anzeigen
+          showError(data.message || 'Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.');
+        }
+      })
+      .catch(error => {
+        console.error('Fehler beim Senden des Formulars:', error);
+        showError('Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
+      })
+      .finally(() => {
         // Schaltfläche in den Ausgangszustand zurückversetzen
         submitButton.disabled = false;
         submitButton.textContent = 'Nachricht senden';
-      }, 1500);
+      });
     });
     
     function showError(message) {

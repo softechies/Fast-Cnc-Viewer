@@ -216,21 +216,38 @@
       submitButton.disabled = true;
       submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Envoi en cours...';
       
-      // Simuler l'envoi (dans une implémentation réelle, ce serait une requête API)
-      setTimeout(() => {
+      // Envoyer les données à notre API
+      fetch('/api/contact-form?lang=fr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
         // Masquer l'erreur si elle était affichée
         errorContainer.classList.add('hidden');
         
-        // Afficher le message de succès
-        successContainer.classList.remove('hidden');
-        
-        // Réinitialiser le formulaire
-        form.reset();
-        
+        if (data.success) {
+          // Afficher le message de succès
+          successContainer.classList.remove('hidden');
+          // Réinitialiser le formulaire
+          form.reset();
+        } else {
+          // Afficher le message d'erreur
+          showError(data.message || 'Impossible d\'envoyer le message. Veuillez réessayer plus tard.');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de l\'envoi du formulaire:', error);
+        showError('Une erreur s\'est produite lors de l\'envoi de votre message. Veuillez réessayer plus tard.');
+      })
+      .finally(() => {
         // Restaurer le bouton à son état initial
         submitButton.disabled = false;
         submitButton.textContent = 'Envoyer le message';
-      }, 1500);
+      });
     });
     
     function showError(message) {
