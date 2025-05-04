@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import ModelViewer from "@/components/ModelViewer";
-import ModelInfo from "@/components/ModelInfo";
 import FooterBar from "@/components/FooterBar";
 import UploadModal from "@/components/UploadModal";
 import { useQuery } from "@tanstack/react-query";
@@ -71,7 +70,7 @@ export default function Home() {
       />
       
       <main className="flex-grow flex flex-col lg:flex-row">
-        <section className="flex-grow lg:w-2/3 bg-gray-50 relative h-[500px] lg:h-auto">
+        <section className="flex-grow bg-gray-50 relative h-[500px] lg:h-auto">
           {!hasModel ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
               <Box className="w-16 h-16 mb-4 text-gray-300" />
@@ -89,22 +88,6 @@ export default function Home() {
             <ModelViewer modelId={activeModelId} />
           )}
         </section>
-        
-        <aside className={`w-full lg:w-1/3 bg-white border-l border-gray-200 ${!hasModel ? 'hidden lg:flex' : 'flex'} flex-col`}>
-          <div className="w-full h-10 bg-slate-100 border-b border-gray-200 flex items-center px-3">
-            <div className="flex items-center gap-2">
-              <InfoIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('modelInformation')}</span>
-            </div>
-          </div>
-          <div className="flex-grow">
-            <ModelInfo 
-              isLoading={isLoadingInfo} 
-              modelInfo={modelInfo as ModelInfoType}
-              modelId={activeModelId}
-            />
-          </div>
-        </aside>
       </main>
       
       <FooterBar 
