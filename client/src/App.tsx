@@ -12,6 +12,7 @@ import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import ClientDashboardPage from "@/pages/ClientDashboardPage";
+import ContactPage from "@/pages/ContactPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
@@ -114,6 +115,10 @@ function Router() {
           <Route path="/:lang(en|pl|cs|de|fr)/test3d" component={Test3D} />
           <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
           <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
+          
+          {/* Strona kontaktowa */}
+          <Route path="/contact" component={ContactPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/contact" component={ContactPage} />
           
           {/* Strony administracyjne */}
           <Route path="/admin/login" component={AdminLoginPage} />
