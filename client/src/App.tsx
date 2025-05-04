@@ -90,7 +90,7 @@ function Router() {
             {(params) => <SharedModelPage shareId={params.shareId} />}
           </Route>
           <Route path="/:lang(en|pl|cs|de|fr)/shared/:shareId">
-            {(params) => {
+            {(params: { lang: string; shareId: string }) => {
               // Params jako string literal dla TypeScript
               const paramsLang = params.lang as 'en' | 'pl' | 'cs' | 'de' | 'fr';
               return <SharedModelPage shareId={params.shareId} language={paramsLang} />;

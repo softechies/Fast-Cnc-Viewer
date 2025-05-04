@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
@@ -350,6 +350,12 @@ export default function ClientDashboardPage() {
                 <Button onClick={() => setIsUploadModalOpen(true)}>
                   <Share className="mr-2 h-4 w-4" />
                   Upload and share
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/library">
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {t('library.title')}
+                  </Link>
                 </Button>
               </div>
             </CardHeader>
