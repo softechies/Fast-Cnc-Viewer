@@ -17,9 +17,9 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
     const modelId = modelInfo?.id || '';
     // Sprawdzamy czy istnieje wersja językowa formularza, jeśli nie, używamy domyślnej
     if (['en', 'pl', 'de', 'cs', 'fr'].includes(language)) {
-      window.open(`/quote.html.${language}?modelId=${modelId}`, '_blank');
+      window.open(`/quote/${language}.html?modelId=${modelId}`, '_blank');
     } else {
-      window.open(`/quote.html?modelId=${modelId}`, '_blank');
+      window.open(`/quote/?modelId=${modelId}`, '_blank');
     }
   };
 
