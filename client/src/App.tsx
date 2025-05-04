@@ -13,6 +13,7 @@ import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import ClientDashboardPage from "@/pages/ClientDashboardPage";
 import ContactPage from "@/pages/ContactPage";
+import LibraryPage from "@/pages/LibraryPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
@@ -120,6 +121,10 @@ function Router() {
           <Route path="/delete-share/:shareId/:token" component={DeleteSharePage} />
           <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
           
+          {/* Library page */}
+          <Route path="/library" component={LibraryPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/library" component={LibraryPage} />
+
           {/* Strona kontaktowa */}
           <Route path="/quote" component={ContactPage} />
           <Route path="/:lang(en|pl|cs|de|fr)/quote" component={ContactPage} />

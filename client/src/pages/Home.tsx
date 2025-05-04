@@ -6,7 +6,7 @@ import UploadModal from "@/components/UploadModal";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useModelUpload } from "@/lib/hooks";
-import { Box, InfoIcon, Upload } from "lucide-react";
+import { Box, InfoIcon, Upload, BookOpen } from "lucide-react";
 import { ModelInfo as ModelInfoType } from "@shared/schema";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -77,13 +77,23 @@ export default function Home() {
               <Box className="w-16 h-16 mb-4 text-gray-300" />
               <h2 className="text-xl font-medium mb-2">{t('noPreviousFiles')}</h2>
               <p className="text-center max-w-md mb-6">{t('supportedFormats')}</p>
-              <Button 
-                onClick={() => setIsUploadModalOpen(true)} 
-                className="bg-primary hover:bg-blue-700 text-white"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                <span>{t('upload')}</span>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <Button 
+                  onClick={() => setIsUploadModalOpen(true)} 
+                  className="bg-primary hover:bg-blue-700 text-white"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  <span>{t('upload')}</span>
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setLocation('/library')}
+                >
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  <span>{t('library.title')}</span>
+                </Button>
+              </div>
+              <p className="text-center text-sm text-muted-foreground">{t('library.description')}</p>
             </div>
           ) : (
             <ModelViewer modelId={activeModelId} />

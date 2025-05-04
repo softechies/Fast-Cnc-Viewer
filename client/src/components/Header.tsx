@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Upload, LogIn, User, LogOut } from "lucide-react";
+import { Upload, LogIn, User, LogOut, BookOpen } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSelector from "./LanguageSelector";
 import fastCncLogo from "../assets/fast-cnc-logo.jpg";
@@ -47,6 +47,18 @@ export default function Header({ onUploadClick }: HeaderProps) {
         
         <div className="flex items-center space-x-3">
           <LanguageSelector />
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            asChild
+            className="mr-2"
+          >
+            <Link href="/library">
+              <BookOpen className="mr-2 h-4 w-4" />
+              <span>{t('library.title')}</span>
+            </Link>
+          </Button>
           
           <Button 
             onClick={onUploadClick}
