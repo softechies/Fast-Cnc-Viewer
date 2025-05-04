@@ -2,7 +2,7 @@ import { db } from './server/db';
 import fs from 'fs';
 import path from 'path';
 import { eq } from 'drizzle-orm';
-import * as schema from './shared/schema.js';
+import * as schema from './shared/schema';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
