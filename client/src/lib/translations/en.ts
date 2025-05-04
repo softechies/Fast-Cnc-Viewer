@@ -1,6 +1,26 @@
 // English translations
 
 const translations = {
+  // Services section translations
+  services: {
+    title: 'CNC Services',
+    laser_cutting: 'Laser Cutting',
+    laser_description: 'Your 2D project is perfect for laser cutting. We offer precise laser cutting of sheet metal, plastics and other materials.',
+    get_quote: 'Request a quote',
+    cnc_machining: 'CNC Machining',
+    cnc_description: 'Your 3D model is ready for production. We offer professional CNC turning and milling services with the highest precision and quality.',
+    manufacturing: 'Manufacturing Services',
+    manufacturing_description: "We'll implement your production project from A to Z. Contact us to discuss details and receive an individual quote.",
+    our_services: 'Our Manufacturing Services',
+    laser_details: 'Precise cutting of sheet metal, plastics and other materials with accuracy up to 0.05 mm. Ideal for 2D parts.',
+    cnc_milling: 'CNC Milling',
+    milling_details: 'Machining of materials such as aluminum, steel, plastics. Ideal for complex 3D shapes.',
+    cnc_turning: 'CNC Turning',
+    turning_details: 'Precise machining of rotary parts from metal. Ideal for shafts, bushings, machine parts with accuracy up to 0.01 mm.',
+    prototyping: 'Prototyping',
+    prototyping_details: 'Quick production of prototypes and small production series. From design to finished element in a few days.',
+    contact_us: 'Contact us',
+  },
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",

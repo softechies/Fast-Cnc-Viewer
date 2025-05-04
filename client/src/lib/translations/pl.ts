@@ -1,6 +1,26 @@
 // Polish translations
 
 const translations = {
+  // Services section translations
+  services: {
+    title: 'Usługi CNC',
+    laser_cutting: 'Cięcie laserowe',
+    laser_description: 'Twój projekt 2D jest idealny do realizacji poprzez cięcie laserowe. Oferujemy precyzyjne cięcie laserowe blach, tworzyw sztucznych i innych materiałów.',
+    get_quote: 'Zapytaj o wycenę',
+    cnc_machining: 'Obróbka CNC',
+    cnc_description: 'Twój model 3D jest gotowy do produkcji. Oferujemy profesjonalne usługi toczenia i frezowania CNC z najwyższą precyzją i jakością.',
+    manufacturing: 'Usługi produkcyjne',
+    manufacturing_description: 'Zrealizujemy Twój projekt produkcyjny od A do Z. Skontaktuj się z nami, aby omówić szczegóły i otrzymać indywidualną wycenę.',
+    our_services: 'Nasze usługi produkcyjne',
+    laser_details: 'Precyzyjne cięcie blachy, tworzyw sztucznych i innych materiałów z dokładnością do 0,05 mm. Idealne do części 2D.',
+    cnc_milling: 'Frezowanie CNC',
+    milling_details: 'Obróbka skrawaniem materiałów takich jak aluminium, stal, tworzywa sztuczne. Idealne dla złożonych kształtów 3D.',
+    cnc_turning: 'Toczenie CNC',
+    turning_details: 'Precyzyjna obróbka części obrotowych z metalu. Idealne do wałków, tulei, części maszyn z dokładnością do 0,01 mm.',
+    prototyping: 'Prototypowanie',
+    prototyping_details: 'Szybkie wykonanie prototypów i małych serii produkcyjnych. Od projektu do gotowego elementu w kilka dni.',
+    contact_us: 'Skontaktuj się z nami',
+  },
   // Common UI elements
   appTitle: "Przeglądarka CAD",
   applicationName: "Przeglądarka CAD",
