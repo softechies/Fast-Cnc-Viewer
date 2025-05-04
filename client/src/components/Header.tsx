@@ -30,7 +30,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
           <img 
             src={cadViewerLogo} 
             alt="CAD Viewer Logo" 
-            className="h-[50px]" 
+            className="h-[60px]" 
           />
           <a 
             href="https://fastcnc.eu"
