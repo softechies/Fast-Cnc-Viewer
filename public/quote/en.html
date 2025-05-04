@@ -216,21 +216,38 @@
       submitButton.disabled = true;
       submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sending...';
       
-      // Simulate sending (in a real implementation this would be an API request)
-      setTimeout(() => {
+      // Send data to our API
+      fetch('/api/contact-form?lang=en', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
         // Hide error if it was displayed
         errorContainer.classList.add('hidden');
         
-        // Show success message
-        successContainer.classList.remove('hidden');
-        
-        // Reset form
-        form.reset();
-        
+        if (data.success) {
+          // Show success message
+          successContainer.classList.remove('hidden');
+          // Reset form
+          form.reset();
+        } else {
+          // Show error message
+          showError(data.message || 'Failed to send message. Please try again later.');
+        }
+      })
+      .catch(error => {
+        console.error('Error sending form:', error);
+        showError('An error occurred while sending your message. Please try again later.');
+      })
+      .finally(() => {
         // Restore button to initial state
         submitButton.disabled = false;
         submitButton.textContent = 'Send Message';
-      }, 1500);
+      });
     });
     
     function showError(message) {

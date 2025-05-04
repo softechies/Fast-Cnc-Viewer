@@ -2,6 +2,16 @@ import nodemailer from 'nodemailer';
 import { Model } from '@shared/schema';
 import { Language } from '../client/src/lib/translations';
 
+// Interfejs dla danych formularza kontaktowego
+export interface ContactFormData {
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  message: string;
+  modelId?: string | number | null;
+}
+
 // Konfiguracja transportera do własnego serwera SMTP
 let customSmtpTransporter: nodemailer.Transporter | null = null;
 
@@ -169,6 +179,124 @@ export async function sendShareNotificationSmtp(
     return true;
   } catch (error) {
     console.error('Error sending email through custom SMTP:', error);
+    return false;
+  }
+}
+
+/**
+ * Wysyła wiadomość z formularza kontaktowego do adresu docelowego
+ */
+export async function sendContactFormEmail(
+  formData: ContactFormData,
+  language: Language = 'en',
+  modelInfo?: any
+): Promise<boolean> {
+  if (!customSmtpTransporter) {
+    console.error('Custom SMTP email service not initialized');
+    return false;
+  }
+  
+  // Adres docelowy - zawsze stały adres info@fastcnc.eu
+  const toEmail = 'info@fastcnc.eu';
+  
+  // Pobierz adres email z konfiguracji lub zmiennych środowiskowych dla nagłówka From
+  const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER || '"CAD Viewer App" <no-reply@cadviewer.app>';
+  
+  try {
+    // Logo FastCNC jako kod HTML inline
+    const logoHtml = `
+      <div style="margin-bottom: 20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+          <g fill="none" fill-rule="evenodd">
+            <path fill="#DB1D37" d="M22,15.5 L15,22.5 L8,15.5 L15,8.5 L22,15.5 Z M15,0.5 L0,15.5 L15,30.5 L30,15.5 L15,0.5 Z"></path>
+            <path fill="#000000" d="M40,9 L55,9 L55,13 L45,13 L45,16.5 L54,16.5 L54,20.5 L45,20.5 L45,28 L40,28 L40,9 Z M57,9 L62,9 L67,19 L72,9 L77,9 L69,24 L65,24 L57,9 Z M84,9 L89,9 L99,28 L93.5,28 L92,24.5 L81,24.5 L79.5,28 L74,28 L84,9 Z M86.5,14 L83.5,20.5 L89.5,20.5 L86.5,14 Z M102,9 L107,9 L107,24 L117,24 L117,28 L102,28 L102,9 Z M40,31 L45,31 L45,35 L49,35 L49,39 L45,39 L45,46 L40,46 L40,31 Z M52,31 L67,31 L67,35 L57,35 L57,36.5 L66,36.5 L66,45 L52,45 L52,41 L61,41 L61,39.5 L52,39.5 L52,31 Z M72,31 L76,31 L76,45 L72,45 L72,31 Z M80,31 L95,31 L95,45 L90,45 L90,35 L85,35 L85,45 L80,45 L80,31 Z"></path>
+          </g>
+        </svg>
+      </div>
+    `;
+    
+    // Przygotowanie wiadomości
+    const subject = `Nowa wiadomość z formularza kontaktowego od ${formData.name}`;
+    
+    // Przygotowanie dodatkowych informacji o modelu, jeśli są dostępne
+    let modelSection = '';
+    if (formData.modelId && modelInfo) {
+      modelSection = `
+        <div style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border-radius: 5px; border: 1px solid #cce5ff;">
+          <h3 style="margin-top: 0; color: #0056b3;">Informacje o modelu</h3>
+          <p>
+            <strong>Nazwa pliku:</strong> ${modelInfo.filename || 'Nie podano'}<br>
+            <strong>ID modelu:</strong> ${formData.modelId}
+          </p>
+        </div>
+      `;
+    }
+    
+    // Formatowanie numeru telefonu i firmy
+    const phoneDisplay = formData.phone ? `<strong>Telefon:</strong> ${formData.phone}<br>` : '';
+    const companyDisplay = formData.company ? `<strong>Firma:</strong> ${formData.company}<br>` : '';
+    
+    const mailOptions = {
+      from: fromEmail,
+      to: toEmail,
+      replyTo: formData.email, // Ustawienie Reply-To na adres nadawcy, by odpowiedź trafiła do klienta
+      subject: subject,
+      html: `
+        ${logoHtml}
+        <h2>Nowa wiadomość z formularza kontaktowego</h2>
+        
+        <div style="margin-bottom: 20px;">
+          <p>
+            <strong>Imię i nazwisko:</strong> ${formData.name}<br>
+            <strong>Email:</strong> ${formData.email}<br>
+            ${phoneDisplay}
+            ${companyDisplay}
+          </p>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <h3 style="margin-top: 0;">Wiadomość:</h3>
+          <div style="padding: 10px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #e0e0e0;">
+            ${formData.message.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+        
+        ${modelSection}
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+          Wiadomość wysłana automatycznie z formularza kontaktowego aplikacji CAD Viewer.<br>
+          Język formularza: ${language}<br>
+          Data i czas: ${new Date().toLocaleString()}
+        </p>
+      `,
+      text: `
+        Nowa wiadomość z formularza kontaktowego
+        
+        Imię i nazwisko: ${formData.name}
+        Email: ${formData.email}
+        ${formData.phone ? `Telefon: ${formData.phone}\n` : ''}
+        ${formData.company ? `Firma: ${formData.company}\n` : ''}
+        
+        Wiadomość:
+        ${formData.message}
+        
+        ${formData.modelId && modelInfo ? `
+        Informacje o modelu:
+        Nazwa pliku: ${modelInfo.filename || 'Nie podano'}
+        ID modelu: ${formData.modelId}
+        ` : ''}
+        
+        Wiadomość wysłana automatycznie z formularza kontaktowego aplikacji CAD Viewer.
+        Język formularza: ${language}
+        Data i czas: ${new Date().toLocaleString()}
+      `
+    };
+    
+    const info = await customSmtpTransporter.sendMail(mailOptions);
+    console.log('Contact form email sent, message ID:', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending contact form email:', error);
     return false;
   }
 }

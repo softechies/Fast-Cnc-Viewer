@@ -15,7 +15,7 @@ import util from "util";
 import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
-import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp } from "./custom-smtp";
+import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp, ContactFormData } from "./custom-smtp";
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -2497,6 +2497,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Ustaw nowe hasło dla udostępnionego modelu (tylko dla administratorów)
+  // Endpoint do obsługi formularzy kontaktowych
+  app.post("/api/contact-form", async (req: Request, res: Response) => {
+    try {
+      const formData: ContactFormData = req.body;
+      const language = req.query.lang as Language || 'en';
+      let modelInfo;
+      
+      // Walidacja podstawowych pól formularza
+      if (!formData.name || !formData.email || !formData.message) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+      }
+      
+      // Jeśli podano ID modelu, pobierz informacje o nim
+      if (formData.modelId) {
+        try {
+          modelInfo = await storage.getModel(Number(formData.modelId));
+        } catch (error) {
+          console.warn(`Failed to fetch model info for contact form, modelId: ${formData.modelId}`, error);
+          // Nie przerywamy przetwarzania formularza, jeśli nie udało się pobrać modelu
+        }
+      }
+      
+      // Importujemy funkcję sendContactFormEmail z custom-smtp.ts
+      const { sendContactFormEmail } = await import('./custom-smtp');
+      
+      // Wysyłamy email
+      const success = await sendContactFormEmail(formData, language, modelInfo);
+      
+      if (success) {
+        res.status(200).json({ success: true, message: 'Message sent successfully' });
+      } else {
+        res.status(500).json({ success: false, message: 'Failed to send message' });
+      }
+    } catch (error) {
+      console.error('Error processing contact form submission:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  });
+
   app.post("/api/admin/shared-models/:id/reset-password", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
