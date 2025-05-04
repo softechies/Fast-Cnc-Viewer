@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formularz kontaktowy - FastCNC</title>
+  <title>Kontaktformular - FastCNC</title>
   <link rel="stylesheet" href="/assets/quote.css">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -13,20 +13,20 @@
       <div class="text-center mb-8">
         <img src="/assets/fastcnc-logo.jpg" alt="FastCNC Logo" class="h-12 mx-auto mb-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">
-          Formularz kontaktowy
+          Kontaktformular
         </h1>
         <p class="text-lg text-gray-600">
-          Skontaktuj się z nami w sprawie realizacji Twojego projektu
+          Kontaktieren Sie uns für die Umsetzung Ihres Projekts
         </p>
       </div>
       
       <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
           <div id="model-info-container" class="hidden p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-            <p class="font-medium" id="selected-model-text">Wybrany model:</p>
+            <p class="font-medium" id="selected-model-text">Ausgewähltes Modell:</p>
             <p class="mt-1">
-              <span class="font-medium" id="filename-text">Nazwa pliku:</span> <span id="model-filename"></span><br>
-              <span class="font-medium" id="model-id-text">ID modelu:</span> <span id="model-id"></span>
+              <span class="font-medium" id="filename-text">Dateiname:</span> <span id="model-filename"></span><br>
+              <span class="font-medium" id="model-id-text">Modell-ID:</span> <span id="model-id"></span>
             </p>
           </div>
         </div>
@@ -34,37 +34,37 @@
         <form id="contact-form" class="p-6">
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div class="space-y-2">
-              <label for="name" class="block text-sm font-medium text-gray-700">Imię i nazwisko *</label>
+              <label for="name" class="block text-sm font-medium text-gray-700">Name und Vorname *</label>
               <input 
                 type="text" 
                 id="name" 
                 name="name" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Wpisz swoje imię i nazwisko"
+                placeholder="Geben Sie Ihren Namen ein"
                 required
               >
             </div>
             
             <div class="space-y-2">
-              <label for="email" class="block text-sm font-medium text-gray-700">Adres email *</label>
+              <label for="email" class="block text-sm font-medium text-gray-700">E-Mail-Adresse *</label>
               <input 
                 type="email" 
                 id="email" 
                 name="email" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="twoj@email.com"
+                placeholder="ihre@email.de"
                 required
               >
             </div>
             
             <div class="space-y-2">
-              <label for="phone" class="block text-sm font-medium text-gray-700">Numer telefonu</label>
+              <label for="phone" class="block text-sm font-medium text-gray-700">Telefonnummer</label>
               <input 
                 type="tel" 
                 id="phone" 
                 name="phone" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="+48 123 456 789"
+                placeholder="+49 123 456 789"
               >
             </div>
             
@@ -75,34 +75,34 @@
                 id="company" 
                 name="company" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nazwa firmy (opcjonalnie)"
+                placeholder="Firmenname (optional)"
               >
             </div>
           </div>
           
           <div class="mt-6 space-y-2">
-            <label for="message" class="block text-sm font-medium text-gray-700">Treść wiadomości *</label>
+            <label for="message" class="block text-sm font-medium text-gray-700">Nachricht *</label>
             <textarea 
               id="message" 
               name="message" 
               rows="5" 
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Opisz szczegóły swojego projektu, potrzebną ilość części, materiał, termin realizacji, itp."
+              placeholder="Beschreiben Sie die Details Ihres Projekts, erforderliche Menge, Material, Fertigstellungstermin, usw."
               required
             ></textarea>
           </div>
           
           <div id="error-container" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
-            Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.
+            Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.
           </div>
           
           <div id="success-container" class="hidden mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-600">
-            Twoja wiadomość została wysłana. Dziękujemy za kontakt.
+            Ihre Nachricht wurde gesendet. Vielen Dank für Ihre Kontaktaufnahme.
           </div>
           
           <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p class="text-sm text-gray-500">
-              Pola oznaczone * są wymagane.
+              Felder mit * sind Pflichtfelder.
             </p>
             
             <div class="flex space-x-4">
@@ -111,7 +111,7 @@
                 onclick="window.history.back()"
                 class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Powrót
+                Zurück
               </button>
               
               <button 
@@ -119,7 +119,7 @@
                 id="submit-button"
                 class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Wyślij wiadomość
+                Nachricht senden
               </button>
             </div>
           </div>
@@ -129,7 +129,7 @@
   </div>
   
   <script>
-    // Funkcja do pobierania parametrów z URL
+    // Funktion zum Abrufen von URL-Parametern
     function getUrlParams() {
       const params = {};
       const queryString = window.location.search;
@@ -142,37 +142,37 @@
       return params;
     }
     
-    // Pobierz parametry URL
+    // URL-Parameter abrufen
     const params = getUrlParams();
     const modelId = params.modelId;
     
-    // Jeśli mamy ID modelu, pobierz informacje o modelu
+    // Wenn wir eine Modell-ID haben, Modellinformationen abrufen
     if (modelId) {
       const modelInfoContainer = document.getElementById('model-info-container');
       
-      // Wykonaj żądanie AJAX, aby pobrać informacje o modelu
+      // AJAX-Anfrage zum Abrufen der Modellinformationen
       fetch(`/api/models/${modelId}/info`)
         .then(response => {
           if (!response.ok) {
-            throw new Error('Nie udało się pobrać informacji o modelu');
+            throw new Error('Modellinformationen konnten nicht abgerufen werden');
           }
           return response.json();
         })
         .then(data => {
-          // Wypełnij informacje o modelu
-          document.getElementById('model-filename').textContent = data.filename || 'Unknown';
-          // Usunięto pole formatu pliku zgodnie z wymaganiem
+          // Modellinformationen ausfüllen
+          document.getElementById('model-filename').textContent = data.filename || 'Unbekannt';
+          // Dateiformat-Feld entfernt gemäß Anforderung
           document.getElementById('model-id').textContent = modelId;
           
-          // Pokaż kontener z informacjami o modelu
+          // Container mit Modellinformationen anzeigen
           modelInfoContainer.classList.remove('hidden');
         })
         .catch(error => {
-          console.error('Błąd pobierania informacji o modelu:', error);
+          console.error('Fehler beim Abrufen der Modellinformationen:', error);
         });
     }
     
-    // Obsługa formularza
+    // Formularverarbeitung
     const form = document.getElementById('contact-form');
     const submitButton = document.getElementById('submit-button');
     const errorContainer = document.getElementById('error-container');
@@ -181,7 +181,7 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Pobierz dane formularza
+      // Formulardaten abrufen
       const formData = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
@@ -191,45 +191,45 @@
         modelId: modelId || null
       };
       
-      // Walidacja formularza
+      // Formularvalidierung
       if (!formData.name.trim()) {
-        showError('Imię i nazwisko jest wymagane');
+        showError('Name und Vorname sind erforderlich');
         return;
       }
       
       if (!formData.email.trim()) {
-        showError('Adres email jest wymagany');
+        showError('E-Mail-Adresse ist erforderlich');
         return;
       }
       
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-        showError('Adres email jest nieprawidłowy');
+        showError('E-Mail-Adresse ist ungültig');
         return;
       }
       
       if (!formData.message.trim()) {
-        showError('Treść wiadomości jest wymagana');
+        showError('Nachricht ist erforderlich');
         return;
       }
       
-      // Pokaż spinner ładowania
+      // Lade-Spinner anzeigen
       submitButton.disabled = true;
-      submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Wysyłanie...';
+      submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Senden...';
       
-      // Symuluj wysyłanie (w prawdziwej implementacji tutaj byłoby żądanie do API)
+      // Senden simulieren (in einer echten Implementierung wäre hier eine API-Anfrage)
       setTimeout(() => {
-        // Ukryj błąd jeśli był wyświetlany
+        // Fehler ausblenden, falls angezeigt
         errorContainer.classList.add('hidden');
         
-        // Pokaż komunikat o sukcesie
+        // Erfolgsmeldung anzeigen
         successContainer.classList.remove('hidden');
         
-        // Zresetuj formularz
+        // Formular zurücksetzen
         form.reset();
         
-        // Przywróć przycisk do stanu początkowego
+        // Schaltfläche in den Ausgangszustand zurückversetzen
         submitButton.disabled = false;
-        submitButton.textContent = 'Wyślij wiadomość';
+        submitButton.textContent = 'Nachricht senden';
       }, 1500);
     });
     

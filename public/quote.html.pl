@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -160,7 +160,7 @@
         })
         .then(data => {
           // Wypełnij informacje o modelu
-          document.getElementById('model-filename').textContent = data.filename || 'Unknown';
+          document.getElementById('model-filename').textContent = data.filename || 'Nieznany';
           // Usunięto pole formatu pliku zgodnie z wymaganiem
           document.getElementById('model-id').textContent = modelId;
           

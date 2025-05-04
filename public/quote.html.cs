@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formularz kontaktowy - FastCNC</title>
+  <title>Kontaktní formulář - FastCNC</title>
   <link rel="stylesheet" href="/assets/quote.css">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -13,19 +13,19 @@
       <div class="text-center mb-8">
         <img src="/assets/fastcnc-logo.jpg" alt="FastCNC Logo" class="h-12 mx-auto mb-4">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">
-          Formularz kontaktowy
+          Kontaktní formulář
         </h1>
         <p class="text-lg text-gray-600">
-          Skontaktuj się z nami w sprawie realizacji Twojego projektu
+          Kontaktujte nás ohledně realizace vašeho projektu
         </p>
       </div>
       
       <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
           <div id="model-info-container" class="hidden p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-            <p class="font-medium" id="selected-model-text">Wybrany model:</p>
+            <p class="font-medium" id="selected-model-text">Vybraný model:</p>
             <p class="mt-1">
-              <span class="font-medium" id="filename-text">Nazwa pliku:</span> <span id="model-filename"></span><br>
+              <span class="font-medium" id="filename-text">Název souboru:</span> <span id="model-filename"></span><br>
               <span class="font-medium" id="model-id-text">ID modelu:</span> <span id="model-id"></span>
             </p>
           </div>
@@ -34,37 +34,37 @@
         <form id="contact-form" class="p-6">
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div class="space-y-2">
-              <label for="name" class="block text-sm font-medium text-gray-700">Imię i nazwisko *</label>
+              <label for="name" class="block text-sm font-medium text-gray-700">Jméno a příjmení *</label>
               <input 
                 type="text" 
                 id="name" 
                 name="name" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Wpisz swoje imię i nazwisko"
+                placeholder="Zadejte vaše jméno a příjmení"
                 required
               >
             </div>
             
             <div class="space-y-2">
-              <label for="email" class="block text-sm font-medium text-gray-700">Adres email *</label>
+              <label for="email" class="block text-sm font-medium text-gray-700">E-mailová adresa *</label>
               <input 
                 type="email" 
                 id="email" 
                 name="email" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="twoj@email.com"
+                placeholder="vas@email.cz"
                 required
               >
             </div>
             
             <div class="space-y-2">
-              <label for="phone" class="block text-sm font-medium text-gray-700">Numer telefonu</label>
+              <label for="phone" class="block text-sm font-medium text-gray-700">Telefonní číslo</label>
               <input 
                 type="tel" 
                 id="phone" 
                 name="phone" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="+48 123 456 789"
+                placeholder="+420 123 456 789"
               >
             </div>
             
@@ -75,34 +75,34 @@
                 id="company" 
                 name="company" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nazwa firmy (opcjonalnie)"
+                placeholder="Název firmy (volitelné)"
               >
             </div>
           </div>
           
           <div class="mt-6 space-y-2">
-            <label for="message" class="block text-sm font-medium text-gray-700">Treść wiadomości *</label>
+            <label for="message" class="block text-sm font-medium text-gray-700">Zpráva *</label>
             <textarea 
               id="message" 
               name="message" 
               rows="5" 
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Opisz szczegóły swojego projektu, potrzebną ilość części, materiał, termin realizacji, itp."
+              placeholder="Popište detaily vašeho projektu, potřebné množství, materiál, termín realizace, atd."
               required
             ></textarea>
           </div>
           
           <div id="error-container" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
-            Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.
+            Při odesílání zprávy došlo k chybě. Zkuste to prosím později.
           </div>
           
           <div id="success-container" class="hidden mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-600">
-            Twoja wiadomość została wysłana. Dziękujemy za kontakt.
+            Vaše zpráva byla odeslána. Děkujeme za kontakt.
           </div>
           
           <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p class="text-sm text-gray-500">
-              Pola oznaczone * są wymagane.
+              Pole označená * jsou povinná.
             </p>
             
             <div class="flex space-x-4">
@@ -111,7 +111,7 @@
                 onclick="window.history.back()"
                 class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Powrót
+                Zpět
               </button>
               
               <button 
@@ -119,7 +119,7 @@
                 id="submit-button"
                 class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Wyślij wiadomość
+                Odeslat zprávu
               </button>
             </div>
           </div>
@@ -129,7 +129,7 @@
   </div>
   
   <script>
-    // Funkcja do pobierania parametrów z URL
+    // Funkce pro získání parametrů z URL
     function getUrlParams() {
       const params = {};
       const queryString = window.location.search;
@@ -142,37 +142,37 @@
       return params;
     }
     
-    // Pobierz parametry URL
+    // Získání parametrů URL
     const params = getUrlParams();
     const modelId = params.modelId;
     
-    // Jeśli mamy ID modelu, pobierz informacje o modelu
+    // Pokud máme ID modelu, získáme informace o modelu
     if (modelId) {
       const modelInfoContainer = document.getElementById('model-info-container');
       
-      // Wykonaj żądanie AJAX, aby pobrać informacje o modelu
+      // Provedení AJAX požadavku pro získání informací o modelu
       fetch(`/api/models/${modelId}/info`)
         .then(response => {
           if (!response.ok) {
-            throw new Error('Nie udało się pobrać informacji o modelu');
+            throw new Error('Nepodařilo se získat informace o modelu');
           }
           return response.json();
         })
         .then(data => {
-          // Wypełnij informacje o modelu
-          document.getElementById('model-filename').textContent = data.filename || 'Unknown';
-          // Usunięto pole formatu pliku zgodnie z wymaganiem
+          // Vyplnění informací o modelu
+          document.getElementById('model-filename').textContent = data.filename || 'Neznámý';
+          // Pole formátu souboru odstraněno podle požadavku
           document.getElementById('model-id').textContent = modelId;
           
-          // Pokaż kontener z informacjami o modelu
+          // Zobrazení kontejneru s informacemi o modelu
           modelInfoContainer.classList.remove('hidden');
         })
         .catch(error => {
-          console.error('Błąd pobierania informacji o modelu:', error);
+          console.error('Chyba při získávání informací o modelu:', error);
         });
     }
     
-    // Obsługa formularza
+    // Zpracování formuláře
     const form = document.getElementById('contact-form');
     const submitButton = document.getElementById('submit-button');
     const errorContainer = document.getElementById('error-container');
@@ -181,7 +181,7 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Pobierz dane formularza
+      // Získání dat z formuláře
       const formData = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
@@ -191,45 +191,45 @@
         modelId: modelId || null
       };
       
-      // Walidacja formularza
+      // Validace formuláře
       if (!formData.name.trim()) {
-        showError('Imię i nazwisko jest wymagane');
+        showError('Jméno a příjmení je povinné');
         return;
       }
       
       if (!formData.email.trim()) {
-        showError('Adres email jest wymagany');
+        showError('E-mailová adresa je povinná');
         return;
       }
       
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-        showError('Adres email jest nieprawidłowy');
+        showError('E-mailová adresa je neplatná');
         return;
       }
       
       if (!formData.message.trim()) {
-        showError('Treść wiadomości jest wymagana');
+        showError('Zpráva je povinná');
         return;
       }
       
-      // Pokaż spinner ładowania
+      // Zobrazení načítacího spinneru
       submitButton.disabled = true;
-      submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Wysyłanie...';
+      submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Odesílání...';
       
-      // Symuluj wysyłanie (w prawdziwej implementacji tutaj byłoby żądanie do API)
+      // Simulace odesílání (v reálné implementaci by zde byl požadavek na API)
       setTimeout(() => {
-        // Ukryj błąd jeśli był wyświetlany
+        // Skrytí chyby, pokud byla zobrazena
         errorContainer.classList.add('hidden');
         
-        // Pokaż komunikat o sukcesie
+        // Zobrazení zprávy o úspěchu
         successContainer.classList.remove('hidden');
         
-        // Zresetuj formularz
+        // Resetování formuláře
         form.reset();
         
-        // Przywróć przycisk do stanu początkowego
+        // Obnovení tlačítka do původního stavu
         submitButton.disabled = false;
-        submitButton.textContent = 'Wyślij wiadomość';
+        submitButton.textContent = 'Odeslat zprávu';
       }, 1500);
     });
     
