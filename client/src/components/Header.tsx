@@ -3,6 +3,7 @@ import { Upload, LogIn, User, LogOut } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSelector from "./LanguageSelector";
 import fastCncLogo from "../assets/fast-cnc-logo.jpg";
+import cadViewerLogo from "@assets/logo-cadviewer.png";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -37,7 +38,11 @@ export default function Header({ onUploadClick }: HeaderProps) {
               className="w-[100px]"
             />
           </a>
-          <h1 className="text-xl font-semibold text-gray-800">{t('applicationName')}</h1>
+          <img 
+            src={cadViewerLogo} 
+            alt="CAD Viewer Logo" 
+            className="h-[40px]" 
+          />
         </div>
         
         <div className="flex items-center space-x-3">
