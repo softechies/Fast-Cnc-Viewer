@@ -318,7 +318,12 @@ const translations = {
   },
   
   // Actions
-  actions: "Akce",
+  actions: {
+    back_to_home: "Zpět na domovskou stránku",
+    access: "Přístup",
+    verifying: "Ověřování...",
+    go_to_app: "Přejít do aplikace"
+  },
   action: {
     back_to_home: "Zpět na domovskou stránku",
     access: "Přístup",

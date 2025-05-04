@@ -319,7 +319,12 @@ const translations = {
   },
   
   // Actions
-  actions: "Aktionen",
+  actions: {
+    back_to_home: "Zurück zur Startseite",
+    access: "Zugriff",
+    verifying: "Überprüfung...",
+    go_to_app: "Zur Anwendung gehen"
+  },
   action: {
     back_to_home: "Zurück zur Startseite",
     access: "Zugriff",
