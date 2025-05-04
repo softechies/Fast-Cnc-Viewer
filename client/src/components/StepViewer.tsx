@@ -322,17 +322,17 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     
     animate();
     
-    console.log("Inicjalizacja sceny Three.js");
-    setDebugInfo("Scena gotowa");
+    console.log("Initializing Three.js scene");
+    setDebugInfo("Scene ready");
     
     // Dodaj osie pomocnicze - ukryte domyślnie
     const axesHelper = new THREE.AxesHelper(3);
-    axesHelper.position.y = -0.1; // Przesuń lekko w dół aby nie zasłaniały modelu
-    axesHelper.visible = false; // Ukrywamy domyślnie
+    axesHelper.position.y = -0.1; // Move slightly down so it doesn't cover the model
+    axesHelper.visible = false; // Hidden by default
     axesHelper.name = "AxesHelper";
     scene.add(axesHelper);
     
-    // Siatka pomocnicza została usunięta, ponieważ przeszkadzała w oglądaniu modelu
+    // Helper grid was removed as it interfered with model viewing
     
     // Handle window resize
     const handleResize = () => {
@@ -388,32 +388,32 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     if (!modelId) {
       setFileData(null);
       setStlFileInfo(null);
-      setDebugInfo("Brak wybranego modelu");
+      setDebugInfo("No model selected");
       return;
     }
     
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
-        setDebugInfo("Ładowanie informacji o modelu...");
+        setDebugInfo("Loading model information...");
         
         // Najpierw pobierz informacje o modelu
         const modelResponse = await fetch(`/api/models/${modelId}`);
         if (!modelResponse.ok) {
           const errorData = await modelResponse.json();
           console.error("Model info error:", errorData);
-          throw new Error(`Nie można pobrać informacji o modelu (${modelResponse.status}): ${errorData.message || ''}`);
+          throw new Error(`Cannot retrieve model information (${modelResponse.status}): ${errorData.message || ''}`);
         }
         
         const modelInfo = await modelResponse.json();
         console.log("Model info loaded:", modelInfo);
         
-        setDebugInfo("Ładowanie pliku modelu...");
+        setDebugInfo("Loading model file...");
         
         // Następnie spróbuj pobrać plik, gdy wiemy, że mamy dostęp do modelu
         const response = await fetch(`/api/models/${modelId}/file`);
         if (!response.ok) {
-          throw new Error(`Nie można pobrać pliku (${response.status})`);
+          throw new Error(`Cannot download file (${response.status})`);
         }
         
         const blob = await response.blob();
@@ -426,7 +426,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
         
         if (isDirectStl) {
-          setDebugInfo("Bezpośredni plik STL...");
+          setDebugInfo("Direct STL file...");
           setStlFileInfo({ 
             url: `/api/models/${modelId}/file`, // Dla bezpośrednich plików STL, plik jest dostępny pod /file
             isDirectStl: true 
@@ -435,7 +435,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           // Try to get STL file if available (only for converted models)
           try {
             setIsLoadingStlFile(true);
-            setDebugInfo("Sprawdzanie dostępności pliku STL...");
+            setDebugInfo("Checking STL file availability...");
             
             const stlResponse = await fetch(`/api/models/${modelId}/stl`);
             if (stlResponse.ok) {
@@ -444,24 +444,24 @@ export default function StepViewer({ modelId }: StepViewerProps) {
                 url: `/api/models/${modelId}/stl`, 
                 isDirectStl: false 
               });
-              setDebugInfo("Plik STL dostępny");
+              setDebugInfo("STL file available");
             } else {
               // No STL available
               setStlFileInfo(null);
               console.error("STL file not available:", await stlResponse.json());
-              setDebugInfo("Brak pliku STL dla tego modelu");
+              setDebugInfo("No STL file for this model");
             }
           } catch (stlError) {
             setStlFileInfo(null);
             console.error("Error checking STL availability:", stlError);
-            setDebugInfo("Błąd podczas sprawdzania pliku STL");
+            setDebugInfo("Error checking STL file");
           } finally {
             setIsLoadingStlFile(false);
           }
         }
       } catch (error) {
         console.error("Error loading model file:", error);
-        setDebugInfo(`Błąd ładowania modelu: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+        setDebugInfo(`Model loading error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         setFileData(null);
       } finally {
         setIsLoadingFile(false);
@@ -486,14 +486,14 @@ export default function StepViewer({ modelId }: StepViewerProps) {
       const onProgress = (event: ProgressEvent) => {
         if (event.lengthComputable) {
           const percent = Math.round((event.loaded / event.total) * 100);
-          setDebugInfo(`Ładowanie: ${percent}%`);
+          setDebugInfo(`Loading: ${percent}%`);
         }
       };
       
       // Sprawdź czy dostępny jest plik STL
       if (stlFileInfo?.url) {
         try {
-          setDebugInfo(`Ładowanie modelu STL... ${stlFileInfo.isDirectStl ? '(bezpośredni upload)' : '(konwertowany)'}`);
+          setDebugInfo(`Loading STL model... ${stlFileInfo.isDirectStl ? '(direct upload)' : '(converted)'}`);
           
           // Użyj nowego interfejsu STLLoadResult, który zwraca model, skalę i oryginalne wymiary
           const stlLoadResult = await loadSTLModel(stlFileInfo.url, onProgress);
@@ -519,7 +519,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             });
           }
           
-          setDebugInfo("Model STL wczytany pomyślnie");
+          setDebugInfo("STL model loaded successfully");
           
           // Ustaw nazwę modelu i dodaj do sceny
           modelGroup.name = "StepModel";
@@ -547,11 +547,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             console.log("Kamera ustawiona bez nadpisywania wymiarów");
           }
           
-          setDebugInfo(`Model wczytany (format: STL)`);
+          setDebugInfo(`Model loaded (format: STL)`);
           return;
         } catch (error) {
-          console.error("Błąd ładowania modelu STL:", error);
-          setDebugInfo(`Błąd ładowania STL: ${error instanceof Error ? error.message : 'Nieznany błąd'}`);
+          console.error("Error loading STL model:", error);
+          setDebugInfo(`STL loading error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } else {
         // Jeśli nie ma STL, wyświetl informację
@@ -870,16 +870,16 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           size="sm" 
           onClick={refreshModel}
           className="bg-black/50 text-white hover:bg-black/70 border-none p-2"
-          title="Odśwież model"
+          title="Refresh model"
         >
           <RefreshCw className="h-6 w-6" />
         </Button>
         <Toggle
-          aria-label="Tryb pomiaru"
+          aria-label="Measurement mode"
           pressed={measureMode}
           onPressedChange={setMeasureMode}
           className={`p-2 ${measureMode ? 'bg-blue-500 text-white' : 'bg-black/50 text-white hover:bg-black/70'} border-none`}
-          title="Włącz/wyłącz tryb pomiaru"
+          title="Toggle measurement mode"
         >
           <Ruler className="h-6 w-6" />
         </Toggle>
@@ -914,7 +914,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           <div className="bg-white p-4 rounded shadow-md">
             <Skeleton className="h-4 w-32 mb-2" />
             <Skeleton className="h-4 w-48" />
-            <div className="text-sm mt-2">Wczytywanie modelu...</div>
+            <div className="text-sm mt-2">Loading model...</div>
           </div>
         </div>
       )}
@@ -962,11 +962,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           <div className="flex flex-col gap-1">
             <div className="text-gray-300 text-xs">
               <Badge variant="outline" className="bg-red-700/50">
-                Format nieobsługiwany
+                Unsupported format
               </Badge>
             </div>
             <div className="text-gray-300 text-xs italic">
-              Obsługiwane są tylko pliki STL
+              Only STL files are supported
             </div>
           </div>
         )}
