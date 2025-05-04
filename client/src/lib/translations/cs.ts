@@ -122,9 +122,6 @@ const translations = {
   modelEntities: "Entity modelu",
   modelNotFound: "Model nenalezen",
   errorLoadingModel: "Chyba při načítání modelu",
-  modelStatus: {
-    loaded: "Model načten (formát: {format})"
-  },
   
   // Measurement and dimensions
   measurement: {

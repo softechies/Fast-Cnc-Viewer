@@ -547,7 +547,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
             console.log("Kamera ustawiona bez nadpisywania wymiarów");
           }
           
-          setDebugInfo(t('modelStatus.loaded', { format: 'STL' }));
+          setDebugInfo(`Model wczytany (format: STL)`);
           return;
         } catch (error) {
           console.error("Błąd ładowania modelu STL:", error);

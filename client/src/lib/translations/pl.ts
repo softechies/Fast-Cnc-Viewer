@@ -122,9 +122,6 @@ const translations = {
   modelEntities: "Elementy modelu",
   modelNotFound: "Nie znaleziono modelu",
   errorLoadingModel: "Błąd wczytywania modelu",
-  modelStatus: {
-    loaded: "Model wczytany (format: {format})"
-  },
   
   // Measurement and dimensions
   measurement: {
