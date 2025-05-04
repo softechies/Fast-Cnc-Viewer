@@ -150,7 +150,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
                 <div className="text-center">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="mt-2 text-sm">Ładowanie modelu...</p>
+                  <p className="mt-2 text-sm">Loading model...</p>
                 </div>
               </div>
             )}
@@ -159,7 +159,7 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
               <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
                 <div className="text-center max-w-md p-4">
                   <AlertCircle size={40} className="mx-auto text-red-500 mb-2" />
-                  <h3 className="text-lg font-medium mb-1">Błąd ładowania modelu</h3>
+                  <h3 className="text-lg font-medium mb-1">Model loading error</h3>
                   <p className="text-sm text-slate-600">{error}</p>
                 </div>
               </div>
@@ -172,20 +172,20 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
                         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="mt-2 text-sm">Ładowanie komponentu 3D...</p>
+                        <p className="mt-2 text-sm">Loading 3D component...</p>
                       </div>
                     </div>
                   }>
                     <ErrorBoundary fallback={
                       <div className="p-8 text-center">
                         <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 3D</h3>
+                        <h3 className="text-lg font-medium mb-2">3D rendering issue</h3>
                         <p className="text-sm text-slate-600 mb-4">
-                          Wystąpił problem z załadowaniem komponentu do renderowania 3D. 
-                          Sprawdź czy Twoja przeglądarka wspiera WebGL.
+                          There was a problem loading the 3D rendering component.
+                          Check if your browser supports WebGL.
                         </p>
                         <Button onClick={() => window.location.reload()}>
-                          Odśwież stronę
+                          Refresh page
                         </Button>
                       </div>
                     }>
@@ -199,19 +199,19 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
                         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="mt-2 text-sm">Ładowanie komponentu 2D...</p>
+                        <p className="mt-2 text-sm">Loading 2D component...</p>
                       </div>
                     </div>
                   }>
                     <ErrorBoundary fallback={
                       <div className="p-8 text-center">
                         <AlertCircle size={40} className="mx-auto text-amber-500 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Problem z renderowaniem 2D</h3>
+                        <h3 className="text-lg font-medium mb-2">2D rendering issue</h3>
                         <p className="text-sm text-slate-600 mb-4">
-                          Wystąpił problem z załadowaniem komponentu do renderowania plików 2D.
+                          There was a problem loading the 2D rendering component.
                         </p>
                         <Button onClick={() => window.location.reload()}>
-                          Odśwież stronę
+                          Refresh page
                         </Button>
                       </div>
                     }>
@@ -223,9 +223,9 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
                 {modelType === 'unknown' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
                     <div className="text-center">
-                      <p className="text-lg font-medium mb-2">Wybierz model do wyświetlenia</p>
+                      <p className="text-lg font-medium mb-2">Select a model to display</p>
                       <p className="text-sm text-slate-500">
-                        Obsługiwane formaty: STL, DXF, DWG
+                        Supported formats: STL, DXF, DWG
                       </p>
                     </div>
                   </div>
