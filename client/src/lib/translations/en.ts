@@ -124,6 +124,9 @@ const translations = {
   modelEntities: "Model Entities",
   modelNotFound: "Model not found",
   errorLoadingModel: "Error loading model",
+  modelStatus: {
+    loaded: "Model loaded (format: {format})"
+  },
   
   // Measurement and dimensions
   measurement: {
