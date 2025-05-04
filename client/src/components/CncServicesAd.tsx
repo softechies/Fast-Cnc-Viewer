@@ -15,8 +15,8 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
   const openContactForm = () => {
     // Pobranie ID modelu i otworzenie formularza kontaktowego z tym ID
     const modelId = modelInfo?.id || '';
-    // Używamy relatywnego URL, aby działało zarówno w developmencie jak i na produkcji
-    window.open(`/quote?modelId=${modelId}`, '_blank');
+    // Używamy bezpośredniego URL do statycznego pliku HTML
+    window.open(`/quote.html?modelId=${modelId}`, '_blank');
   };
 
   return (
