@@ -15,8 +15,14 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
   const openContactForm = () => {
     // Pobranie ID modelu i otworzenie formularza kontaktowego z tym ID
     const modelId = modelInfo?.id || '';
-    // Używamy bezpośredniego URL do statycznego pliku HTML
-    window.open(`/quote.html?modelId=${modelId}`, '_blank');
+    // Pobranie języka użytkownika
+    const { language } = useLanguage();
+    // Sprawdzamy czy istnieje wersja językowa formularza, jeśli nie, używamy domyślnej
+    if (['en', 'pl', 'de', 'cs', 'fr'].includes(language)) {
+      window.open(`/quote.html.${language}?modelId=${modelId}`, '_blank');
+    } else {
+      window.open(`/quote.html?modelId=${modelId}`, '_blank');
+    }
   };
 
   return (
