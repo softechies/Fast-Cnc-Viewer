@@ -3,7 +3,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 
 interface FooterBarProps {
-  modelName: string;
+  modelName?: string; // Opcjonalne, bo już nie wyświetlamy
   partCount: number;
   entityCount: number;
 }
@@ -13,11 +13,8 @@ export default function FooterBar({ modelName, partCount, entityCount }: FooterB
   
   return (
     <footer className="bg-white border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
-        <div className="flex items-center">
-          <span className="mr-4">{modelName}</span>
-        </div>
-        <div className="mt-2 sm:mt-0 flex items-center space-x-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-center items-center text-sm text-gray-500">
+        <div className="flex items-center space-x-4">
           <span>
             <Box className="inline h-4 w-4 mr-1" />
             <span>{partCount}</span> {t('parts')}
