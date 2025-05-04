@@ -355,6 +355,28 @@ const translations = {
     select_model: "Select a DXF model to display"
   },
   
+  // Library page translations
+  library: {
+    title: "CAD Model Library",
+    description: "Browse and access publicly shared CAD models",
+    filters: "Filters",
+    searchPlaceholder: "Search by name or tag",
+    tags: "Tags",
+    viewModel: "View Model",
+    noModels: "No Models Found",
+    noModelsDescription: "There are no public models matching your search criteria. Try adjusting your filters or check back later.",
+    error: "Error loading library",
+  },
+  
+  // Common pagination texts
+  common: {
+    page: "Page",
+    previous: "Previous",
+    next: "Next",
+    tryAgain: "Try Again",
+    error: "Error"
+  },
+  
   admin: {
     loginTitle: "Admin Panel Login",
     loginDescription: "Enter your credentials to access the admin panel",
