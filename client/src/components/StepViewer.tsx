@@ -40,7 +40,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [stlFileInfo, setStlFileInfo] = useState<StlFileInfo | null>(null);
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
-  const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
+  const [debugInfo, setDebugInfo] = useState(t('initialization'));
   
   // Używamy tylko renderowania STL (bez STEP)
   const renderMode = 'stl_only' as const;
