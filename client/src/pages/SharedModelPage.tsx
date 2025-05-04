@@ -167,7 +167,7 @@ export default function SharedModelPage({ shareId: propShareId, language }: Shar
       <div className="container mx-auto py-8 px-4 flex justify-center">
         <Card className="w-full max-w-md">
           <div className="flex justify-between items-center px-4 mt-4">
-            <img src={cadViewerLogo} alt="CAD Viewer Logo" className="h-12" />
+            <img src={cadViewerLogo} alt="CAD Viewer Logo" className="h-16" />
             <LanguageSelector />
           </div>
           <CardHeader>
@@ -222,7 +222,7 @@ export default function SharedModelPage({ shareId: propShareId, language }: Shar
       <div className="bg-muted/40 rounded-lg p-2 mb-4 border text-sm">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src={cadViewerLogo} alt="CAD Viewer Logo" className="h-8 mr-2" />
+            <img src={cadViewerLogo} alt="CAD Viewer Logo" className="h-10 mr-2" />
             <FileIcon className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{modelInfo?.filename}</span>
             <span className="text-xs text-muted-foreground">
