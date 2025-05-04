@@ -1,6 +1,26 @@
 // German translations
 
 const translations = {
+  // CNC Services Ads
+  services: {
+    title: "CNC Dienstleistungen",
+    laser_cutting: "Laserschneiden",
+    laser_description: "Ihr 2D-Design ist ideal für Laserschneiden geeignet. Wir bieten präzises Laserschneiden von Metall, Kunststoff und anderen Materialien an.",
+    cnc_machining: "CNC-Bearbeitung",
+    cnc_description: "Ihr 3D-Modell ist bereit für die Produktion. Wir bieten professionelles CNC-Drehen und -Fräsen mit höchster Präzision und Qualität an.",
+    manufacturing: "Fertigungsdienstleistungen",
+    manufacturing_description: "Wir können Ihr Fertigungsprojekt von A bis Z umsetzen. Kontaktieren Sie uns, um Details zu besprechen und ein individuelles Angebot zu erhalten.",
+    our_services: "Unsere Fertigungsdienstleistungen",
+    get_quote: "Angebot anfragen",
+    contact_us: "Kontaktieren Sie uns",
+    laser_details: "Präzises Schneiden von Metall, Kunststoff und anderen Materialien mit einer Genauigkeit von 0,05 mm. Ideal für 2D-Teile.",
+    cnc_milling: "CNC-Fräsen",
+    milling_details: "Bearbeitung von Materialien wie Aluminium, Stahl, Kunststoff. Ideal für komplexe 3D-Formen.",
+    cnc_turning: "CNC-Drehen",
+    turning_details: "Präzise Bearbeitung von rotierenden Metallteilen. Ideal für Wellen, Hülsen, Maschinenteile mit einer Genauigkeit von 0,01 mm.",
+    prototyping: "Prototypenbau",
+    prototyping_details: "Schnelle Herstellung von Prototypen und Kleinserien. Vom Design zum fertigen Teil in nur wenigen Tagen."
+  },
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",

@@ -13,8 +13,9 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
   const { t } = useLanguage();
   
   const openContactForm = () => {
-    // W przyszłości można tu dodać otwieranie formularza kontaktowego
-    window.open('https://fastcnc.pl/kontakt/', '_blank');
+    // Pobranie ID modelu i otworzenie formularza kontaktowego z tym ID
+    const modelId = modelInfo?.id || '';
+    window.open(`https://viewer.fastcnc.eu/contact?modelId=${modelId}`, '_blank');
   };
 
   return (

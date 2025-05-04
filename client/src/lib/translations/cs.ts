@@ -1,6 +1,26 @@
 // Czech translations
 
 const translations = {
+  // CNC Services Ads
+  services: {
+    title: "CNC služby",
+    laser_cutting: "Laserové řezání",
+    laser_description: "Váš 2D návrh je ideální pro laserové řezání. Nabízíme přesné laserové řezání kovu, plastů a dalších materiálů.",
+    cnc_machining: "CNC obrábění",
+    cnc_description: "Váš 3D model je připraven k výrobě. Nabízíme profesionální CNC soužení a frézování s nejvyšší přesností a kvalitou.",
+    manufacturing: "Výrobní služby",
+    manufacturing_description: "Realizujeme váš výrobní projekt od A do Z. Kontaktujte nás pro diskuzi o detailech a získání individuální nabídky.",
+    our_services: "Naše výrobní služby",
+    get_quote: "Požádat o cenovou nabídku",
+    contact_us: "Kontaktujte nás",
+    laser_details: "Přesné řezání plechu, plastů a dalších materiálů s přesností 0,05 mm. Ideální pro 2D díly.",
+    cnc_milling: "CNC frézování",
+    milling_details: "Obrábění materiálů jako hliník, ocel, plast. Ideální pro komplexní 3D tvary.",
+    cnc_turning: "CNC soužení",
+    turning_details: "Přesné obrábění rotačních kovových dílů. Ideální pro hřídele, pouzdra, součásti strojů s přesností 0,01 mm.",
+    prototyping: "Prototypování",
+    prototyping_details: "Rychlá výroba prototypů a malých sérií. Od návrhu k hotovému dílu v několika dnech."
+  },
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",

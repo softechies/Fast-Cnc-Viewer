@@ -1,6 +1,26 @@
 // French translations
 
 const translations = {
+  // CNC Services Ads
+  services: {
+    title: "Services CNC",
+    laser_cutting: "Découpe laser",
+    laser_description: "Votre conception 2D est idéale pour la découpe laser. Nous proposons une découpe laser précise des métaux, plastiques et autres matériaux.",
+    cnc_machining: "Usinage CNC",
+    cnc_description: "Votre modèle 3D est prêt pour la production. Nous proposons des services professionnels de tournage et fraisage CNC avec la plus haute précision et qualité.",
+    manufacturing: "Services de fabrication",
+    manufacturing_description: "Nous réaliserons votre projet de fabrication de A à Z. Contactez-nous pour discuter des détails et recevoir un devis personnalisé.",
+    our_services: "Nos services de fabrication",
+    get_quote: "Demander un devis",
+    contact_us: "Contactez-nous",
+    laser_details: "Découpe précise de tôle, plastique et autres matériaux avec une précision de 0,05 mm. Idéal pour les pièces 2D.",
+    cnc_milling: "Fraisage CNC",
+    milling_details: "Usinage de matériaux comme l'aluminium, l'acier, le plastique. Idéal pour les formes 3D complexes.",
+    cnc_turning: "Tournage CNC",
+    turning_details: "Usinage précis de pièces métalliques rotatives. Idéal pour les arbres, manchons, pièces de machines avec une précision de 0,01 mm.",
+    prototyping: "Prototypage",
+    prototyping_details: "Fabrication rapide de prototypes et petites séries. Du design à la pièce finie en quelques jours."
+  },
   // Common UI elements
   appTitle: "CAD Viewer",
   applicationName: "CAD Viewer",
