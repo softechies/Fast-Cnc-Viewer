@@ -286,11 +286,7 @@ export default function AuthPage() {
         </div>
       </main>
       
-      <FooterBar 
-        modelName={t('login')} 
-        partCount={0} 
-        entityCount={0}
-      />
+      <FooterBar />
     </div>
   );
 }

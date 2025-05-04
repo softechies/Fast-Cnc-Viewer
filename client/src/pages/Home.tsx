@@ -91,11 +91,7 @@ export default function Home() {
         </section>
       </main>
       
-      <FooterBar 
-        modelName={modelInfo?.filename || t('loadingGeneric')} 
-        partCount={modelInfo?.parts || 0} 
-        entityCount={(modelInfo?.surfaces || 0) + (modelInfo?.solids || 0)}
-      />
+      <FooterBar />
       
       <UploadModal 
         isOpen={isUploadModalOpen} 
