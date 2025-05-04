@@ -40,21 +40,22 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [stlFileInfo, setStlFileInfo] = useState<StlFileInfo | null>(null);
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
-  const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
+  const [debugInfo, setDebugInfo] = useState("Initializing...");
   
-  // Używamy tylko renderowania STL (bez STEP)
+  // We only use STL rendering (no STEP)
   const renderMode = 'stl_only' as const;
   
-  // Stan dla informacji o wymiarach modelu
+  // State for model dimension information
   type ModelDimensions = {
     width: number; // X
-    height: number; // Y
-    depth: number; // Z
-    scale: number; // Współczynnik skalowania użyty do renderowania modelu
+    height: number; // Z
+    depth: number; // Y
+    scale: number; // Scaling factor used for rendering
+    size?: number; // Diagonal size (optional)
   };
   const [modelDimensions, setModelDimensions] = useState<ModelDimensions | null>(null);
   
-  // Stan dla trybu pomiaru
+  // State for measurement mode
   const [measureMode, setMeasureMode] = useState(false);
   const [measurePoints, setMeasurePoints] = useState<THREE.Vector3[]>([]);
   const [measureDistance, setMeasureDistance] = useState<number | null>(null);
