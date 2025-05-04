@@ -40,7 +40,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [stlFileInfo, setStlFileInfo] = useState<StlFileInfo | null>(null);
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
-  const [debugInfo, setDebugInfo] = useState(t('initialization'));
+  const [debugInfo, setDebugInfo] = useState("Inicjalizacja...");
   
   // Używamy tylko renderowania STL (bez STEP)
   const renderMode = 'stl_only' as const;
@@ -322,8 +322,8 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     
     animate();
     
-    console.log("Initializing Three.js scene");
-    setDebugInfo(t('sceneReady'));
+    console.log("Inicjalizacja sceny Three.js");
+    setDebugInfo("Scena gotowa");
     
     // Dodaj osie pomocnicze - ukryte domyślnie
     const axesHelper = new THREE.AxesHelper(3);
@@ -388,14 +388,14 @@ export default function StepViewer({ modelId }: StepViewerProps) {
     if (!modelId) {
       setFileData(null);
       setStlFileInfo(null);
-      setDebugInfo(t('noSelectedModel'));
+      setDebugInfo("Brak wybranego modelu");
       return;
     }
     
     const loadFile = async () => {
       try {
         setIsLoadingFile(true);
-        setDebugInfo(t('loadingModelInfo'));
+        setDebugInfo("Ładowanie informacji o modelu...");
         
         // Najpierw pobierz informacje o modelu
         const modelResponse = await fetch(`/api/models/${modelId}`);
@@ -408,7 +408,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         const modelInfo = await modelResponse.json();
         console.log("Model info loaded:", modelInfo);
         
-        setDebugInfo(t('loadingModelFile'));
+        setDebugInfo("Ładowanie pliku modelu...");
         
         // Następnie spróbuj pobrać plik, gdy wiemy, że mamy dostęp do modelu
         const response = await fetch(`/api/models/${modelId}/file`);
@@ -426,7 +426,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         const isDirectStl = modelInfo.format?.toLowerCase() === 'stl';
         
         if (isDirectStl) {
-          setDebugInfo(t('directStlFile'));
+          setDebugInfo("Bezpośredni plik STL...");
           setStlFileInfo({ 
             url: `/api/models/${modelId}/file`, // Dla bezpośrednich plików STL, plik jest dostępny pod /file
             isDirectStl: true 
@@ -435,7 +435,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           // Try to get STL file if available (only for converted models)
           try {
             setIsLoadingStlFile(true);
-            setDebugInfo(t('checkingStlFile'));
+            setDebugInfo("Sprawdzanie dostępności pliku STL...");
             
             const stlResponse = await fetch(`/api/models/${modelId}/stl`);
             if (stlResponse.ok) {
@@ -444,7 +444,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
                 url: `/api/models/${modelId}/stl`, 
                 isDirectStl: false 
               });
-              setDebugInfo(t('stlFileAvailable'));
+              setDebugInfo("Plik STL dostępny");
             } else {
               // No STL available
               setStlFileInfo(null);

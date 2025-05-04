@@ -125,32 +125,6 @@ const translations = {
   modelStatus: {
     loaded: "Model wczytany (format: {format})"
   },
-  loadingModel: "Ładowanie modelu...",
-  loading3DComponent: "Ładowanie komponentu 3D...",
-  loading2DComponent: "Ładowanie komponentu 2D...",
-  selectModelToDisplay: "Wybierz model do wyświetlenia",
-  initialization: "Inicjalizacja...",
-  sceneReady: "Scena gotowa",
-  noSelectedModel: "Brak wybranego modelu",
-  loadingModelInfo: "Ładowanie informacji o modelu...",
-  loadingModelFile: "Ładowanie pliku modelu...",
-  directStlFile: "Bezpośredni plik STL...",
-  checkingStlFile: "Sprawdzanie dostępności pliku STL...",
-  stlFileAvailable: "Plik STL dostępny",
-  noStlFile: "Brak pliku STL dla tego modelu",
-  stlFileCheckError: "Błąd podczas sprawdzania pliku STL",
-  loadingProgress: "Ładowanie: {percent}%",
-  loadingStlModel: "Ładowanie modelu STL... {type}",
-  directUpload: "(bezpośredni upload)",
-  converted: "(konwertowany)",
-  stlModelLoaded: "Model STL wczytany pomyślnie",
-  formatNotSupported: "Ten format pliku nie jest obsługiwany. Tylko pliki STL są obsługiwane.",
-  renderingError: "Błąd renderowania: {error}",
-  processingModel: "Przetwarzanie modelu...",
-  fileReadError: "Błąd odczytu pliku",
-  processingError: "Błąd przetwarzania: {error}",
-  noDataToRender: "Brak danych do ponownego renderowania",
-  refreshingModel: "Odświeżanie modelu...",
   
   // Measurement and dimensions
   measurement: {
@@ -302,13 +276,8 @@ const translations = {
       fetch: "Nie udało się pobrać informacji o modelu",
       access: "Nie udało się uzyskać dostępu do modelu",
       display_failed: "Nie można wyświetlić modelu"
-    },
-    render3D: "Problem z renderowaniem 3D", 
-    render3DDetails: "Wystąpił problem z załadowaniem komponentu do renderowania 3D. Sprawdź czy Twoja przeglądarka wspiera WebGL.",
-    render2D: "Problem z renderowaniem 2D",
-    render2DDetails: "Wystąpił problem z załadowaniem komponentu do renderowania plików 2D."
+    }
   },
-  refreshPage: "Odśwież stronę",
   
   // Loading states
   loadingState: {
