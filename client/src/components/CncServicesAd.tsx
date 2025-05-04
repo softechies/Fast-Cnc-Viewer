@@ -10,13 +10,11 @@ interface CncServicesAdProps {
 }
 
 export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const openContactForm = () => {
     // Pobranie ID modelu i otworzenie formularza kontaktowego z tym ID
     const modelId = modelInfo?.id || '';
-    // Pobranie języka użytkownika
-    const { language } = useLanguage();
     // Sprawdzamy czy istnieje wersja językowa formularza, jeśli nie, używamy domyślnej
     if (['en', 'pl', 'de', 'cs', 'fr'].includes(language)) {
       window.open(`/quote.html.${language}?modelId=${modelId}`, '_blank');
