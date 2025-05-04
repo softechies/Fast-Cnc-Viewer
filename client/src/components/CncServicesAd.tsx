@@ -142,15 +142,7 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
             </div>
           </div>
           
-          <div className="mt-6 flex justify-center">
-            <Button 
-              onClick={openContactForm}
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {t('services.contact_us', 'Skontaktuj się z nami')}
-            </Button>
-          </div>
+          {/* Dolny przycisk kontaktowy usunięty aby zmniejszyć wysokość komponentu */}
         </div>
       </div>
     </div>
