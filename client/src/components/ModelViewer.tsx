@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 // Lazy load components to handle loading errors
 const StepViewer = lazy(() => import('./StepViewer'));
 const DxfViewer = lazy(() => import('./DxfViewer'));
+const CncServicesAd = lazy(() => import('./CncServicesAd'));
 
 // Komponent do obsługi błędów w komponentach React
 class ErrorBoundary extends Component<{ 
