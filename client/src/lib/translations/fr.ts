@@ -352,6 +352,28 @@ const translations = {
     backToHome: "Retour à l'accueil"
   },
   
+  // Library page translations
+  library: {
+    title: "Bibliothèque de modèles CAO",
+    description: "Parcourir et accéder aux modèles CAO partagés publiquement",
+    filters: "Filtres",
+    searchPlaceholder: "Rechercher par nom ou tag",
+    tags: "Tags",
+    viewModel: "Voir le modèle",
+    noModels: "Aucun modèle trouvé",
+    noModelsDescription: "Il n'y a pas de modèles publics correspondant à vos critères de recherche. Essayez d'ajuster vos filtres ou revenez plus tard.",
+    error: "Erreur lors du chargement de la bibliothèque",
+  },
+  
+  // Common pagination texts
+  common: {
+    page: "Page",
+    previous: "Précédent",
+    next: "Suivant",
+    tryAgain: "Réessayer",
+    error: "Erreur"
+  },
+  
   // Admin panel
   admin: {
     loginTitle: "Connexion au panneau d'administration",

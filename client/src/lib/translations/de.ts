@@ -353,6 +353,28 @@ const translations = {
     backToHome: "Zurück zur Startseite"
   },
   
+  // Library page translations
+  library: {
+    title: "CAD-Modellbibliothek",
+    description: "Durchsuchen und Zugriff auf öffentlich geteilte CAD-Modelle",
+    filters: "Filter",
+    searchPlaceholder: "Nach Name oder Tag suchen",
+    tags: "Tags",
+    viewModel: "Modell anzeigen",
+    noModels: "Keine Modelle gefunden",
+    noModelsDescription: "Es gibt keine öffentlichen Modelle, die Ihren Suchkriterien entsprechen. Versuchen Sie, Ihre Filter anzupassen oder schauen Sie später wieder vorbei.",
+    error: "Fehler beim Laden der Bibliothek",
+  },
+  
+  // Common pagination texts
+  common: {
+    page: "Seite",
+    previous: "Zurück",
+    next: "Weiter",
+    tryAgain: "Erneut versuchen",
+    error: "Fehler"
+  },
+  
   // Admin panel
   admin: {
     loginTitle: "Admin-Panel Login",

@@ -352,6 +352,28 @@ const translations = {
     backToHome: "Zpět na domovskou stránku"
   },
   
+  // Library page translations
+  library: {
+    title: "Knihovna CAD modelů",
+    description: "Procházet a přistupovat k veřejně sdíleným CAD modelům",
+    filters: "Filtry",
+    searchPlaceholder: "Hledat podle názvu nebo tagu",
+    tags: "Tagy",
+    viewModel: "Zobrazit model",
+    noModels: "Nebyly nalezeny žádné modely",
+    noModelsDescription: "Nejsou žádné veřejné modely odpovídající vašim kritteriím vyhledávání. Zkuste upravit filtry nebo se vraťte později.",
+    error: "Chyba při načítání knihovny",
+  },
+  
+  // Common pagination texts
+  common: {
+    page: "Strana",
+    previous: "Předchozí",
+    next: "Další",
+    tryAgain: "Zkusit znovu",
+    error: "Chyba"
+  },
+  
   // Admin panel
   admin: {
     loginTitle: "Přihlášení do administrace",
