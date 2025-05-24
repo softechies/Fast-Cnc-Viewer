@@ -117,8 +117,8 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
       }
     }
     
-    // Utwórz tymczasowy plik dla SVG
-    const tempSvgPath = path.join('./uploads', `${path.parse(dxfFilePath).name}_${Date.now()}.svg`);
+    // Utwórz tymczasowy plik dla SVG w trwałym magazynie
+    const tempSvgPath = path.join('./.data/uploads', `${path.parse(dxfFilePath).name}_${Date.now()}.svg`);
     
     try {
       // Uruchom skrypt Pythona do konwersji DXF na SVG z zapisem do pliku
@@ -239,9 +239,9 @@ async function convertDxfToSvg(dxfFilePath: string): Promise<string | null> {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Configure multer for file uploads
+// Configure multer for file uploads - using persistent storage
 const stepUpload = multer({
-  dest: "./uploads/step-uploads",
+  dest: "./.data/uploads/step-uploads",
   limits: {
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
@@ -258,7 +258,7 @@ const stepUpload = multer({
 
 // Configure multer for STL file uploads
 const stlUpload = multer({
-  dest: "./uploads/stl-uploads",
+  dest: "./.data/uploads/stl-uploads",
   limits: {
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
@@ -275,7 +275,7 @@ const stlUpload = multer({
 
 // Configure multer for 2D CAD file uploads (DXF/DWG)
 const cadUpload = multer({
-  dest: "./uploads/cad-uploads",
+  dest: "./.data/uploads/cad-uploads",
   limits: {
     fileSize: 50 * 1024 * 1024 // 50MB limit
   },
