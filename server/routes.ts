@@ -529,15 +529,16 @@ function detectLanguageFromHeader(acceptLanguageHeader?: string): string | null 
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Upewnij się, że katalogi do przechowywania plików istnieją
+  // Upewnij się, że katalogi do przechowywania plików istnieją w przestrzeni trwałego przechowywania
   try {
-    fs.mkdirSync('./uploads', { recursive: true });
-    fs.mkdirSync('./uploads/step-uploads', { recursive: true });
-    fs.mkdirSync('./uploads/stl-uploads', { recursive: true });
-    fs.mkdirSync('./uploads/cad-uploads', { recursive: true });
-    console.log("Upload directories created successfully");
+    // Używamy folderu .data, który jest trwałym magazynem w Replit
+    fs.mkdirSync('./.data/uploads', { recursive: true });
+    fs.mkdirSync('./.data/uploads/step-uploads', { recursive: true });
+    fs.mkdirSync('./.data/uploads/stl-uploads', { recursive: true });
+    fs.mkdirSync('./.data/uploads/cad-uploads', { recursive: true });
+    console.log("Persistent upload directories created successfully");
   } catch (error) {
-    console.error("Error creating upload directories:", error);
+    console.error("Error creating persistent upload directories:", error);
   }
   
   // Konfiguracja autoryzacji i endpointów logowania/rejestracji
