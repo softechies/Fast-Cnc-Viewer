@@ -434,6 +434,7 @@ export default function ClientDashboardPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t('filename')}</TableHead>
+                        <TableHead>{t('upload_thumbnail')}</TableHead>
                         <TableHead>{t('shared_with')}</TableHead>
                         <TableHead>{t('shared_status')}</TableHead>
                         <TableHead>{t('last_accessed')}</TableHead>
@@ -446,21 +447,19 @@ export default function ClientDashboardPage() {
                         <TableRow key={model.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <ModelThumbnail 
-                                  modelId={model.id} 
-                                  filename={model.filename}
-                                  className="w-12 h-12 flex-shrink-0"
-                                />
-                                <div className="absolute -bottom-1 -right-1">
-                                  <ThumbnailUploader 
-                                    modelId={model.id} 
-                                    modelName={model.filename}
-                                  />
-                                </div>
-                              </div>
+                              <ModelThumbnail 
+                                modelId={model.id} 
+                                filename={model.filename}
+                                className="w-12 h-12 flex-shrink-0"
+                              />
                               <span className="truncate">{model.filename}</span>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <ThumbnailUploader 
+                              modelId={model.id} 
+                              modelName={model.filename}
+                            />
                           </TableCell>
                           <TableCell>{model.shareEmail || "-"}</TableCell>
                           <TableCell>
