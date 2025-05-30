@@ -38,7 +38,7 @@ class S3Service {
   }
 
   /**
-   * Przesyła plik do S3
+   * Przesyła plik do S3 z ścieżki
    */
   async uploadFile(
     filePath: string,
@@ -54,6 +54,33 @@ class S3Service {
         Bucket: this.bucketName,
         Key: s3Key,
         Body: fileStream,
+        ContentType: contentType || 'application/octet-stream',
+        ServerSideEncryption: 'AES256',
+      });
+
+      await this.s3Client.send(command);
+      return s3Key;
+    } catch (error) {
+      console.error('Error uploading file to S3:', error);
+      throw new Error('Failed to upload file to S3');
+    }
+  }
+
+  /**
+   * Przesyła buffer do S3
+   */
+  async uploadBuffer(
+    s3Key: string,
+    buffer: Buffer,
+    contentType?: string
+  ): Promise<string> {
+    this.ensureInitialized();
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: s3Key,
+        Body: buffer,
         ContentType: contentType || 'application/octet-stream',
         ServerSideEncryption: 'AES256',
       });

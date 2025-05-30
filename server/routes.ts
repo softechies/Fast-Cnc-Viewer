@@ -3275,7 +3275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let s3Key = null;
         if (s3Service.isInitialized()) {
           s3Key = `gallery/${req.user!.id}/${filename}`;
-          await s3Service.uploadFile(s3Key, file.buffer, file.mimetype);
+          await s3Service.uploadBuffer(s3Key, file.buffer, file.mimetype);
         } else {
           // Save locally
           const uploadPath = path.join('./uploads', 'gallery', filename);
