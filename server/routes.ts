@@ -16,6 +16,7 @@ import bcrypt from "bcryptjs";
 import { initializeEmailService, sendShareNotification as sendNodemailerNotification, sendSharingRevokedNotification as sendNodemailerRevokedNotification, detectLanguage } from "./email";
 import type { Language } from "../client/src/lib/translations";
 import { initializeCustomSmtpService, sendShareNotificationSmtp, sendSharingRevokedNotificationSmtp, ContactFormData } from "./custom-smtp";
+import { initializeS3Service, s3Service } from "./s3-service";
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -571,6 +572,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   } catch (error) {
     console.error("Failed to initialize email services, sharing notifications will not work correctly:", error);
+  }
+
+  // Inicjalizacja serwisu S3 dla przechowywania plików
+  try {
+    const s3Initialized = initializeS3Service();
+    if (s3Initialized) {
+      console.log("S3 service initialized successfully");
+    }
+  } catch (error) {
+    console.error("Failed to initialize S3 service:", error);
   }
 
   // API routes
