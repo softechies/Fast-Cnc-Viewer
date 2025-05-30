@@ -62,11 +62,11 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
   };
 
   const uploadGalleryMutation = useMutation({
-    mutationFn: async (files: FileList) => {
-      console.log('Starting gallery upload with files:', Array.from(files).map(f => ({ name: f.name, size: f.size })));
+    mutationFn: async (files: File[]) => {
+      console.log('Starting gallery upload with files:', files.map(f => ({ name: f.name, size: f.size })));
       
       const formData = new FormData();
-      Array.from(files).forEach((file, index) => {
+      files.forEach((file, index) => {
         console.log(`Appending file ${index}:`, file.name, file.size);
         formData.append('images', file);
       });
@@ -170,9 +170,11 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
       }
     }
 
-    console.log('About to upload files');
-    // Prześlij pliki do serwera
-    uploadGalleryMutation.mutate(files);
+    console.log('About to upload files, converting FileList to Array');
+    // Konwertuj FileList do Array przed przesłaniem
+    const filesArray = Array.from(files);
+    console.log('Files array:', filesArray.map(f => f.name));
+    uploadGalleryMutation.mutate(filesArray);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
