@@ -3269,12 +3269,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        console.log(`Processing file ${i}:`, {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          bufferLength: file.buffer ? file.buffer.length : 'no buffer'
+        });
+        
+        if (!file.buffer || file.buffer.length === 0) {
+          console.error(`File ${i} has no buffer or empty buffer`);
+          continue;
+        }
+        
         const filename = `gallery_${modelId}_${Date.now()}_${i}.${file.originalname.split('.').pop()}`;
         
         // Upload to S3 if available
         let s3Key = null;
         if (s3Service.isInitialized()) {
           s3Key = `gallery/${req.user!.id}/${filename}`;
+          console.log(`Uploading to S3 with key: ${s3Key}, buffer size: ${file.buffer.length}`);
           await s3Service.uploadBuffer(s3Key, file.buffer, file.mimetype);
         } else {
           // Save locally
