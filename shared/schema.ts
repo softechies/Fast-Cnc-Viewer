@@ -46,6 +46,7 @@ export const clientLoginSchema = z.object({
 // Define models table for storing model information
 export const models = pgTable("models", {
   id: serial("id").primaryKey(),
+  publicId: text("public_id").unique(), // Maskowany identyfikator do użytku w URL-ach
   userId: integer("user_id").references(() => users.id),
   filename: text("filename").notNull(),
   filesize: integer("filesize").notNull(),

@@ -439,9 +439,14 @@ export class PostgresStorage implements IStorage {
   }
 
   async createModel(insertModel: InsertModel): Promise<Model> {
+    // Generate publicId using nanoid
+    const { nanoid } = await import('nanoid');
+    const publicId = `model_${nanoid(12)}`;
+    
     // Ensure all nullable fields are explicitly null rather than undefined
     const modelData = { 
       ...insertModel, 
+      publicId,
       userId: insertModel.userId ?? null,
       format: insertModel.format ?? null,
       sourceSystem: insertModel.sourceSystem ?? null,
