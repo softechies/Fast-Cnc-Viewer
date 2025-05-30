@@ -437,7 +437,25 @@ const translations = {
     revokeConfirmDescription: "Êtes-vous sûr de vouloir révoquer le partage pour ce modèle? Cette action ne peut pas être annulée.",
     cancel: "Annuler",
     confirmRevoke: "Oui, révoquer"
-  }
+  },
+  
+  // Thumbnail upload
+  upload_thumbnail: "Télécharger la miniature",
+  upload_custom_thumbnail: "Télécharger une miniature personnalisée",
+  upload_thumbnail_description: "Téléchargez une image miniature personnalisée pour '{modelName}'. L'image sera automatiquement recadrée au format carré.",
+  select_image_file: "Sélectionner un fichier image",
+  supported_formats_jpg_png_max_5mb: "Formats supportés: JPG, PNG. Taille maximale: 5MB",
+  preview: "Aperçu",
+  original: "Original",
+  cropped_to_square: "Recadré en carré",
+  processing: "Traitement...",
+  thumbnail_uploaded_successfully: "Miniature téléchargée avec succès",
+  thumbnail_upload_failed: "Échec du téléchargement de la miniature",
+  please_select_image_file: "Veuillez sélectionner un fichier image",
+  file_too_large_5mb: "Le fichier est trop volumineux. Taille maximale: 5MB",
+  image_processing_failed: "Échec du traitement de l'image",
+  invalid_image_file: "Fichier image invalide",
+  thumbnail_required_for_public: "Une miniature est requise pour ajouter ce modèle à la bibliothèque publique. Veuillez d'abord télécharger une miniature."
 };
 
 export default translations;

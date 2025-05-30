@@ -437,7 +437,25 @@ const translations = {
     revokeConfirmDescription: "Opravdu chcete odvolat sdílení pro tento model? Tuto akci nelze vrátit zpět.",
     cancel: "Zrušit",
     confirmRevoke: "Ano, odvolat"
-  }
+  },
+  
+  // Thumbnail upload
+  upload_thumbnail: "Nahrát náhled",
+  upload_custom_thumbnail: "Nahrát vlastní náhled",
+  upload_thumbnail_description: "Nahrajte vlastní obrázek náhledu pro '{modelName}'. Obrázek bude automaticky oříznut na čtvercový formát.",
+  select_image_file: "Vybrat soubor obrázku",
+  supported_formats_jpg_png_max_5mb: "Podporované formáty: JPG, PNG. Maximální velikost: 5MB",
+  preview: "Náhled",
+  original: "Originál",
+  cropped_to_square: "Oříznut na čtverec",
+  processing: "Zpracovávání...",
+  thumbnail_uploaded_successfully: "Náhled byl úspěšně nahrán",
+  thumbnail_upload_failed: "Nepodařilo se nahrát náhled",
+  please_select_image_file: "Prosím vyberte soubor obrázku",
+  file_too_large_5mb: "Soubor je příliš velký. Maximální velikost je 5MB",
+  image_processing_failed: "Zpracování obrázku selhalo",
+  invalid_image_file: "Neplatný soubor obrázku",
+  thumbnail_required_for_public: "Pro přidání tohoto modelu do veřejné knihovny je vyžadován náhled. Nejprve prosím nahrajte náhled."
 };
 
 export default translations;
