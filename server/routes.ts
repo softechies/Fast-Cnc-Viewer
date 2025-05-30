@@ -920,13 +920,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = metadata?.filePath;
       const s3Key = metadata?.s3Key;
       
-      // Jeśli plik jest w S3, użyj przekierowania
+      // Jeśli plik jest w S3, pobierz go i przekaż do przeglądarki
       if (s3Key && s3Service.isInitialized()) {
         try {
-          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
-          return res.redirect(signedUrl);
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600);
+          
+          // Pobierz plik z S3 i przekaż do przeglądarki
+          const response = await fetch(signedUrl);
+          if (response.ok) {
+            res.setHeader('Content-Type', 'application/step');
+            res.setHeader('Content-Disposition', `attachment; filename="${model.filename}"`);
+            
+            // Przekonwertuj ReadableStream na Buffer i wyślij
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            res.send(buffer);
+            return;
+          }
         } catch (s3Error) {
-          console.error('Failed to get S3 signed URL:', s3Error);
+          console.error('Failed to get file from S3:', s3Error);
           // Kontynuuj próbę lokalnego pliku
         }
       }
@@ -969,13 +981,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stlFilePath = metadata?.stlFilePath;
       const s3Key = metadata?.s3Key;
       
-      // Jeśli plik jest w S3, użyj przekierowania
+      // Jeśli plik jest w S3, pobierz go i przekaż do przeglądarki
       if (s3Key && s3Service.isInitialized()) {
         try {
-          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
-          return res.redirect(signedUrl);
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600);
+          
+          // Pobierz plik z S3 i przekaż do przeglądarki
+          const response = await fetch(signedUrl);
+          if (response.ok) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.setHeader('Content-Disposition', `attachment; filename="${path.basename(model.filename, path.extname(model.filename))}.stl"`);
+            
+            // Przekonwertuj ReadableStream na Buffer i wyślij
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            res.send(buffer);
+            return;
+          }
         } catch (s3Error) {
-          console.error('Failed to get S3 signed URL for STL:', s3Error);
+          console.error('Failed to get STL file from S3:', s3Error);
           // Kontynuuj próbę lokalnego pliku
         }
       }
