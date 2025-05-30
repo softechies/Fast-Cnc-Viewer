@@ -60,9 +60,14 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
       setIsOpen(false);
       setSelectedFile(null);
       setPreviewUrl(null);
-      // Odśwież miniaturki w cache
-      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/library'] });
+      // Odśwież miniaturki w cache z małym opóźnieniem
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/library'] });
+        queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+        // Wymuś ponowne pobranie miniaturki
+        queryClient.removeQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+      }, 100);
     },
     onError: (error: any) => {
       toast({
