@@ -140,9 +140,45 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
     });
   };
 
+  const uploadGalleryMutation = useMutation({
+    mutationFn: async (files: FileList) => {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await fetch(`/api/models/${modelId}/gallery`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload gallery images');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: t('gallery_uploaded_successfully'),
+      });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+    },
+    onError: (error) => {
+      toast({
+        title: t('error'),
+        description: t('gallery_upload_failed'),
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     if (galleryImages.length + files.length > 6) {
       toast({
@@ -153,16 +189,15 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
       return;
     }
 
-    const validFiles: GalleryImage[] = [];
-
-    for (const file of files) {
+    // Walidacja plików
+    for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) {
         toast({
           title: t('error'),
           description: `${t('invalid_image_file')}: ${file.name}`,
           variant: "destructive",
         });
-        continue;
+        return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
@@ -171,58 +206,50 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
           description: `${t('file_too_large_5mb')}: ${file.name}`,
           variant: "destructive",
         });
-        continue;
+        return;
       }
-
-      const previewUrl = URL.createObjectURL(file);
-      validFiles.push({
-        file,
-        previewUrl
-      });
     }
 
-    if (validFiles.length > 0) {
-      setGalleryImages(prev => [...prev, ...validFiles]);
-    }
+    // Prześlij pliki do serwera
+    uploadGalleryMutation.mutate(files);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const removeImage = (index: number) => {
-    setGalleryImages(prev => {
-      const newImages = [...prev];
-      URL.revokeObjectURL(newImages[index].previewUrl);
-      newImages.splice(index, 1);
-      return newImages;
-    });
-  };
-
-  const setAsThumbnail = async (galleryImage: GalleryImage) => {
-    setIsProcessing(true);
-    try {
-      const croppedBlob = await cropImageToSquare(galleryImage);
-      await uploadThumbnailMutation.mutateAsync(croppedBlob);
-    } catch (error) {
-      console.error('Error setting thumbnail:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const setAsThumbnailMutation = useMutation({
+    mutationFn: async (imageId: number) => {
+      const response = await fetch(`/api/models/${modelId}/gallery/${imageId}/thumbnail`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to set thumbnail');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: t('thumbnail_updated_successfully'),
+      });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+    },
+    onError: (error) => {
+      toast({
+        title: t('error'),
+        description: t('thumbnail_update_failed'),
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open) {
       loadCurrentThumbnail();
-    } else {
-      // Clean up URLs when closing
-      galleryImages.forEach(img => URL.revokeObjectURL(img.previewUrl));
-      setGalleryImages([]);
-      if (currentThumbnail) {
-        URL.revokeObjectURL(currentThumbnail);
-        setCurrentThumbnail(null);
-      }
     }
   };
 
@@ -290,16 +317,20 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
               </p>
             </div>
 
-            {/* Uploaded Images Grid */}
-            {galleryImages.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-3">{t('uploaded_images')} ({galleryImages.length}/6)</h4>
+            {/* Gallery Images Grid */}
+            <div>
+              <h4 className="font-medium mb-3">{t('gallery_images')} ({galleryImages.length}/6)</h4>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Ładowanie obrazów galerii...</p>
+                </div>
+              ) : galleryImages.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {galleryImages.map((img, index) => (
-                    <div key={index} className="relative group">
+                  {galleryImages.map((img) => (
+                    <div key={img.id} className="relative group">
                       <img
-                        src={img.previewUrl}
-                        alt={`Gallery image ${index + 1}`}
+                        src={`/api/models/${modelId}/gallery/${img.id}`}
+                        alt={img.originalName}
                         className="w-full h-32 object-cover rounded border"
                       />
                       
@@ -307,29 +338,33 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
                       <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center gap-2">
                         <Button
                           size="sm"
-                          onClick={() => setAsThumbnail(img)}
-                          disabled={isProcessing}
+                          onClick={() => setAsThumbnailMutation.mutate(img.id)}
+                          disabled={setAsThumbnailMutation.isPending}
                           className="bg-blue-500 hover:bg-blue-600"
                         >
                           {t('set_as_thumbnail')}
                         </Button>
                       </div>
                       
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      {/* Active Thumbnail Indicator */}
+                      {img.isThumbnail && (
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded">
+                          {t('active')}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {t('click_set_thumbnail_note')}
-                </p>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded">
+                  <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-muted-foreground">{t('no_gallery_images')}</p>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('click_set_thumbnail_note')}
+              </p>
+            </div>
           </div>
 
           <DialogFooter>
