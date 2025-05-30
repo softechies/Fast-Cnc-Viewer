@@ -201,7 +201,7 @@ export default function CadLibraryPage() {
                         {getFileTypeIcon(model.fileType)} {model.filename}
                       </CardTitle>
                       <CardDescription className="text-sm text-gray-600">
-                        {model.fileType.toUpperCase()}
+                        {model.fileType?.toUpperCase() || 'Unknown'}
                       </CardDescription>
                     </div>
                   </div>
