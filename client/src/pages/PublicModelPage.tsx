@@ -42,7 +42,14 @@ export default function PublicModelPage() {
 
   // Fetch gallery images
   const { data: galleryImages, isLoading: isLoadingGallery } = useQuery<GalleryImage[]>({
-    queryKey: ['/api/public/models', publicId, 'gallery'],
+    queryKey: ['public-model-gallery', publicId],
+    queryFn: async () => {
+      const response = await fetch(`/api/public/models/${publicId}/gallery`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch gallery');
+      }
+      return response.json();
+    },
     enabled: !!publicId,
   });
 
