@@ -238,7 +238,7 @@ export async function generateThumbnail(
  * Generuje nazwę pliku miniaturki na podstawie ID modelu
  */
 export function getThumbnailPath(modelId: number, extension: string = '.png'): string {
-  return path.join(__dirname, '../uploads/thumbnails', `model_${modelId}${extension}`);
+  return path.join(process.cwd(), 'uploads/thumbnails', `model_${modelId}${extension}`);
 }
 
 /**
