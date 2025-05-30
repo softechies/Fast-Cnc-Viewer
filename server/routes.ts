@@ -1376,16 +1376,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log upload success
       console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
       
-      // Wygeneruj miniaturkę w tle
+      // Wygeneruj miniaturkę w tle - musi być przed przesłaniem do S3
       (async () => {
         try {
           const thumbnailPath = getThumbnailPath(model.id);
-          const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
           
-          if (thumbnailGenerated) {
-            console.log(`Thumbnail generated successfully for STL model ID ${model.id}`);
+          // Sprawdź czy plik nadal istnieje
+          if (fs.existsSync(file.path)) {
+            const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
+            
+            if (thumbnailGenerated) {
+              console.log(`Thumbnail generated successfully for STL model ID ${model.id}`);
+            } else {
+              console.log(`Thumbnail generation failed for STL model ID ${model.id}`);
+            }
           } else {
-            console.log(`Thumbnail generation failed for STL model ID ${model.id}`);
+            console.log(`File no longer exists for thumbnail generation: ${file.path}`);
           }
         } catch (thumbnailError) {
           console.error(`Error generating thumbnail for STL model ID ${model.id}:`, thumbnailError);

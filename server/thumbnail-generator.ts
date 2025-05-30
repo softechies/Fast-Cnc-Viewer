@@ -203,6 +203,14 @@ export async function generateThumbnail(
 ): Promise<boolean> {
   const ext = path.extname(filePath).toLowerCase();
   
+  console.log(`[THUMBNAIL] Generating thumbnail for file: ${filePath}, extension: ${ext}, output: ${outputPath}`);
+  
+  // Ensure output directory exists
+  const outputDir = path.dirname(outputPath);
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
   try {
     switch (ext) {
       case '.stl':
