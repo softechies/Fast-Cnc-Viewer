@@ -382,6 +382,49 @@ export class MemStorage implements IStorage {
     
     return updatedModel;
   }
+
+  // Gallery methods
+  private galleryImages: ModelGalleryImage[] = [];
+  private galleryIdCounter: number = 1;
+
+  async getModelGallery(modelId: number): Promise<ModelGalleryImage[]> {
+    return this.galleryImages.filter(img => img.modelId === modelId);
+  }
+
+  async addGalleryImage(image: InsertModelGalleryImage): Promise<ModelGalleryImage> {
+    const newImage: ModelGalleryImage = {
+      id: this.galleryIdCounter++,
+      modelId: image.modelId,
+      filename: image.filename,
+      originalName: image.originalName,
+      filesize: image.filesize,
+      mimeType: image.mimeType,
+      displayOrder: image.displayOrder ?? this.galleryImages.filter(img => img.modelId === image.modelId).length,
+      isThumbnail: image.isThumbnail ?? false,
+      uploadedAt: image.uploadedAt ?? new Date(),
+      s3Key: image.s3Key ?? null
+    };
+    this.galleryImages.push(newImage);
+    return newImage;
+  }
+
+  async deleteGalleryImage(imageId: number): Promise<boolean> {
+    const index = this.galleryImages.findIndex(img => img.id === imageId);
+    if (index !== -1) {
+      this.galleryImages.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  async updateGalleryImageOrder(imageId: number, newOrder: number): Promise<ModelGalleryImage | undefined> {
+    const image = this.galleryImages.find(img => img.id === imageId);
+    if (image) {
+      image.displayOrder = newOrder;
+      return image;
+    }
+    return undefined;
+  }
 }
 
 // PostgreSQL storage implementation
@@ -712,6 +755,64 @@ export class PostgresStorage implements IStorage {
     } catch (error) {
       console.error("Error updating model tags:", error);
       return undefined;
+    }
+  }
+
+  // Gallery methods
+  async getModelGallery(modelId: number): Promise<GalleryImage[]> {
+    try {
+      const result = await db.select()
+        .from(modelGallery)
+        .where(eq(modelGallery.modelId, modelId))
+        .orderBy(modelGallery.displayOrder);
+      return result;
+    } catch (error) {
+      console.error("Error getting model gallery:", error);
+      return [];
+    }
+  }
+
+  async addGalleryImage(modelId: number, filename: string, originalName: string): Promise<GalleryImage> {
+    try {
+      // Get current max order for this model
+      const existingImages = await this.getModelGallery(modelId);
+      const maxOrder = existingImages.length > 0 ? Math.max(...existingImages.map(img => img.displayOrder)) + 1 : 0;
+      
+      const [newImage] = await db.insert(modelGallery)
+        .values({
+          modelId,
+          filename,
+          originalName,
+          displayOrder: maxOrder,
+          uploadedAt: new Date().toISOString()
+        })
+        .returning();
+      
+      return newImage;
+    } catch (error) {
+      console.error("Error adding gallery image:", error);
+      throw error;
+    }
+  }
+
+  async deleteGalleryImage(imageId: number): Promise<void> {
+    try {
+      await db.delete(modelGallery)
+        .where(eq(modelGallery.id, imageId));
+    } catch (error) {
+      console.error("Error deleting gallery image:", error);
+      throw error;
+    }
+  }
+
+  async updateGalleryImageOrder(imageId: number, newOrder: number): Promise<void> {
+    try {
+      await db.update(modelGallery)
+        .set({ displayOrder: newOrder })
+        .where(eq(modelGallery.id, imageId));
+    } catch (error) {
+      console.error("Error updating gallery image order:", error);
+      throw error;
     }
   }
 }
