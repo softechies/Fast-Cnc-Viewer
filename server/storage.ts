@@ -2,6 +2,7 @@ import {
   users, type User, type InsertUser, 
   models, type Model, type InsertModel,
   modelViews, type ModelView, type InsertModelView,
+  modelGallery, type ModelGalleryImage, type InsertModelGalleryImage,
   type ModelViewStats
 } from "@shared/schema";
 import { eq, sql, and, desc, or, like, ilike } from "drizzle-orm";
@@ -40,6 +41,12 @@ export interface IStorage {
   // Library operations
   getLibraryModels(options: { query?: string; tags?: string[]; page?: number; limit?: number; }): Promise<Model[]>;
   updateModelTags(modelId: number, tags: string[]): Promise<Model | undefined>;
+  
+  // Gallery operations
+  getModelGallery(modelId: number): Promise<ModelGalleryImage[]>;
+  addGalleryImage(image: InsertModelGalleryImage): Promise<ModelGalleryImage>;
+  deleteGalleryImage(imageId: number): Promise<boolean>;
+  updateGalleryImageOrder(imageId: number, newOrder: number): Promise<ModelGalleryImage | undefined>;
 }
 
 // In-memory storage implementation

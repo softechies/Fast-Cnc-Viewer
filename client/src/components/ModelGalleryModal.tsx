@@ -4,11 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { Camera, Upload, X, Move, Trash2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Camera, Upload, X, Image as ImageIcon, Plus } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
-interface GalleryUploaderProps {
+interface ModelGalleryModalProps {
   modelId: number;
   modelName: string;
 }
@@ -19,18 +19,10 @@ interface GalleryImage {
   croppedPreviewUrl?: string;
 }
 
-interface ExistingGalleryImage {
-  id: number;
-  filename: string;
-  originalName: string;
-  displayOrder: number;
-  isThumbnail: boolean;
-  uploadedAt: string;
-}
-
-export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
+export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -38,29 +30,24 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
-  // Query to fetch existing gallery images
-  const { data: existingImages = [], isLoading: isLoadingGallery } = useQuery({
-    queryKey: [`/api/models/${modelId}/gallery`],
-    queryFn: async () => {
-      const response = await fetch(`/api/models/${modelId}/gallery`, {
+  // Check if model has existing thumbnail when modal opens
+  const loadCurrentThumbnail = async () => {
+    try {
+      const response = await fetch(`/api/models/${modelId}/thumbnail`, {
         credentials: 'include'
       });
       if (response.ok) {
-        return response.json() as Promise<ExistingGalleryImage[]>;
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setCurrentThumbnail(url);
       }
-      return [] as ExistingGalleryImage[];
-    },
-    enabled: isOpen, // Only fetch when modal is open
-  });
+    } catch (error) {
+      // No existing thumbnail, that's fine
+    }
+  };
 
-  const uploadGalleryMutation = useMutation({
-    mutationFn: async (images: GalleryImage[]) => {
-      if (images.length === 0) return;
-
-      // Przygotuj pierwsze zdjęcie jako miniaturkę (przycięte do kwadratu)
-      const thumbnailBlob = await cropImageToSquare(images[0]);
-      
-      // Prześlij miniaturkę
+  const uploadThumbnailMutation = useMutation({
+    mutationFn: async (thumbnailBlob: Blob) => {
       const formData = new FormData();
       formData.append('thumbnail', thumbnailBlob, `thumbnail_${modelId}.jpg`);
       
@@ -80,13 +67,15 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
     onSuccess: () => {
       toast({
         title: t('success'),
-        description: t('gallery_uploaded_successfully'),
+        description: t('thumbnail_uploaded_successfully'),
       });
-      handleClose();
-      // Odśwież cache
+      // Refresh thumbnail display
+      loadCurrentThumbnail();
+      // Clear uploaded images
+      setGalleryImages([]);
+      // Refresh cache
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/library'] });
         queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
         queryClient.removeQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
       }, 100);
@@ -94,7 +83,7 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
     onError: (error: any) => {
       toast({
         title: t('error'),
-        description: error.message || t('gallery_upload_failed'),
+        description: error.message || t('thumbnail_upload_failed'),
         variant: "destructive",
       });
     },
@@ -107,23 +96,19 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext('2d')!;
         
-        // Ustaw rozmiar canvas na kwadrat 300x300
         canvas.width = 300;
         canvas.height = 300;
         
-        // Oblicz wymiary do przycięcia (środkowy kwadrat)
         const size = Math.min(image.width, image.height);
         const startX = (image.width - size) / 2;
         const startY = (image.height - size) / 2;
         
-        // Rysuj przycięty obraz
         ctx.drawImage(
           image,
-          startX, startY, size, size, // źródło
-          0, 0, 300, 300 // cel
+          startX, startY, size, size,
+          0, 0, 300, 300
         );
         
-        // Konwertuj do Blob
         canvas.toBlob((blob) => {
           if (blob) {
             resolve(blob);
@@ -141,7 +126,6 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
-    // Sprawdź czy możemy dodać więcej zdjęć (max 6)
     if (galleryImages.length + files.length > 6) {
       toast({
         title: t('error'),
@@ -154,7 +138,6 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
     const validFiles: GalleryImage[] = [];
 
     for (const file of files) {
-      // Sprawdź czy to jest plik obrazu
       if (!file.type.startsWith('image/')) {
         toast({
           title: t('error'),
@@ -164,7 +147,6 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
         continue;
       }
 
-      // Sprawdź rozmiar pliku (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: t('error'),
@@ -174,7 +156,6 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
         continue;
       }
 
-      // Utwórz URL podglądu
       const previewUrl = URL.createObjectURL(file);
       validFiles.push({
         file,
@@ -186,7 +167,6 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
       setGalleryImages(prev => [...prev, ...validFiles]);
     }
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -195,61 +175,89 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
   const removeImage = (index: number) => {
     setGalleryImages(prev => {
       const newImages = [...prev];
-      // Zwolnij URL
       URL.revokeObjectURL(newImages[index].previewUrl);
       newImages.splice(index, 1);
       return newImages;
     });
   };
 
-  const handleUpload = async () => {
-    if (galleryImages.length === 0) {
-      toast({
-        title: t('error'),
-        description: t('please_select_image_file'),
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const setAsThumbnail = async (galleryImage: GalleryImage) => {
     setIsProcessing(true);
     try {
-      await uploadGalleryMutation.mutateAsync(galleryImages);
+      const croppedBlob = await cropImageToSquare(galleryImage);
+      await uploadThumbnailMutation.mutateAsync(croppedBlob);
     } catch (error) {
-      console.error('Error uploading gallery:', error);
+      console.error('Error setting thumbnail:', error);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-    // Zwolnij wszystkie URL
-    galleryImages.forEach(img => URL.revokeObjectURL(img.previewUrl));
-    setGalleryImages([]);
+  const handleOpen = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      loadCurrentThumbnail();
+    } else {
+      // Clean up URLs when closing
+      galleryImages.forEach(img => URL.revokeObjectURL(img.previewUrl));
+      setGalleryImages([]);
+      if (currentThumbnail) {
+        URL.revokeObjectURL(currentThumbnail);
+        setCurrentThumbnail(null);
+      }
+    }
   };
 
   return (
     <>
       <canvas ref={canvasRef} style={{ display: 'none' }} />
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Camera className="h-4 w-4 mr-2" />
             {t('add_gallery')}
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('add_gallery_title')}</DialogTitle>
+            <DialogTitle>{t('gallery_management')}</DialogTitle>
             <DialogDescription>
-              {t('add_gallery_description').replace('{modelName}', modelName)}
+              {t('manage_model_gallery').replace('{modelName}', modelName)}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Current Thumbnail Section */}
             <div>
-              <Label htmlFor="gallery-files">{t('select_image_files')}</Label>
+              <h4 className="font-medium mb-3">{t('current_thumbnail')}</h4>
+              <div className="flex items-center gap-4">
+                {currentThumbnail ? (
+                  <div className="relative">
+                    <img
+                      src={currentThumbnail}
+                      alt="Current thumbnail"
+                      className="w-24 h-24 object-cover rounded border"
+                    />
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded">
+                      {t('active')}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+                <div className="text-sm text-muted-foreground">
+                  {currentThumbnail ? t('thumbnail_active') : t('no_thumbnail_set')}
+                </div>
+              </div>
+            </div>
+
+            {/* Upload New Images Section */}
+            <div>
+              <Label htmlFor="gallery-files" className="text-base font-medium">
+                {t('upload_new_images')}
+              </Label>
               <Input
                 id="gallery-files"
                 type="file"
@@ -260,26 +268,36 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
                 className="mt-2"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                {t('supported_formats_jpg_png_max_5mb')} Maksymalnie 6 zdjęć.
+                {t('supported_formats_jpg_png_max_5mb')} Maksymalnie 6 zdjęć na raz.
               </p>
             </div>
 
+            {/* Uploaded Images Grid */}
             {galleryImages.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium">{t('gallery_preview')} ({galleryImages.length}/6)</h4>
-                <div className="grid grid-cols-3 gap-3">
+              <div>
+                <h4 className="font-medium mb-3">{t('uploaded_images')} ({galleryImages.length}/6)</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {galleryImages.map((img, index) => (
                     <div key={index} className="relative group">
                       <img
                         src={img.previewUrl}
                         alt={`Gallery image ${index + 1}`}
-                        className="w-full h-24 object-cover rounded border"
+                        className="w-full h-32 object-cover rounded border"
                       />
-                      {index === 0 && (
-                        <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
-                          {t('thumbnail')}
-                        </div>
-                      )}
+                      
+                      {/* Image Actions */}
+                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setAsThumbnail(img)}
+                          disabled={isProcessing}
+                          className="bg-blue-500 hover:bg-blue-600"
+                        >
+                          {t('set_as_thumbnail')}
+                        </Button>
+                      </div>
+                      
+                      {/* Remove Button */}
                       <button
                         onClick={() => removeImage(index)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -289,32 +307,16 @@ export function GalleryUploader({ modelId, modelName }: GalleryUploaderProps) {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('first_image_thumbnail_note')}
+                <p className="text-sm text-muted-foreground mt-2">
+                  {t('click_set_thumbnail_note')}
                 </p>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>
-              {t('cancel')}
-            </Button>
-            <Button
-              onClick={handleUpload}
-              disabled={galleryImages.length === 0 || isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <Upload className="mr-2 h-4 w-4 animate-spin" />
-                  {t('processing')}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {t('upload_gallery')}
-                </>
-              )}
+            <Button variant="outline" onClick={() => handleOpen(false)}>
+              {t('close')}
             </Button>
           </DialogFooter>
         </DialogContent>

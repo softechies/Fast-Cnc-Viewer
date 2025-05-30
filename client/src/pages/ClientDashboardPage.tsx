@@ -26,7 +26,7 @@ import UploadModal from "@/components/UploadModal";
 import CadUploader from "@/components/CadUploader";
 import { useModelUpload } from "@/lib/hooks";
 import { ModelThumbnail } from "@/components/ModelThumbnail";
-import { GalleryUploader } from "@/components/GalleryUploader";
+import { ModelGalleryModal } from "@/components/ModelGalleryModal";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
