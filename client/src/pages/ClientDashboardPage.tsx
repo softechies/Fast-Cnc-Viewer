@@ -388,7 +388,7 @@ export default function ClientDashboardPage() {
                       <TableRow>
                         <TableHead>{t('filename')}</TableHead>
                         <TableHead>{t('shared_with')}</TableHead>
-                        <TableHead>{t('status')}</TableHead>
+                        <TableHead>{t('shared_status')}</TableHead>
                         <TableHead>{t('last_accessed')}</TableHead>
                         <TableHead className="text-right">{t('actions')}</TableHead>
                       </TableRow>

@@ -176,6 +176,7 @@ const translations = {
   filename: "Filename",
   shared_with: "Shared With",
   status: "Status",
+  shared_status: "Shared Status",
   last_accessed: "Last Accessed",
   active: "Active",
   inactive: "Inactive",
