@@ -28,10 +28,28 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
 
   const uploadThumbnailMutation = useMutation({
     mutationFn: async (thumbnailBlob: Blob) => {
+      console.log('Creating FormData with blob:', thumbnailBlob.size, 'bytes');
       const formData = new FormData();
       formData.append('thumbnail', thumbnailBlob, `thumbnail_${modelId}.jpg`);
       
-      const response = await apiRequest('POST', `/api/models/${modelId}/thumbnail`, formData);
+      // Sprawdź zawartość FormData
+      for (let [key, value] of formData.entries()) {
+        console.log('FormData entry:', key, value);
+      }
+      
+      // Bezpośrednie wywołanie fetch zamiast apiRequest
+      const response = await fetch(`/api/models/${modelId}/thumbnail`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include' // Ważne dla sesji
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload error:', response.status, errorText);
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      }
+      
       return response.json();
     },
     onSuccess: () => {
