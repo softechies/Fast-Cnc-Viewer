@@ -186,6 +186,7 @@ const translations = {
   status: "Status",
   shared_status: "Freigabestatus",
   last_accessed: "Letzter Zugriff",
+  add_to_cad_library: "Zur CAD-Bibliothek hinzufügen",
   active: "Aktiv",
   inactive: "Inaktiv",
   view_model: "Modell anzeigen",

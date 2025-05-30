@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -390,6 +391,7 @@ export default function ClientDashboardPage() {
                         <TableHead>{t('shared_with')}</TableHead>
                         <TableHead>{t('shared_status')}</TableHead>
                         <TableHead>{t('last_accessed')}</TableHead>
+                        <TableHead>{t('add_to_cad_library')}</TableHead>
                         <TableHead className="text-right">{t('actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -418,6 +420,15 @@ export default function ClientDashboardPage() {
                             {model.shareLastAccessed 
                               ? new Date(model.shareLastAccessed).toLocaleDateString() 
                               : "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Switch 
+                              checked={false} 
+                              onCheckedChange={(checked) => {
+                                // TODO: Implementacja funkcji dodawania do biblioteki CAD
+                                console.log(`Toggle CAD library for model ${model.id}:`, checked);
+                              }}
+                            />
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">

@@ -185,6 +185,7 @@ const translations = {
   status: "Statut",
   shared_status: "Statut de partage",
   last_accessed: "Dernier accès",
+  add_to_cad_library: "Ajouter à la bibliothèque CAO",
   active: "Actif",
   inactive: "Inactif",
   view_model: "Voir le modèle",

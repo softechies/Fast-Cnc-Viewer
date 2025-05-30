@@ -185,6 +185,7 @@ const translations = {
   status: "Stav",
   shared_status: "Stav sdílení",
   last_accessed: "Poslední přístup",
+  add_to_cad_library: "Přidat do CAD knihovny",
   active: "Aktivní",
   inactive: "Neaktivní",
   view_model: "Zobrazit model",
