@@ -25,6 +25,7 @@ import FooterBar from "@/components/FooterBar";
 import UploadModal from "@/components/UploadModal";
 import CadUploader from "@/components/CadUploader";
 import { useModelUpload } from "@/lib/hooks";
+import { ModelThumbnail } from "@/components/ModelThumbnail";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -442,7 +443,16 @@ export default function ClientDashboardPage() {
                     <TableBody>
                       {models.map((model) => (
                         <TableRow key={model.id}>
-                          <TableCell className="font-medium">{model.filename}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-3">
+                              <ModelThumbnail 
+                                modelId={model.id} 
+                                filename={model.filename}
+                                className="w-12 h-12 flex-shrink-0"
+                              />
+                              <span className="truncate">{model.filename}</span>
+                            </div>
+                          </TableCell>
                           <TableCell>{model.shareEmail || "-"}</TableCell>
                           <TableCell>
                             <div className="flex items-center">

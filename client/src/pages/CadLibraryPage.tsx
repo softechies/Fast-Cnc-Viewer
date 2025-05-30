@@ -199,10 +199,16 @@ export default function CadLibraryPage() {
             {filteredModels.map((model) => (
               <Card key={model.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-3">
+                    <ModelThumbnail 
+                      modelId={model.id} 
+                      filename={model.filename}
+                      format={model.fileType}
+                      className="w-16 h-16 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg font-semibold text-gray-900 truncate">
-                        {getFileTypeIcon(model.fileType)} {model.filename}
+                        {model.filename}
                       </CardTitle>
                       <CardDescription className="text-sm text-gray-600">
                         {model.fileType?.toUpperCase() || 'Unknown'}
