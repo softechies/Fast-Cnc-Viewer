@@ -90,6 +90,7 @@ const translations = {
   dragAndDrop: "Przeciągnij i upuść plik tutaj lub kliknij, aby przeglądać",
   selectFile: "Wybierz plik",
   uploadingModel: "Przesyłanie modelu...",
+  uploading_images: "Przesyłanie obrazów...",
   uploadProgress: "Postęp przesyłania",
   uploadComplete: "Przesyłanie zakończone",
   uploadFailed: "Przesyłanie nie powiodło się",

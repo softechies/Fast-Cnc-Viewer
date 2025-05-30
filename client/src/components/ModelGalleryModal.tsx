@@ -324,10 +324,10 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
                         <Button
                           size="sm"
                           onClick={() => setAsThumbnailMutation.mutate(img.id)}
-                          disabled={setAsThumbnailMutation.isPending}
+                          disabled={setAsThumbnailMutation.isPending || uploadGalleryMutation.isPending}
                           className="bg-blue-500 hover:bg-blue-600"
                         >
-                          {t('set_as_thumbnail')}
+                          {setAsThumbnailMutation.isPending ? `${t('processing')}...` : t('set_as_thumbnail')}
                         </Button>
                       </div>
                       
