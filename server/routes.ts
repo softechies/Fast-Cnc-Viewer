@@ -998,6 +998,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload custom model thumbnail
+  const thumbnailUpload = multer({
+    dest: 'uploads/temp-thumbnails/',
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  app.post("/api/models/:id/thumbnail", thumbnailUpload.single('thumbnail'), async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "No thumbnail file provided" });
+      }
+
+      // Sprawdź czy użytkownik ma dostęp do modelu
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Przenieś plik do odpowiedniego katalogu
+      const thumbnailPath = getThumbnailPath(modelId);
+      const thumbnailDir = path.dirname(thumbnailPath);
+      
+      // Upewnij się że katalog istnieje
+      if (!fs.existsSync(thumbnailDir)) {
+        fs.mkdirSync(thumbnailDir, { recursive: true });
+      }
+
+      // Przenieś plik i usuń stary jeśli istnieje
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+      }
+      
+      fs.copyFileSync(file.path, thumbnailPath);
+      fs.unlinkSync(file.path); // Usuń tymczasowy plik
+
+      console.log(`Custom thumbnail uploaded for model ${modelId}`);
+      
+      res.json({ 
+        success: true, 
+        message: "Thumbnail uploaded successfully",
+        thumbnailUrl: `/api/models/${modelId}/thumbnail`
+      });
+      
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      res.status(500).json({ message: "Failed to upload thumbnail" });
+    }
+  });
+
   // Get model tree structure
   app.get("/api/models/:id/tree", async (req: Request, res: Response) => {
     try {
