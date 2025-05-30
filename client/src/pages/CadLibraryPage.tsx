@@ -43,16 +43,16 @@ export default function CadLibraryPage() {
 
   // Filtrowanie modeli
   const filteredModels = models?.filter(model => {
-    const matchesSearch = model.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         model.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = model.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (model.tags && Array.isArray(model.tags) && model.tags.some(tag => tag?.toLowerCase().includes(searchTerm.toLowerCase())));
     
-    const matchesTag = !selectedTag || model.tags.includes(selectedTag);
+    const matchesTag = !selectedTag || (model.tags && Array.isArray(model.tags) && model.tags.includes(selectedTag));
     
     return matchesSearch && matchesTag;
   }) || [];
 
   // Pobieranie wszystkich unikalnych tagów
-  const allTags = Array.from(new Set(models?.flatMap(model => model.tags) || []));
+  const allTags = Array.from(new Set(models?.flatMap(model => model.tags && Array.isArray(model.tags) ? model.tags : []) || []));
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return 'N/A';
