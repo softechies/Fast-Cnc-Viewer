@@ -30,9 +30,10 @@ interface GalleryImage {
 export default function PublicModelPage() {
   const { t } = useLanguage();
   const [, params] = useRoute("/library/model/:publicId");
+  const [, paramsWithLang] = useRoute("/:lang/library/model/:publicId");
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const publicId = params?.publicId;
+  const publicId = params?.publicId || paramsWithLang?.publicId;
 
   console.log('PublicModelPage rendered with params:', params);
   console.log('PublicId:', publicId);
