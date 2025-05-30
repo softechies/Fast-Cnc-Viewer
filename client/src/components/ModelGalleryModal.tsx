@@ -129,8 +129,16 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
   });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File select event triggered');
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    console.log('Selected files:', files);
+    
+    if (!files || files.length === 0) {
+      console.log('No files selected');
+      return;
+    }
+
+    console.log('Files found:', files.length, Array.from(files).map(f => f.name));
 
     if (galleryImages.length + files.length > 6) {
       toast({
@@ -162,6 +170,7 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
       }
     }
 
+    console.log('About to upload files');
     // Prześlij pliki do serwera
     uploadGalleryMutation.mutate(files);
 
