@@ -430,7 +430,19 @@ const translations = {
   select_image_files: "Wybierz pliki obrazów",
   thumbnail: "Miniaturka",
   active: "Aktywny",
-  inactive: "Nieaktywny"
+  inactive: "Nieaktywny",
+  
+  // Zarządzanie galerią
+  gallery_management: "Zarządzanie galerią",
+  manage_model_gallery: "Zarządzaj galerią dla modelu {modelName}",
+  current_thumbnail: "Obecna miniaturka",
+  thumbnail_active: "Ta miniaturka jest obecnie aktywna",
+  no_thumbnail_set: "Brak miniaturki dla tego modelu",
+  upload_new_images: "Prześlij nowe zdjęcia",
+  uploaded_images: "Przesłane zdjęcia",
+  set_as_thumbnail: "Ustaw jako miniaturkę",
+  click_set_thumbnail_note: "Kliknij 'Ustaw jako miniaturkę' na dowolnym zdjęciu, aby ustawić je jako miniaturkę modelu",
+  close_gallery: "Zamknij"
 };
 
 export default translations;

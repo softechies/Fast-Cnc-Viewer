@@ -455,7 +455,7 @@ export default function ClientDashboardPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <GalleryUploader 
+                            <ModelGalleryModal 
                               modelId={model.id} 
                               modelName={model.filename}
                             />

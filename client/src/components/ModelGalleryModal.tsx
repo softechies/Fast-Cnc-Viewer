@@ -316,7 +316,7 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
 
           <DialogFooter>
             <Button variant="outline" onClick={() => handleOpen(false)}>
-              {t('close')}
+              {t('close_gallery')}
             </Button>
           </DialogFooter>
         </DialogContent>

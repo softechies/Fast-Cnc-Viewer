@@ -210,6 +210,18 @@ const translations = {
   first_image_thumbnail_note: "The first image will be used as the model thumbnail",
   select_image_files: "Select Image Files",
   thumbnail: "Thumbnail",
+  
+  // Gallery modal translations
+  gallery_management: "Gallery Management",
+  manage_model_gallery: "Manage gallery for model {modelName}",
+  current_thumbnail: "Current Thumbnail",
+  thumbnail_active: "This thumbnail is currently active",
+  no_thumbnail_set: "No thumbnail set for this model",
+  upload_new_images: "Upload New Images",
+  uploaded_images: "Uploaded Images",
+  set_as_thumbnail: "Set as Thumbnail",
+  click_set_thumbnail_note: "Click 'Set as Thumbnail' on any image to make it the model's thumbnail",
+  close_gallery: "Close",
   view_model: "View Model",
   view_share_link: "View Share Link",
   enable_sharing: "Share Model",
