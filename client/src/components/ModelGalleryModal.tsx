@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Upload, X, Image as ImageIcon, Plus, Loader2 } from "lucide-react";
-import { useLanguage } from "@/lib/LanguageContext";
-import { apiRequest } from "@/lib/queryClient";
+import React, { useState, useRef } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Camera, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/lib/LanguageContext';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ModelGalleryModalProps {
   modelId: number;
@@ -29,7 +29,6 @@ interface GalleryImage {
 export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -51,93 +50,15 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
   // Check if model has existing thumbnail when modal opens
   const loadCurrentThumbnail = async () => {
     try {
-      const response = await fetch(`/api/models/${modelId}/thumbnail`, {
-        credentials: 'include'
-      });
+      const response = await fetch(`/api/models/${modelId}/thumbnail`);
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         setCurrentThumbnail(url);
       }
     } catch (error) {
-      // No existing thumbnail, that's fine
+      // No thumbnail exists
     }
-  };
-
-  const uploadThumbnailMutation = useMutation({
-    mutationFn: async (thumbnailBlob: Blob) => {
-      const formData = new FormData();
-      formData.append('thumbnail', thumbnailBlob, `thumbnail_${modelId}.jpg`);
-      
-      const response = await fetch(`/api/models/${modelId}/thumbnail`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} ${errorText}`);
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('thumbnail_uploaded_successfully'),
-      });
-      // Refresh thumbnail display
-      loadCurrentThumbnail();
-      // Clear uploaded images
-      setGalleryImages([]);
-      // Refresh cache
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
-        queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
-        queryClient.removeQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
-      }, 100);
-    },
-    onError: (error: any) => {
-      toast({
-        title: t('error'),
-        description: error.message || t('thumbnail_upload_failed'),
-        variant: "destructive",
-      });
-    },
-  });
-
-  const cropImageToSquare = (galleryImage: GalleryImage): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => {
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext('2d')!;
-        
-        canvas.width = 300;
-        canvas.height = 300;
-        
-        const size = Math.min(image.width, image.height);
-        const startX = (image.width - size) / 2;
-        const startY = (image.height - size) / 2;
-        
-        ctx.drawImage(
-          image,
-          startX, startY, size, size,
-          0, 0, 300, 300
-        );
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to convert canvas to blob'));
-          }
-        }, 'image/jpeg', 0.85);
-      };
-      image.onerror = () => reject(new Error('Failed to load image'));
-      image.src = galleryImage.previewUrl;
-    });
   };
 
   const uploadGalleryMutation = useMutation({
@@ -171,6 +92,34 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
       toast({
         title: t('error'),
         description: t('gallery_upload_failed'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const setAsThumbnailMutation = useMutation({
+    mutationFn: async (imageId: number) => {
+      const response = await fetch(`/api/models/${modelId}/gallery/${imageId}/thumbnail`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to set thumbnail');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: t('thumbnail_updated_successfully'),
+      });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+    },
+    onError: (error) => {
+      toast({
+        title: t('error'),
+        description: t('thumbnail_update_failed'),
         variant: "destructive",
       });
     },
@@ -218,34 +167,6 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
     }
   };
 
-  const setAsThumbnailMutation = useMutation({
-    mutationFn: async (imageId: number) => {
-      const response = await fetch(`/api/models/${modelId}/gallery/${imageId}/thumbnail`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to set thumbnail');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('thumbnail_updated_successfully'),
-      });
-      refetch();
-      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
-    },
-    onError: (error) => {
-      toast({
-        title: t('error'),
-        description: t('thumbnail_update_failed'),
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open) {
@@ -255,7 +176,6 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
       <Dialog open={isOpen} onOpenChange={handleOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
