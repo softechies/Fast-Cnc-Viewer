@@ -198,6 +198,18 @@ const translations = {
   password_protected_public_error: "Cannot add password-protected model to public library. Please remove private sharing or remove password first.",
   active: "Active",
   inactive: "Inactive",
+  
+  // Gallery upload translations
+  add_gallery: "Add Gallery",
+  add_gallery_title: "Upload Model Gallery",
+  add_gallery_description: "Upload up to 6 images for model {modelName}. The first image will be used as thumbnail.",
+  upload_gallery: "Upload Gallery",
+  gallery_uploaded_successfully: "Gallery uploaded successfully",
+  gallery_upload_failed: "Failed to upload gallery",
+  gallery_preview: "Gallery Preview",
+  first_image_thumbnail_note: "The first image will be used as the model thumbnail",
+  select_image_files: "Select Image Files",
+  thumbnail: "Thumbnail",
   view_model: "View Model",
   view_share_link: "View Share Link",
   enable_sharing: "Share Model",

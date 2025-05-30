@@ -416,7 +416,21 @@ const translations = {
   file_too_large_5mb: "Plik jest za duży. Maksymalny rozmiar to 5MB",
   image_processing_failed: "Przetwarzanie obrazu nie powiodło się",
   invalid_image_file: "Nieprawidłowy plik obrazu",
-  thumbnail_required_for_public: "Miniaturka jest wymagana aby dodać model do publicznej biblioteki. Proszę najpierw przesłać miniaturkę."
+  thumbnail_required_for_public: "Miniaturka jest wymagana aby dodać model do publicznej biblioteki. Proszę najpierw przesłać miniaturkę.",
+  
+  // Galeria zdjęć
+  add_gallery: "Dodaj galerię",
+  add_gallery_title: "Prześlij galerię modelu",
+  add_gallery_description: "Prześlij do 6 zdjęć dla modelu {modelName}. Pierwsze zdjęcie będzie użyte jako miniaturka.",
+  upload_gallery: "Prześlij galerię",
+  gallery_uploaded_successfully: "Galeria została przesłana pomyślnie",
+  gallery_upload_failed: "Nie udało się przesłać galerii",
+  gallery_preview: "Podgląd galerii",
+  first_image_thumbnail_note: "Pierwsze zdjęcie będzie użyte jako miniaturka modelu",
+  select_image_files: "Wybierz pliki obrazów",
+  thumbnail: "Miniaturka",
+  active: "Aktywny",
+  inactive: "Nieaktywny"
 };
 
 export default translations;
