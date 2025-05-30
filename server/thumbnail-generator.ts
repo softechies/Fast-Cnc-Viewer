@@ -32,16 +32,15 @@ export async function generateSTLThumbnail(
   const opts = { ...DEFAULT_OPTIONS, ...options };
   
   return new Promise((resolve, reject) => {
-    const pythonScript = path.join(__dirname, 'generate_stl_thumbnail.py');
+    // Spróbuj najpierw zaawansowanego renderera
+    const advancedScript = path.join(__dirname, 'advanced_stl_renderer.py');
     
     const args = [
-      pythonScript,
+      advancedScript,
       stlFilePath,
       outputPath,
       '--width', opts.width.toString(),
-      '--height', opts.height.toString(),
-      '--quality', opts.quality.toString(),
-      '--background', opts.background
+      '--height', opts.height.toString()
     ];
 
     const python = spawn('python3', args);
@@ -54,15 +53,50 @@ export async function generateSTLThumbnail(
     
     python.on('close', (code) => {
       if (code === 0 && fs.existsSync(outputPath)) {
+        console.log('STL thumbnail generated with advanced renderer');
         resolve(true);
       } else {
-        console.error('STL thumbnail generation failed:', stderr);
-        resolve(false);
+        console.log('Advanced renderer failed, trying fallback:', stderr);
+        
+        // Fallback do poprzedniego generatora
+        const fallbackScript = path.join(__dirname, 'generate_stl_thumbnail.py');
+        const fallbackArgs = [
+          fallbackScript,
+          stlFilePath,
+          outputPath,
+          '--width', opts.width.toString(),
+          '--height', opts.height.toString(),
+          '--quality', opts.quality.toString(),
+          '--background', opts.background
+        ];
+
+        const fallbackPython = spawn('python3', fallbackArgs);
+        
+        let fallbackStderr = '';
+        
+        fallbackPython.stderr.on('data', (data) => {
+          fallbackStderr += data.toString();
+        });
+        
+        fallbackPython.on('close', (fallbackCode) => {
+          if (fallbackCode === 0 && fs.existsSync(outputPath)) {
+            console.log('STL thumbnail generated with fallback renderer');
+            resolve(true);
+          } else {
+            console.error('Both STL renderers failed:', fallbackStderr);
+            resolve(false);
+          }
+        });
+        
+        fallbackPython.on('error', (error) => {
+          console.error('Fallback Python process error:', error);
+          resolve(false);
+        });
       }
     });
     
     python.on('error', (error) => {
-      console.error('Python process error:', error);
+      console.error('Advanced Python process error:', error);
       resolve(false);
     });
   });
