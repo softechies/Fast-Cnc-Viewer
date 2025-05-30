@@ -4,7 +4,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSelector from "./LanguageSelector";
 import fastCncLogo from "../assets/fast-cnc-logo.jpg";
 
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
@@ -22,6 +22,16 @@ interface HeaderProps {
 export default function Header({ onUploadClick }: HeaderProps) {
   const { t } = useLanguage();
   const { user, logoutMutation } = useAuth();
+  const [location] = useLocation();
+  
+  // Wyodrębnij kod języka z aktualnego URL-a
+  const langMatch = location.match(/^\/([a-z]{2})\//);
+  const currentLang = langMatch ? langMatch[1] : '';
+  
+  // Funkcja do budowania URL-a z aktualnym językiem
+  const buildUrlWithLang = (path: string) => {
+    return currentLang ? `/${currentLang}${path}` : path;
+  };
   
   return (
     <header className="bg-white shadow-sm">
@@ -50,7 +60,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
             asChild
             className="mr-2"
           >
-            <Link href="/cad-library">
+            <Link href={buildUrlWithLang('/cad-library')}>
               <BookOpen className="mr-2 h-4 w-4" />
               <span>{t('library.title')}</span>
             </Link>
@@ -78,14 +88,14 @@ export default function Header({ onUploadClick }: HeaderProps) {
                 <DropdownMenuSeparator />
                 {user.isClient && (
                   <DropdownMenuItem asChild>
-                    <Link href="/client/dashboard">
+                    <Link href={buildUrlWithLang('/client/dashboard')}>
                       {t('client_dashboard')}
                     </Link>
                   </DropdownMenuItem>
                 )}
                 {user.isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin/dashboard">
+                    <Link href={buildUrlWithLang('/admin/dashboard')}>
                       {t('admin.dashboardTitle')}
                     </Link>
                   </DropdownMenuItem>
@@ -99,7 +109,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
             </DropdownMenu>
           ) : (
             <Button variant="outline" size="sm" asChild>
-              <Link href="/auth">
+              <Link href={buildUrlWithLang('/auth')}>
                 <LogIn className="mr-2 h-4 w-4" />
                 <span>{t('login')}</span>
               </Link>
