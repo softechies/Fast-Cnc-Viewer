@@ -8,6 +8,7 @@ import { Loader2, Search, Eye, Download, FileIcon, Calendar, User } from "lucide
 import { useLanguage } from "@/lib/LanguageContext";
 import FooterBar from "@/components/FooterBar";
 import Header from "@/components/Header";
+import { ModelThumbnail } from "@/components/ModelThumbnail";
 
 interface PublicModel {
   id: number;

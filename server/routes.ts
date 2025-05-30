@@ -757,6 +757,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             
             console.log(`Conversion completed successfully for model ID ${model.id}`);
+            
+            // Wygeneruj miniaturkę
+            try {
+              const thumbnailPath = getThumbnailPath(model.id);
+              const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
+              
+              if (thumbnailGenerated) {
+                console.log(`Thumbnail generated successfully for model ID ${model.id}`);
+              } else {
+                console.log(`Thumbnail generation failed for model ID ${model.id}`);
+              }
+            } catch (thumbnailError) {
+              console.error(`Error generating thumbnail for model ID ${model.id}:`, thumbnailError);
+            }
           } else {
             // Konwersja nie powiodła się
             const updatedMetadata = {
@@ -962,6 +976,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error serving public model file:", error);
       res.status(500).json({ message: "Failed to serve model file" });
+    }
+  });
+
+  // Get model thumbnail
+  app.get("/api/models/:id/thumbnail", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      const thumbnailPath = getThumbnailPath(modelId);
+      
+      if (!fs.existsSync(thumbnailPath)) {
+        return res.status(404).json({ message: "Thumbnail not found" });
+      }
+      
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+      fs.createReadStream(thumbnailPath).pipe(res);
+    } catch (error) {
+      console.error("Error serving thumbnail:", error);
+      res.status(500).json({ message: "Failed to serve thumbnail" });
     }
   });
 
@@ -1342,6 +1375,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log upload success
       console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
+      
+      // Wygeneruj miniaturkę w tle
+      (async () => {
+        try {
+          const thumbnailPath = getThumbnailPath(model.id);
+          const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
+          
+          if (thumbnailGenerated) {
+            console.log(`Thumbnail generated successfully for STL model ID ${model.id}`);
+          } else {
+            console.log(`Thumbnail generation failed for STL model ID ${model.id}`);
+          }
+        } catch (thumbnailError) {
+          console.error(`Error generating thumbnail for STL model ID ${model.id}:`, thumbnailError);
+        }
+      })();
     
       res.status(201).json({
         id: model.id,
@@ -1490,6 +1539,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Logujemy token dostępu dla celów diagnostycznych
       console.log(`CAD model ID: ${model.id} przypisany token dostępu: ${viewToken}`);
       console.log(`Token zapisany w sesji użytkownika: ${req.session.viewTokens[model.id]}`);
+      
+      // Wygeneruj miniaturkę w tle
+      (async () => {
+        try {
+          const thumbnailPath = getThumbnailPath(model.id);
+          const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
+          
+          if (thumbnailGenerated) {
+            console.log(`Thumbnail generated successfully for CAD model ID ${model.id}`);
+          } else {
+            console.log(`Thumbnail generation failed for CAD model ID ${model.id}`);
+          }
+        } catch (thumbnailError) {
+          console.error(`Error generating thumbnail for CAD model ID ${model.id}:`, thumbnailError);
+        }
+      })();
       
       res.status(201).json({
         id: model.id,
