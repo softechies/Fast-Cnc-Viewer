@@ -424,7 +424,7 @@ export default function ClientDashboardPage() {
                           <TableCell>
                             <Switch 
                               checked={false} 
-                              onCheckedChange={(checked) => {
+                              onCheckedChange={(checked: boolean) => {
                                 // TODO: Implementacja funkcji dodawania do biblioteki CAD
                                 console.log(`Toggle CAD library for model ${model.id}:`, checked);
                               }}
