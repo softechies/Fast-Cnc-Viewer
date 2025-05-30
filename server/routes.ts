@@ -2750,7 +2750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Dla zwykłego użytkownika, pobierz modele powiązane z jego adresem email
       if (user.email) {
         const userModels = await storage.getModelsByEmail(user.email);
-        return res.json(userModels);
+        // Dodaj obliczone pole hasPassword do każdego modelu
+        const modelsWithPassword = userModels.map(model => ({
+          ...model,
+          hasPassword: !!model.sharePassword
+        }));
+        return res.json(modelsWithPassword);
       }
       
       // Zwróć pustą tablicę, jeśli użytkownik nie ma emaila
