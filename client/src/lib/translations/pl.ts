@@ -398,7 +398,24 @@ const translations = {
   cad_library_view: "Zobacz",
   cad_library_download: "Pobierz",
   password_protected_public_error: "Nie można dodać modelu chronionego hasłem do publicznej biblioteki. Najpierw usuń udostępnianie prywatne lub usuń hasło.",
-  logout: "Wyloguj"
+  logout: "Wyloguj",
+  
+  // Przesyłanie miniaturek
+  upload_thumbnail: "Prześlij miniaturkę",
+  upload_custom_thumbnail: "Prześlij własną miniaturkę",
+  upload_thumbnail_description: "Prześlij własną miniaturkę dla '{modelName}'. Obraz zostanie automatycznie przycięty do kwadratu.",
+  select_image_file: "Wybierz plik obrazu",
+  supported_formats_jpg_png_max_5mb: "Obsługiwane formaty: JPG, PNG. Maksymalny rozmiar: 5MB",
+  preview: "Podgląd",
+  original: "Oryginał",
+  cropped_to_square: "Przycięty do kwadratu",
+  processing: "Przetwarzanie...",
+  thumbnail_uploaded_successfully: "Miniaturka została przesłana pomyślnie",
+  thumbnail_upload_failed: "Nie udało się przesłać miniaturki",
+  please_select_image_file: "Proszę wybrać plik obrazu",
+  file_too_large_5mb: "Plik jest za duży. Maksymalny rozmiar to 5MB",
+  image_processing_failed: "Przetwarzanie obrazu nie powiodło się",
+  invalid_image_file: "Nieprawidłowy plik obrazu"
 };
 
 export default translations;

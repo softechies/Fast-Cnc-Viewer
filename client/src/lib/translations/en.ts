@@ -439,7 +439,24 @@ const translations = {
     revokeConfirmDescription: "Are you sure you want to revoke sharing for this model? This action cannot be undone.",
     cancel: "Cancel",
     confirmRevoke: "Yes, Revoke"
-  }
+  },
+
+  // Thumbnail upload
+  upload_thumbnail: "Upload Thumbnail",
+  upload_custom_thumbnail: "Upload Custom Thumbnail",
+  upload_thumbnail_description: "Upload a custom thumbnail image for '{modelName}'. The image will be automatically cropped to a square format.",
+  select_image_file: "Select Image File",
+  supported_formats_jpg_png_max_5mb: "Supported formats: JPG, PNG. Maximum size: 5MB",
+  preview: "Preview",
+  original: "Original",
+  cropped_to_square: "Cropped to Square",
+  processing: "Processing...",
+  thumbnail_uploaded_successfully: "Thumbnail uploaded successfully",
+  thumbnail_upload_failed: "Failed to upload thumbnail",
+  please_select_image_file: "Please select an image file",
+  file_too_large_5mb: "File is too large. Maximum size is 5MB",
+  image_processing_failed: "Image processing failed",
+  invalid_image_file: "Invalid image file"
 };
 
 export default translations;

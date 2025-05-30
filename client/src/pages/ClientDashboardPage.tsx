@@ -26,6 +26,7 @@ import UploadModal from "@/components/UploadModal";
 import CadUploader from "@/components/CadUploader";
 import { useModelUpload } from "@/lib/hooks";
 import { ModelThumbnail } from "@/components/ModelThumbnail";
+import { ThumbnailUploader } from "@/components/ThumbnailUploader";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -523,6 +524,12 @@ export default function ClientDashboardPage() {
                                   <span className="sr-only">{t('enable_sharing')}</span>
                                 </Button>
                               )}
+                              
+                              {/* Przycisk przesyłania miniaturki */}
+                              <ThumbnailUploader 
+                                modelId={model.id} 
+                                modelName={model.filename}
+                              />
                               
                               {/* Przycisk zmiany hasła - dostępny zawsze */}
                               <Button
