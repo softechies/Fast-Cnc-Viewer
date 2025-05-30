@@ -1011,6 +1011,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gallery upload configuration using memory storage
+  const galleryUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit per file
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
   app.post("/api/models/:id/thumbnail", thumbnailUpload.single('thumbnail'), async (req: Request, res: Response) => {
     try {
       const modelId = parseInt(req.params.id);
@@ -3235,7 +3248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/models/:id/gallery", thumbnailUpload.array('images', 6), async (req: Request, res: Response) => {
+  app.post("/api/models/:id/gallery", galleryUpload.array('images', 6), async (req: Request, res: Response) => {
     try {
       const modelId = parseInt(req.params.id);
       const files = req.files as Express.Multer.File[];
