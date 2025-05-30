@@ -41,17 +41,22 @@ export default function PublicModelPage() {
   });
 
   // Fetch gallery images
-  const { data: galleryImages, isLoading: isLoadingGallery } = useQuery<GalleryImage[]>({
+  const { data: galleryImages, isLoading: isLoadingGallery, error: galleryError } = useQuery<GalleryImage[]>({
     queryKey: ['public-model-gallery', publicId],
     queryFn: async () => {
+      console.log('Fetching gallery for publicId:', publicId);
       const response = await fetch(`/api/public/models/${publicId}/gallery`);
       if (!response.ok) {
         throw new Error('Failed to fetch gallery');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Gallery data:', data);
+      return data;
     },
     enabled: !!publicId,
   });
+
+  console.log('Gallery state:', { galleryImages, isLoadingGallery, galleryError });
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
