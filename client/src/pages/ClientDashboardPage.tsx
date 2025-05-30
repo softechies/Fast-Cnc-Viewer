@@ -446,11 +446,19 @@ export default function ClientDashboardPage() {
                         <TableRow key={model.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
-                              <ModelThumbnail 
-                                modelId={model.id} 
-                                filename={model.filename}
-                                className="w-12 h-12 flex-shrink-0"
-                              />
+                              <div className="relative">
+                                <ModelThumbnail 
+                                  modelId={model.id} 
+                                  filename={model.filename}
+                                  className="w-12 h-12 flex-shrink-0"
+                                />
+                                <div className="absolute -bottom-1 -right-1">
+                                  <ThumbnailUploader 
+                                    modelId={model.id} 
+                                    modelName={model.filename}
+                                  />
+                                </div>
+                              </div>
                               <span className="truncate">{model.filename}</span>
                             </div>
                           </TableCell>
@@ -524,12 +532,6 @@ export default function ClientDashboardPage() {
                                   <span className="sr-only">{t('enable_sharing')}</span>
                                 </Button>
                               )}
-                              
-                              {/* Przycisk przesyłania miniaturki */}
-                              <ThumbnailUploader 
-                                modelId={model.id} 
-                                modelName={model.filename}
-                              />
                               
                               {/* Przycisk zmiany hasła - dostępny zawsze */}
                               <Button
