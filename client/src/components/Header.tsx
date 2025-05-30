@@ -6,6 +6,7 @@ import fastCncLogo from "../assets/fast-cnc-logo.jpg";
 
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +23,7 @@ interface HeaderProps {
 export default function Header({ onUploadClick }: HeaderProps) {
   const { t } = useLanguage();
   const { user, logoutMutation } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   
   // Wyodrębnij kod języka z aktualnego URL-a
   const langMatch = location.match(/^\/([a-z]{2})(?:\/|$)/);
@@ -30,9 +31,23 @@ export default function Header({ onUploadClick }: HeaderProps) {
   
   console.log('Header location:', location, 'detected lang:', currentLang); // Debug
   
+  // Automatyczne przekierowanie do URL-a z kodem języka
+  useEffect(() => {
+    // Lista ścieżek, które wymagają kodu języka
+    const pathsRequiringLang = ['/cad-library', '/auth', '/client/dashboard', '/admin/dashboard', '/quote'];
+    
+    // Sprawdź czy obecna ścieżka wymaga kodu języka i czy go nie ma
+    const needsLangRedirect = pathsRequiringLang.some(path => location === path || location.startsWith(`${path}/`));
+    
+    if (needsLangRedirect && !currentLang) {
+      console.log('Redirecting to URL with language code:', `/en${location}`);
+      setLocation(`/en${location}`);
+    }
+  }, [location, currentLang, setLocation]);
+  
   // Funkcja do budowania URL-a z aktualnym językiem
   const buildUrlWithLang = (path: string) => {
-    return currentLang ? `/${currentLang}${path}` : path;
+    return currentLang ? `/${currentLang}${path}` : `/en${path}`;
   };
   
   return (
