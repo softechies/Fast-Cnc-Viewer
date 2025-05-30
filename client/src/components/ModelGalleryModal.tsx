@@ -63,10 +63,18 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
 
   const uploadGalleryMutation = useMutation({
     mutationFn: async (files: FileList) => {
+      console.log('Starting gallery upload with files:', Array.from(files).map(f => ({ name: f.name, size: f.size })));
+      
       const formData = new FormData();
-      Array.from(files).forEach((file) => {
+      Array.from(files).forEach((file, index) => {
+        console.log(`Appending file ${index}:`, file.name, file.size);
         formData.append('images', file);
       });
+
+      console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => ({
+        key,
+        value: value instanceof File ? `${value.name} (${value.size} bytes)` : value
+      })));
 
       const response = await fetch(`/api/models/${modelId}/gallery`, {
         method: 'POST',
@@ -75,7 +83,9 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload gallery images');
+        const errorText = await response.text();
+        console.error('Upload failed:', response.status, errorText);
+        throw new Error(`Failed to upload gallery images: ${errorText}`);
       }
 
       return response.json();
