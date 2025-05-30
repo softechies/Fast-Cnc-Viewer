@@ -400,7 +400,13 @@ export function setupAuth(app: Express): void {
         }
       }
       
-      res.json(allModels);
+      // Dodaj obliczone pole hasPassword do każdego modelu
+      const modelsWithPassword = allModels.map(model => ({
+        ...model,
+        hasPassword: !!(model.sharePassword || (model as any).share_password)
+      }));
+      
+      res.json(modelsWithPassword);
     } catch (error) {
       console.error("Błąd pobierania modeli klienta:", error);
       res.status(500).json({ error: "Błąd serwera podczas pobierania modeli" });
