@@ -191,9 +191,7 @@ const translations = {
       description: "Ten model jest chroniony hasłem.",
       password_placeholder: "Wprowadź hasło do modelu"
     },
-    model_info: {
-      shared_status: "Udostępniony model"
-    }
+    model_info: {}
   },
   
   // Messages
@@ -374,7 +372,13 @@ const translations = {
     revokeConfirmDescription: "Czy na pewno chcesz odwołać udostępnianie tego modelu? Tej operacji nie można cofnąć.",
     cancel: "Anuluj",
     confirmRevoke: "Tak, odwołaj"
-  }
+  },
+
+  // Client dashboard - nowe tłumaczenia
+  shared_models: "Twoja Biblioteka CAD",
+  shared_models_description: "Zarządzaj przesłanymi i udostępnionymi modelami 3D",
+  shared_status: "Status udostępnienia",
+  logout: "Wyloguj"
 };
 
 export default translations;
