@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowLeft, File, FileText, Download, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import ModelViewer from "@/components/ModelViewer";
+import CncServicesAd from "@/components/CncServicesAd";
 import { useQuery } from "@tanstack/react-query";
 import { Model } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -185,6 +186,16 @@ export default function PublicModelPage() {
                   {t("common.download") || "Download"}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* FastCNC Services Advertisement */}
+          <Card className="mb-6">
+            <CardContent className="p-0">
+              <CncServicesAd 
+                modelType={modelInfo.format?.toLowerCase() === 'stl' ? '3d' : modelInfo.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
+                modelInfo={modelInfo} 
+              />
             </CardContent>
           </Card>
 

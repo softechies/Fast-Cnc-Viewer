@@ -242,22 +242,7 @@ export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewer
           </div>
         </div>
         
-        {/* Sekcja z reklamą usług CNC */}
-        <div className="w-full md:w-1/4 border-l border-gray-200 overflow-auto">
-          {!isLoading && modelInfo && (
-            <Suspense fallback={
-              <div className="p-4 animate-pulse space-y-4">
-                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              </div>
-            }>
-              <CncServicesAd modelType={modelType} modelInfo={modelInfo} />
-            </Suspense>
-          )}
-        </div>
+
       </div>
     </>
   );
