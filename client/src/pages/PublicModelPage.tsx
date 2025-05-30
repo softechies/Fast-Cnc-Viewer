@@ -1,0 +1,279 @@
+import { useState, useEffect } from "react";
+import { useRoute } from "wouter";
+import Header from "@/components/Header";
+import FooterBar from "@/components/FooterBar";
+import { useLanguage } from "@/lib/LanguageContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, ArrowLeft, File, FileText, Download, Image as ImageIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import ModelViewer from "@/components/ModelViewer";
+import { useQuery } from "@tanstack/react-query";
+import { Model } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+interface GalleryImage {
+  id: number;
+  modelId: number;
+  filename: string;
+  originalName: string;
+  filesize: number;
+  mimeType: string;
+  displayOrder: number;
+  isThumbnail: boolean;
+  uploadedAt: string;
+  s3Key?: string;
+}
+
+export default function PublicModelPage() {
+  const { t } = useLanguage();
+  const [, params] = useRoute("/library/model/:publicId");
+  const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const publicId = params?.publicId;
+
+  // Fetch model info
+  const { data: modelInfo, isLoading: isLoadingModel, error: modelError } = useQuery<Model>({
+    queryKey: ['/api/public/models', publicId],
+    enabled: !!publicId,
+  });
+
+  // Fetch gallery images
+  const { data: galleryImages, isLoading: isLoadingGallery } = useQuery<GalleryImage[]>({
+    queryKey: ['/api/models', modelInfo?.id, 'gallery'],
+    enabled: !!modelInfo?.id,
+  });
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (model: Model) => {
+    const format = model.format?.toLowerCase();
+    if (format === 'stl') return <File className="h-4 w-4 text-blue-500" />;
+    if (format === 'dxf' || format === 'dwg') return <FileText className="h-4 w-4 text-green-500" />;
+    return <File className="h-4 w-4 text-gray-500" />;
+  };
+
+  const handleDownload = () => {
+    if (!modelInfo || !publicId) return;
+    
+    const downloadUrl = `/api/public/models/${publicId}/file`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = modelInfo.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImageClick = (image: GalleryImage) => {
+    setSelectedImage(image);
+  };
+
+  const getImageUrl = (image: GalleryImage) => {
+    return `/api/models/${modelInfo?.id}/gallery/${image.id}`;
+  };
+
+  if (isLoadingModel) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header onUploadClick={() => {}} />
+        <main className="flex-grow">
+          <div className="container mx-auto py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Skeleton className="h-96 w-full" />
+              </div>
+              <div>
+                <Skeleton className="h-64 w-full" />
+              </div>
+            </div>
+          </div>
+        </main>
+        <FooterBar />
+      </div>
+    );
+  }
+
+  if (modelError || !modelInfo) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header onUploadClick={() => {}} />
+        <main className="flex-grow">
+          <div className="container mx-auto py-6">
+            <div className="flex flex-col items-center justify-center p-6 bg-destructive/10 rounded-lg">
+              <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+              <h2 className="text-2xl font-bold mb-2">{t("common.error") || "Error"}</h2>
+              <p className="text-center mb-4">
+                {t("library.modelNotFound") || "Model not found"}
+              </p>
+              <Button onClick={() => window.history.back()}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t("common.goBack") || "Go Back"}
+              </Button>
+            </div>
+          </div>
+        </main>
+        <FooterBar />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header onUploadClick={() => {}} />
+      
+      <main className="flex-grow">
+        <div className="container mx-auto py-6">
+          {/* Back button */}
+          <Button 
+            variant="ghost" 
+            className="mb-4"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t("common.backToLibrary") || "Back to Library"}
+          </Button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 3D Viewer */}
+            <div className="lg:col-span-2">
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    {getFileIcon(modelInfo)}
+                    {modelInfo.filename}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden">
+                    <ModelViewer
+                      modelId={modelInfo.id}
+                      isPublic={true}
+                      publicId={publicId}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="uppercase font-medium">{modelInfo.format}</span>
+                      <span>•</span>
+                      <span>{formatFileSize(modelInfo.filesize)}</span>
+                    </div>
+                    
+                    <Button onClick={handleDownload}>
+                      <Download className="h-4 w-4 mr-2" />
+                      {t("common.download") || "Download"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Model Info & Gallery */}
+            <div className="space-y-6">
+              {/* Model Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("common.modelInfo") || "Model Information"}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium">{t("common.filename") || "Filename"}:</span>
+                    <p className="text-sm text-muted-foreground break-all">{modelInfo.filename}</p>
+                  </div>
+                  
+                  <div>
+                    <span className="text-sm font-medium">{t("common.format") || "Format"}:</span>
+                    <p className="text-sm text-muted-foreground">{modelInfo.format}</p>
+                  </div>
+                  
+                  <div>
+                    <span className="text-sm font-medium">{t("common.filesize") || "File Size"}:</span>
+                    <p className="text-sm text-muted-foreground">{formatFileSize(modelInfo.filesize)}</p>
+                  </div>
+                  
+                  {modelInfo.tags && modelInfo.tags.length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium">{t("common.tags") || "Tags"}:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {modelInfo.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Gallery */}
+              {galleryImages && galleryImages.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ImageIcon className="h-5 w-5" />
+                      {t("common.gallery") || "Gallery"} ({galleryImages.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingGallery ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                          <Skeleton key={i} className="aspect-square" />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {galleryImages.map((image) => (
+                          <div
+                            key={image.id}
+                            className="aspect-square bg-muted/30 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => handleImageClick(image)}
+                          >
+                            <img
+                              src={getImageUrl(image)}
+                              alt={image.originalName}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Image Dialog */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{selectedImage?.originalName}</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="flex justify-center">
+              <img
+                src={getImageUrl(selectedImage)}
+                alt={selectedImage.originalName}
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <FooterBar />
+    </div>
+  );
+}

@@ -15,6 +15,7 @@ import ClientDashboardPage from "@/pages/ClientDashboardPage";
 import ContactPage from "@/pages/ContactPage";
 import LibraryPage from "@/pages/LibraryPage";
 import CadLibraryPage from "@/pages/CadLibraryPage";
+import PublicModelPage from "@/pages/PublicModelPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { LanguageProvider, useLanguage } from "./lib/LanguageContext";
@@ -136,6 +137,10 @@ function Router() {
           {/* Library page */}
           <Route path="/cad-library" component={CadLibraryPage} />
           <Route path="/:lang(en|pl|cs|de|fr)/cad-library" component={CadLibraryPage} />
+          
+          {/* Public model page */}
+          <Route path="/library/model/:publicId" component={PublicModelPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/library/model/:publicId" component={PublicModelPage} />
 
           {/* Strona kontaktowa */}
           <Route path="/quote" component={ContactPage} />
