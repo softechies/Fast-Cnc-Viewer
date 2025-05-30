@@ -385,6 +385,18 @@ const translations = {
   public_library_removed: "Model usunięty z publicznej biblioteki",
   public_library_added_message: "Model został pomyślnie dodany do publicznej biblioteki CAD",
   public_library_removed_message: "Model został pomyślnie usunięty z publicznej biblioteki CAD",
+  public_cad_library: "Publiczna Biblioteka CAD",
+  public_library_description: "Przeglądaj i pobieraj modele CAD udostępnione przez naszą społeczność. Wszystkie modele są darmowe do użytku w Twoich projektach.",
+  search_models_tags: "Szukaj modeli i tagów...",
+  all_categories: "Wszystkie Kategorie",
+  showing_models: "Wyświetlane {count} z {total} modeli",
+  no_models_found: "Nie znaleziono modeli",
+  try_different_search: "Spróbuj innego terminu wyszukiwania lub wyczyść filtry",
+  no_public_models_yet: "Brak publicznych modeli",
+  failed_to_load_library: "Błąd podczas ładowania biblioteki. Spróbuj ponownie później.",
+  cad_library_dimensions: "Wymiary",
+  cad_library_view: "Zobacz",
+  cad_library_download: "Pobierz",
   logout: "Wyloguj"
 };
 
