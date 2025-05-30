@@ -1,12 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Upload, X, Image as ImageIcon, Plus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Camera, Upload, X, Image as ImageIcon, Plus, Loader2 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ModelGalleryModalProps {
   modelId: number;

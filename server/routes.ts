@@ -3270,9 +3270,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await s3Service.uploadFile(s3Key, file.buffer, file.mimetype);
         } else {
           // Save locally
-          const uploadPath = path.join(uploadsDir, 'gallery', filename);
-          await fs.mkdir(path.dirname(uploadPath), { recursive: true });
-          await fs.writeFile(uploadPath, file.buffer);
+          const uploadPath = path.join('./uploads', 'gallery', filename);
+          await fs.promises.mkdir(path.dirname(uploadPath), { recursive: true });
+          await fs.promises.writeFile(uploadPath, file.buffer);
         }
         
         const galleryImage = await storage.addGalleryImage({
