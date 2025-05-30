@@ -206,6 +206,36 @@ export default function ClientDashboardPage() {
     }
   });
 
+  // Mutacja zarządzania statusem publicznej biblioteki CAD
+  const togglePublicLibraryMutation = useMutation({
+    mutationFn: async ({ modelId, isPublic }: { modelId: number; isPublic: boolean }) => {
+      const res = await apiRequest(
+        "POST", 
+        `/api/client/models/${modelId}/public-library`, 
+        { isPublic }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Błąd podczas aktualizacji statusu publicznej biblioteki");
+      }
+      return await res.json();
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: variables.isPublic ? "Model dodany do publicznej biblioteki" : "Model usunięty z publicznej biblioteki",
+        description: data.message,
+      });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Błąd",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Obsługa zmiany hasła
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
@@ -424,11 +454,14 @@ export default function ClientDashboardPage() {
                           </TableCell>
                           <TableCell>
                             <Switch 
-                              checked={false} 
+                              checked={model.isPublic || false}
                               onCheckedChange={(checked: boolean) => {
-                                // TODO: Implementacja funkcji dodawania do biblioteki CAD
-                                console.log(`Toggle CAD library for model ${model.id}:`, checked);
+                                togglePublicLibraryMutation.mutate({
+                                  modelId: model.id,
+                                  isPublic: checked
+                                });
                               }}
+                              className={model.isPublic && model.hasPassword ? "data-[state=checked]:bg-red-500" : ""}
                             />
                           </TableCell>
                           <TableCell className="text-right">
