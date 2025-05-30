@@ -920,7 +920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = metadata?.filePath;
       const s3Key = metadata?.s3Key;
       
-      // Jeśli plik jest w S3, użyj podpisanego URL
+      // Jeśli plik jest w S3, użyj przekierowania
       if (s3Key && s3Service.isInitialized()) {
         try {
           const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
@@ -969,7 +969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stlFilePath = metadata?.stlFilePath;
       const s3Key = metadata?.s3Key;
       
-      // Jeśli plik jest w S3, użyj podpisanego URL
+      // Jeśli plik jest w S3, użyj przekierowania
       if (s3Key && s3Service.isInitialized()) {
         try {
           const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
