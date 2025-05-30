@@ -833,6 +833,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get model info (for ModelViewer component)
+  app.get("/api/models/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const model = await storage.getModel(id);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Użyj funkcji hasAccessToModel do sprawdzenia dostępu do modelu
+      const hasAccess = await hasAccessToModel(req, id);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ 
+          message: "Access denied. This model is not shared and you don't have permission to view it.",
+          accessDenied: true
+        });
+      }
+      
+      const metadata = model.metadata as any;
+      
+      const modelInfo = {
+        id: model.id,
+        filename: model.filename,
+        filesize: model.filesize,
+        format: model.format,
+        created: model.created,
+        sourceSystem: model.sourceSystem,
+        parts: metadata?.parts,
+        assemblies: metadata?.assemblies,
+        surfaces: metadata?.surfaces,
+        solids: metadata?.solids,
+        properties: metadata?.properties,
+        shareEnabled: model.shareEnabled || false,
+        shareId: model.shareId,
+        hasPassword: !!model.sharePassword,
+        tags: model.tags || []
+      };
+      
+      res.json(modelInfo);
+    } catch (error) {
+      console.error("Error getting model:", error);
+      res.status(500).json({ message: "Failed to get model" });
+    }
+  });
+
   // Get model detailed info
   app.get("/api/models/:id/info", async (req: Request, res: Response) => {
     try {
