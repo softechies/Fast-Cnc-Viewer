@@ -26,15 +26,17 @@ import {
 interface SharedModelPageProps {
   shareId?: string;
   language?: string;
+  isPublicModel?: boolean;
 }
 
-export default function SharedModelPage({ shareId: propShareId, language }: SharedModelPageProps = {}) {
+export default function SharedModelPage({ shareId: propShareId, language, isPublicModel = false }: SharedModelPageProps = {}) {
   // Obsługa ID udostępnienia z props lub z URL
   const [, params] = useRoute("/shared/:shareId");
+  const [, modelParams] = useRoute("/models/:modelId");
   const [, langParams] = useRoute("/:lang(en|pl|cs|de|fr)/shared/:shareId");
   
   // Priorytet: props > URL params
-  const shareId = propShareId || params?.shareId || langParams?.shareId;
+  const shareId = propShareId || params?.shareId || langParams?.shareId || modelParams?.modelId;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -48,33 +50,41 @@ export default function SharedModelPage({ shareId: propShareId, language }: Shar
   const [modelId, setModelId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Pobierz podstawowe informacje o udostępnionym modelu
+  // Pobierz podstawowe informacje o modelu (udostępnionym lub publicznym)
   useEffect(() => {
     if (!shareId) return;
     
-    const fetchSharedModelInfo = async () => {
+    const fetchModelInfo = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
+        // Dla publicznych modeli z biblioteki używamy innego endpointu
+        const endpoint = isPublicModel ? `/api/models/${shareId}` : `/api/shared/${shareId}`;
+        
         const response = await apiRequest(
           "GET",
-          `/api/shared/${shareId}`,
+          endpoint,
           undefined,
           {
             on401: "throw"
           }
         );
         
-        // apiRequest już rzuca błąd, jeśli response nie jest ok, więc ten kod nie jest już potrzebny
-        
         const data = await response.json();
         setModelInfo(data);
-        setRequiresPassword(data.requiresPassword);
         
-        // Jeśli model nie wymaga hasła, automatycznie spróbuj uzyskać dostęp
-        if (!data.requiresPassword) {
-          accessSharedModel();
+        if (isPublicModel) {
+          // Publiczne modele nie wymagają hasła
+          setRequiresPassword(false);
+          setModelId(parseInt(shareId));
+          setModelAccessed(true);
+        } else {
+          setRequiresPassword(data.requiresPassword);
+          // Jeśli model nie wymaga hasła, automatycznie spróbuj uzyskać dostęp
+          if (!data.requiresPassword) {
+            accessSharedModel();
+          }
         }
       } catch (error) {
         console.error("Błąd podczas pobierania informacji o modelu:", error);

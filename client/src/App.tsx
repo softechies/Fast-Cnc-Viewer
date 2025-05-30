@@ -98,6 +98,17 @@ function Router() {
             }}
           </Route>
           
+          {/* Publiczne modele z biblioteki */}
+          <Route path="/models/:modelId">
+            {(params) => <SharedModelPage shareId={params.modelId} isPublicModel={true} />}
+          </Route>
+          <Route path="/:lang(en|pl|cs|de|fr)/models/:modelId">
+            {(params: { lang: string; modelId: string }) => {
+              const paramsLang = params.lang as 'en' | 'pl' | 'cs' | 'de' | 'fr';
+              return <SharedModelPage shareId={params.modelId} language={paramsLang} isPublicModel={true} />;
+            }}
+          </Route>
+          
           {/* Strony chronione */}
           <Route path="/client/dashboard">
             {() => (

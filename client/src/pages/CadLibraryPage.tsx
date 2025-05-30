@@ -75,7 +75,8 @@ export default function CadLibraryPage() {
   };
 
   const handleViewModel = (modelId: number) => {
-    window.open(`/shared/${modelId}`, '_blank');
+    // Dla publicznych modeli z biblioteki używamy bezpośredniego linku do przeglądarki
+    window.open(`/models/${modelId}`, '_blank');
   };
 
   const handleDownloadModel = (modelId: number, filename: string) => {
