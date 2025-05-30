@@ -3240,11 +3240,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const modelId = parseInt(req.params.id);
       const files = req.files as Express.Multer.File[];
       
+      console.log('Gallery upload request received:', {
+        modelId,
+        filesCount: files ? files.length : 0,
+        files: files ? files.map(f => ({ name: f.originalname, size: f.size })) : 'No files',
+        body: req.body
+      });
+      
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Unauthorized" });
       }
       
       if (!files || files.length === 0) {
+        console.log('No files received in gallery upload');
         return res.status(400).json({ error: "No files uploaded" });
       }
       
