@@ -3209,6 +3209,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gallery endpoints for persistent storage
+  app.get("/api/models/:id/gallery", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+      
+      if (model.userId !== req.user?.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const galleryImages = await storage.getModelGallery(modelId);
+      res.json(galleryImages);
+    } catch (error) {
+      console.error("Error getting model gallery:", error);
+      res.status(500).json({ error: "Failed to get gallery" });
+    }
+  });
+
+  app.post("/api/models/:id/gallery", thumbnailUpload.array('images', 6), async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      const files = req.files as Express.Multer.File[];
+      
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+      
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+      
+      if (model.userId !== req.user?.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const uploadedImages = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const filename = `gallery_${modelId}_${Date.now()}_${i}.${file.originalname.split('.').pop()}`;
+        
+        // Upload to S3 if available
+        let s3Key = null;
+        if (s3Service.isInitialized()) {
+          s3Key = `gallery/${req.user!.id}/${filename}`;
+          await s3Service.uploadFile(s3Key, file.buffer, file.mimetype);
+        } else {
+          // Save locally
+          const uploadPath = path.join(uploadsDir, 'gallery', filename);
+          await fs.mkdir(path.dirname(uploadPath), { recursive: true });
+          await fs.writeFile(uploadPath, file.buffer);
+        }
+        
+        const galleryImage = await storage.addGalleryImage({
+          modelId,
+          filename,
+          originalName: file.originalname,
+          filesize: file.size,
+          mimeType: file.mimetype,
+          s3Key,
+          isThumbnail: i === 0
+        });
+        
+        uploadedImages.push(galleryImage);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Gallery images uploaded successfully",
+        images: uploadedImages
+      });
+    } catch (error) {
+      console.error("Error uploading gallery images:", error);
+      res.status(500).json({ error: "Failed to upload gallery images" });
+    }
+  });
+
+  app.get("/api/models/:modelId/gallery/:imageId", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.modelId);
+      const imageId = parseInt(req.params.imageId);
+      
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+      
+      const galleryImages = await storage.getModelGallery(modelId);
+      const image = galleryImages.find(img => img.id === imageId);
+      
+      if (!image) {
+        return res.status(404).json({ error: "Gallery image not found" });
+      }
+      
+      // Serve image from S3 or local storage
+      if (image.s3Key && s3Service.isInitialized()) {
+        const signedUrl = await s3Service.getSignedDownloadUrl(image.s3Key);
+        res.redirect(signedUrl);
+      } else {
+        const imagePath = path.join(uploadsDir, 'gallery', image.filename);
+        if (await fs.access(imagePath).then(() => true).catch(() => false)) {
+          res.sendFile(path.resolve(imagePath));
+        } else {
+          res.status(404).json({ error: "Image file not found" });
+        }
+      }
+    } catch (error) {
+      console.error("Error serving gallery image:", error);
+      res.status(500).json({ error: "Failed to serve image" });
+    }
+  });
+
+  app.put("/api/models/:modelId/gallery/:imageId/thumbnail", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.modelId);
+      const imageId = parseInt(req.params.imageId);
+      
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+      
+      if (model.userId !== req.user?.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const galleryImages = await storage.getModelGallery(modelId);
+      const targetImage = galleryImages.find(img => img.id === imageId);
+      
+      if (!targetImage) {
+        return res.status(404).json({ error: "Gallery image not found" });
+      }
+      
+      const updatedImage = await storage.updateGalleryImageOrder(imageId, targetImage.displayOrder);
+      
+      res.json({ 
+        success: true, 
+        message: "Thumbnail updated successfully",
+        image: updatedImage
+      });
+    } catch (error) {
+      console.error("Error setting thumbnail:", error);
+      res.status(500).json({ error: "Failed to set thumbnail" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

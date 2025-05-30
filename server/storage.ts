@@ -759,7 +759,7 @@ export class PostgresStorage implements IStorage {
   }
 
   // Gallery methods
-  async getModelGallery(modelId: number): Promise<GalleryImage[]> {
+  async getModelGallery(modelId: number): Promise<ModelGalleryImage[]> {
     try {
       const result = await db.select()
         .from(modelGallery)
@@ -772,19 +772,22 @@ export class PostgresStorage implements IStorage {
     }
   }
 
-  async addGalleryImage(modelId: number, filename: string, originalName: string): Promise<GalleryImage> {
+  async addGalleryImage(image: InsertModelGalleryImage): Promise<ModelGalleryImage> {
     try {
       // Get current max order for this model
-      const existingImages = await this.getModelGallery(modelId);
+      const existingImages = await this.getModelGallery(image.modelId);
       const maxOrder = existingImages.length > 0 ? Math.max(...existingImages.map(img => img.displayOrder)) + 1 : 0;
       
       const [newImage] = await db.insert(modelGallery)
         .values({
-          modelId,
-          filename,
-          originalName,
-          displayOrder: maxOrder,
-          uploadedAt: new Date().toISOString()
+          modelId: image.modelId,
+          filename: image.filename,
+          originalName: image.originalName,
+          filesize: image.filesize,
+          mimeType: image.mimeType,
+          displayOrder: image.displayOrder ?? maxOrder,
+          isThumbnail: image.isThumbnail ?? false,
+          s3Key: image.s3Key ?? null
         })
         .returning();
       
@@ -795,24 +798,27 @@ export class PostgresStorage implements IStorage {
     }
   }
 
-  async deleteGalleryImage(imageId: number): Promise<void> {
+  async deleteGalleryImage(imageId: number): Promise<boolean> {
     try {
-      await db.delete(modelGallery)
+      const result = await db.delete(modelGallery)
         .where(eq(modelGallery.id, imageId));
+      return result.rowCount > 0;
     } catch (error) {
       console.error("Error deleting gallery image:", error);
-      throw error;
+      return false;
     }
   }
 
-  async updateGalleryImageOrder(imageId: number, newOrder: number): Promise<void> {
+  async updateGalleryImageOrder(imageId: number, newOrder: number): Promise<ModelGalleryImage | undefined> {
     try {
-      await db.update(modelGallery)
+      const [updatedImage] = await db.update(modelGallery)
         .set({ displayOrder: newOrder })
-        .where(eq(modelGallery.id, imageId));
+        .where(eq(modelGallery.id, imageId))
+        .returning();
+      return updatedImage;
     } catch (error) {
       console.error("Error updating gallery image order:", error);
-      throw error;
+      return undefined;
     }
   }
 }
