@@ -6,19 +6,23 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Image, Upload, Crop } from "lucide-react";
+import { Image, Upload, Crop, Camera, X } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
-interface ThumbnailUploaderProps {
+interface GalleryUploaderProps {
   modelId: number;
   modelName: string;
 }
 
-export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps) {
+interface GalleryImage {
+  file: File;
+  previewUrl: string;
+  croppedPreviewUrl?: string;
+}
+
+export function ThumbnailUploader({ modelId, modelName }: GalleryUploaderProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,11 +106,13 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
       return;
     }
 
-    setSelectedFile(file);
-    
-    // Stwórz podgląd
+    // Dodaj plik do galerii
     const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    const newImage: GalleryImage = {
+      file,
+      previewUrl: url
+    };
+    setGalleryImages(prev => [...prev, newImage]);
     
     // Stwórz podgląd przycięcia
     const image = document.createElement('img');
