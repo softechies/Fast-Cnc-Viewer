@@ -791,8 +791,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get model basic data
-  app.get("/api/models/:id", async (req: Request, res: Response) => {
+  // Get model basic data (by numeric ID for authenticated users)
+  app.get("/api/models/by-id/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const model = await storage.getModel(id);
@@ -864,8 +864,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get public model info from library (without authentication)
-  app.get("/api/models/:publicId", async (req: Request, res: Response) => {
+  // Get public model info from library (without authentication) - use different path
+  app.get("/api/public/models/:publicId", async (req: Request, res: Response) => {
     try {
       const publicId = req.params.publicId;
       const model = await storage.getModelByPublicId(publicId);
@@ -903,6 +903,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting public model info:", error);
       res.status(500).json({ message: "Failed to get model info" });
+    }
+  });
+
+  // Get public model file by publicId
+  app.get("/api/public/models/:publicId/file", async (req: Request, res: Response) => {
+    try {
+      const publicId = req.params.publicId;
+      const model = await storage.getModelByPublicId(publicId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy model jest publiczny
+      if (!model.isPublic) {
+        return res.status(403).json({ 
+          message: "This model is not available in the public library" 
+        });
+      }
+      
+      const metadata = model.metadata as any;
+      const filePath = metadata?.filePath;
+      const s3Key = metadata?.s3Key;
+      
+      // Jeśli plik jest w S3, pobierz go i przekaż do przeglądarki
+      if (s3Key && s3Service.isInitialized()) {
+        try {
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600);
+          
+          // Pobierz plik z S3 i przekaż do przeglądarki
+          const response = await fetch(signedUrl);
+          if (response.ok) {
+            res.setHeader('Content-Type', 'application/step');
+            res.setHeader('Content-Disposition', `attachment; filename="${model.filename}"`);
+            
+            // Przekonwertuj ReadableStream na Buffer i wyślij
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            res.send(buffer);
+            return;
+          }
+        } catch (error) {
+          console.error("Error downloading from S3:", error);
+          // Kontynuuj z lokalnym plikiem jeśli S3 nie działa
+        }
+      }
+      
+      // Fallback do lokalnego pliku
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Model file not found" });
+      }
+      
+      res.setHeader('Content-Type', 'application/step');
+      res.setHeader('Content-Disposition', `attachment; filename="${model.filename}"`);
+      fs.createReadStream(filePath).pipe(res);
+    } catch (error) {
+      console.error("Error serving public model file:", error);
+      res.status(500).json({ message: "Failed to serve model file" });
     }
   });
 

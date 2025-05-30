@@ -60,7 +60,7 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         setError(null);
         
         // Dla publicznych modeli z biblioteki używamy innego endpointu
-        const endpoint = isPublicModel ? `/api/models/${shareId}` : `/api/shared/${shareId}`;
+        const endpoint = isPublicModel ? `/api/public/models/${shareId}` : `/api/shared/${shareId}`;
         
         const response = await apiRequest(
           "GET",

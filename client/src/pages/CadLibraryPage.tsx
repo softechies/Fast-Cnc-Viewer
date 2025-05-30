@@ -80,10 +80,11 @@ export default function CadLibraryPage() {
     window.open(`/models/${publicId}`, '_blank');
   };
 
-  const handleDownloadModel = (modelId: number, filename: string) => {
+  const handleDownloadModel = (model: any) => {
+    const publicId = model.publicId || model.id;
     const link = document.createElement('a');
-    link.href = `/api/models/${modelId}/file`;
-    link.download = filename;
+    link.href = `/api/public/models/${publicId}/file`;
+    link.download = model.filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -272,7 +273,7 @@ export default function CadLibraryPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDownloadModel(model.id, model.filename)}
+                      onClick={() => handleDownloadModel(model)}
                       className="flex-1"
                     >
                       <Download className="h-4 w-4 mr-1" />
