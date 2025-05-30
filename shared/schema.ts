@@ -1,5 +1,6 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Define users table
@@ -101,6 +102,36 @@ export const modelInfoSchema = z.object({
   shareDeleteToken: z.string().optional(),
   tags: z.array(z.string()).optional(), // Lista tagów do wyszukiwania
 });
+
+// Tabela galerii zdjęć modeli
+export const modelGallery = pgTable("model_gallery", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").references(() => models.id, { onDelete: "cascade" }).notNull(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  filesize: integer("filesize").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  isThumbnail: boolean("is_thumbnail").default(false).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  s3Key: varchar("s3_key", { length: 500 }),
+});
+
+// Relacje dla galerii
+export const modelGalleryRelations = relations(modelGallery, ({ one }) => ({
+  model: one(models, {
+    fields: [modelGallery.modelId],
+    references: [models.id],
+  }),
+}));
+
+// Typy dla galerii
+export type ModelGalleryImage = typeof modelGallery.$inferSelect;
+export type InsertModelGalleryImage = typeof modelGallery.$inferInsert;
+
+// Schemat Zod dla galerii
+export const insertModelGallerySchema = createInsertSchema(modelGallery);
+export const selectModelGallerySchema = createInsertSchema(modelGallery);
 
 // Schemat danych użytkownika do rejestracji podczas udostępniania
 export const userDataSchema = z.object({
