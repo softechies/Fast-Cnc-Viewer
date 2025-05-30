@@ -222,14 +222,14 @@ export default function ClientDashboardPage() {
     },
     onSuccess: (data, variables) => {
       toast({
-        title: variables.isPublic ? "Model dodany do publicznej biblioteki" : "Model usunięty z publicznej biblioteki",
-        description: data.message,
+        title: variables.isPublic ? t('public_library_added') : t('public_library_removed'),
+        description: variables.isPublic ? t('public_library_added_message') : t('public_library_removed_message'),
       });
       refetch();
     },
     onError: (error: Error) => {
       toast({
-        title: "Błąd",
+        title: t('error'),
         description: error.message,
         variant: "destructive",
       });

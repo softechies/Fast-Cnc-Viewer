@@ -381,6 +381,10 @@ const translations = {
   shared_with: "Udostępniono dla",
   last_accessed: "Ostatni dostęp",
   add_to_cad_library: "Dodaj do publicznej biblioteki CAD",
+  public_library_added: "Model dodany do publicznej biblioteki",
+  public_library_removed: "Model usunięty z publicznej biblioteki",
+  public_library_added_message: "Model został pomyślnie dodany do publicznej biblioteki CAD",
+  public_library_removed_message: "Model został pomyślnie usunięty z publicznej biblioteki CAD",
   logout: "Wyloguj"
 };
 
