@@ -74,9 +74,10 @@ export default function CadLibraryPage() {
     return '📄';
   };
 
-  const handleViewModel = (modelId: number) => {
-    // Dla publicznych modeli z biblioteki używamy bezpośredniego linku do przeglądarki
-    window.open(`/models/${modelId}`, '_blank');
+  const handleViewModel = (model: any) => {
+    // Używamy publicId do maskowania prawdziwego ID modelu
+    const publicId = model.publicId || model.id;
+    window.open(`/models/${publicId}`, '_blank');
   };
 
   const handleDownloadModel = (modelId: number, filename: string) => {
@@ -262,7 +263,7 @@ export default function CadLibraryPage() {
                     <Button
                       size="sm"
                       variant="default"
-                      onClick={() => handleViewModel(model.id)}
+                      onClick={() => handleViewModel(model)}
                       className="flex-1"
                     >
                       <Eye className="h-4 w-4 mr-1" />

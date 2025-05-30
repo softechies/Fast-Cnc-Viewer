@@ -468,6 +468,11 @@ export class PostgresStorage implements IStorage {
     return result[0];
   }
 
+  async getModelByPublicId(publicId: string): Promise<Model | undefined> {
+    const result = await db.select().from(models).where(eq(models.publicId, publicId)).limit(1);
+    return result[0];
+  }
+
   async getModelsByUserId(userId: number): Promise<Model[]> {
     return await db.select().from(models).where(eq(models.userId, userId));
   }

@@ -865,10 +865,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get public model info from library (without authentication)
-  app.get("/api/models/:id", async (req: Request, res: Response) => {
+  app.get("/api/models/:publicId", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      const model = await storage.getModel(id);
+      const publicId = req.params.publicId;
+      const model = await storage.getModelByPublicId(publicId);
       
       if (!model) {
         return res.status(404).json({ message: "Model not found" });
