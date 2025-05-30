@@ -3,7 +3,7 @@ import { Upload, LogIn, User, LogOut, BookOpen } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageSelector from "./LanguageSelector";
 import fastCncLogo from "../assets/fast-cnc-logo.jpg";
-import cadViewerLogo from "@assets/logo-cadviewer.png";
+
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -27,11 +27,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <img 
-            src={cadViewerLogo} 
-            alt="CAD Viewer Logo" 
-            className="h-[60px]" 
-          />
+
           <a 
             href="https://fastcnc.eu"
             target="_blank"
