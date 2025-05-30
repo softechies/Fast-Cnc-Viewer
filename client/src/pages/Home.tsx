@@ -88,7 +88,7 @@ export default function Home() {
                 </Button>
                 <Button 
                   variant="outline"
-                  onClick={() => setLocation('/library')}
+                  onClick={() => setLocation('/cad-library')}
                 >
                   <BookOpen className="mr-2 h-4 w-4" />
                   <span>{t('library.title')}</span>

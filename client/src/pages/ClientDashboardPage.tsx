@@ -400,7 +400,7 @@ export default function ClientDashboardPage() {
                   Upload and share
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/library">
+                  <Link href="/cad-library">
                     <BookOpen className="mr-2 h-4 w-4" />
                     {t('library.title')}
                   </Link>

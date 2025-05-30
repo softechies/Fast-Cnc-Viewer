@@ -134,8 +134,8 @@ function Router() {
           <Route path="/:lang(en|pl|cs|de|fr)/delete-share/:shareId/:token" component={DeleteSharePage} />
           
           {/* Library page */}
-          <Route path="/library" component={CadLibraryPage} />
-          <Route path="/:lang(en|pl|cs|de|fr)/library" component={CadLibraryPage} />
+          <Route path="/cad-library" component={CadLibraryPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/cad-library" component={CadLibraryPage} />
 
           {/* Strona kontaktowa */}
           <Route path="/quote" component={ContactPage} />

@@ -50,7 +50,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
             asChild
             className="mr-2"
           >
-            <Link href="/library">
+            <Link href="/cad-library">
               <BookOpen className="mr-2 h-4 w-4" />
               <span>{t('library.title')}</span>
             </Link>
