@@ -320,9 +320,9 @@ export class MemStorage implements IStorage {
     const { query, tags, page = 1, limit = 20 } = options;
     const offset = (page - 1) * limit;
     
-    // Filtruj modele: tylko te udostępnione i bez hasła
+    // Filtruj modele: tylko te oznaczone jako publiczne (isPublic = true)
     let filteredModels = Array.from(this.models.values()).filter(
-      (model) => model.shareEnabled === true && (!model.sharePassword || model.sharePassword === '')
+      (model) => model.isPublic === true
     );
     
     // Filtruj po nazwie pliku lub tagach
@@ -646,11 +646,8 @@ export class PostgresStorage implements IStorage {
       const { query, tags, page = 1, limit = 20 } = options;
       const offset = (page - 1) * limit;
       
-      // Podstawowe zapytanie - modele udostępnione bez hasła
-      let baseQuery = and(
-        eq(models.shareEnabled, true),
-        sql`${models.sharePassword} IS NULL OR ${models.sharePassword} = ''`
-      );
+      // Podstawowe zapytanie - modele oznaczone jako publiczne
+      let baseQuery = eq(models.isPublic, true);
       
       // Dodaj filtrowanie po nazwie pliku lub tagach, jeśli zostały podane
       if (query) {
