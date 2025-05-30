@@ -103,7 +103,7 @@ export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewer
     };
     
     fetchModelInfo();
-  }, [modelId]);
+  }, [modelId, isPublic, publicId]);
   
   return (
     <>
@@ -196,7 +196,7 @@ export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewer
                         </Button>
                       </div>
                     }>
-                      <StepViewer modelId={modelId} />
+                      <StepViewer modelId={modelId} isPublic={isPublic} publicId={publicId} />
                     </ErrorBoundary>
                   </Suspense>
                 )}

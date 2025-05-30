@@ -19,10 +19,12 @@ interface StlFileInfo {
 // Props for the StepViewer component
 interface StepViewerProps {
   modelId: number | null;
+  isPublic?: boolean;
+  publicId?: string;
 }
 
 // Component for viewing STL models
-export default function StepViewer({ modelId }: StepViewerProps) {
+export default function StepViewer({ modelId, isPublic, publicId }: StepViewerProps) {
   // Get translation function
   const { t } = useLanguage();
   
@@ -398,8 +400,12 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         setIsLoadingFile(true);
         setDebugInfo("Loading model information...");
         
-        // Najpierw pobierz informacje o modelu
-        const modelResponse = await fetch(`/api/models/${modelId}`);
+        // Najpierw pobierz informacje o modelu - użyj odpowiedniego endpointu
+        const modelEndpoint = isPublic && publicId 
+          ? `/api/public/models/${publicId}` 
+          : `/api/models/${modelId}`;
+        
+        const modelResponse = await fetch(modelEndpoint);
         if (!modelResponse.ok) {
           const errorData = await modelResponse.json();
           console.error("Model info error:", errorData);
@@ -411,8 +417,11 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         
         setDebugInfo("Loading model file...");
         
-        // Następnie spróbuj pobrać plik, gdy wiemy, że mamy dostęp do modelu
-        const response = await fetch(`/api/models/${modelId}/file`);
+        // Następnie spróbuj pobrać plik - użyj odpowiedniego endpointu
+        const fileEndpoint = isPublic && publicId 
+          ? `/api/public/models/${publicId}/file` 
+          : `/api/models/${modelId}/file`;
+        const response = await fetch(fileEndpoint);
         if (!response.ok) {
           throw new Error(`Cannot download file (${response.status})`);
         }
@@ -429,7 +438,7 @@ export default function StepViewer({ modelId }: StepViewerProps) {
         if (isDirectStl) {
           setDebugInfo("Direct STL file...");
           setStlFileInfo({ 
-            url: `/api/models/${modelId}/file`, // Dla bezpośrednich plików STL, plik jest dostępny pod /file
+            url: fileEndpoint, // Użyj tego samego endpointu co dla pliku
             isDirectStl: true 
           });
         } else {
@@ -437,6 +446,16 @@ export default function StepViewer({ modelId }: StepViewerProps) {
           try {
             setIsLoadingStlFile(true);
             setDebugInfo("Checking STL file availability...");
+            
+            // Dla publicznych modeli nie mamy endpointu /stl, więc pomiń to
+            if (isPublic) {
+              setDebugInfo("Public model - using original file...");
+              setStlFileInfo({ 
+                url: fileEndpoint,
+                isDirectStl: false 
+              });
+              return;
+            }
             
             const stlResponse = await fetch(`/api/models/${modelId}/stl`);
             if (stlResponse.ok) {
