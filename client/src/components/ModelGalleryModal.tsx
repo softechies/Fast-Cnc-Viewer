@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -30,6 +31,7 @@ interface GalleryImage {
 export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -66,6 +68,9 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
     mutationFn: async (files: File[]) => {
       console.log('Starting gallery upload with files:', files.map(f => ({ name: f.name, size: f.size })));
       
+      // Reset progress
+      setUploadProgress(0);
+      
       const formData = new FormData();
       files.forEach((file, index) => {
         console.log(`Appending file ${index}:`, file.name, file.size);
@@ -74,25 +79,46 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
 
       console.log('FormData entries count:', formData.has('images'));
 
-      const response = await fetch(`/api/models/${modelId}/gallery`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
+      // Create XMLHttpRequest to track upload progress
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const result = JSON.parse(xhr.responseText);
+              setUploadProgress(100);
+              resolve(result);
+            } catch (error) {
+              reject(new Error('Failed to parse response'));
+            }
+          } else {
+            reject(new Error(`Upload failed: ${xhr.responseText}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.open('POST', `/api/models/${modelId}/gallery`);
+        xhr.withCredentials = true;
+        xhr.send(formData);
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload failed:', response.status, errorText);
-        throw new Error(`Failed to upload gallery images: ${errorText}`);
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({
         title: t('success'),
         description: t('gallery_uploaded_successfully'),
       });
+      setUploadProgress(0); // Reset progress after success
       refetch();
       queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
     },
@@ -102,6 +128,7 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
         description: t('gallery_upload_failed'),
         variant: "destructive",
       });
+      setUploadProgress(0); // Reset progress on error
     },
   });
 
@@ -262,6 +289,17 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
               <p className="text-sm text-muted-foreground mt-2">
                 {t('supported_formats_jpg_png_max_5mb')} Maksymalnie 6 zdjęć na raz.
               </p>
+              
+              {/* Progress Bar */}
+              {uploadGalleryMutation.isPending && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t('uploading_images')}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="w-full" />
+                </div>
+              )}
             </div>
 
             {/* Gallery Images Grid */}
