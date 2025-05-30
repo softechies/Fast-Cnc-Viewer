@@ -390,7 +390,15 @@ const translations = {
     previous: "Předchozí",
     next: "Další",
     tryAgain: "Zkusit znovu",
-    error: "Chyba"
+    error: "Chyba",
+    backToLibrary: "Zpět do knihovny",
+    download: "Stáhnout",
+    modelInfo: "Informace o modelu",
+    filename: "Název souboru",
+    format: "Formát",
+    filesize: "Velikost souboru",
+    gallery: "Galerie",
+    goBack: "Zpět"
   },
   
   // Admin panel

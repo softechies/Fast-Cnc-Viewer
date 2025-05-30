@@ -391,7 +391,15 @@ const translations = {
     previous: "Zurück",
     next: "Weiter",
     tryAgain: "Erneut versuchen",
-    error: "Fehler"
+    error: "Fehler",
+    backToLibrary: "Zurück zur Bibliothek",
+    download: "Herunterladen",
+    modelInfo: "Modellinformationen",
+    filename: "Dateiname",
+    format: "Format",
+    filesize: "Dateigröße",
+    gallery: "Galerie",
+    goBack: "Zurück"
   },
   
   // Admin panel
