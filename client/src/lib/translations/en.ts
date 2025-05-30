@@ -222,6 +222,8 @@ const translations = {
   set_as_thumbnail: "Set as Thumbnail",
   click_set_thumbnail_note: "Click 'Set as Thumbnail' on any image to make it the model's thumbnail",
   close_gallery: "Close",
+  gallery_images: "Gallery Images",
+  no_gallery_images: "No gallery images available",
   view_model: "View Model",
   view_share_link: "View Share Link",
   enable_sharing: "Share Model",

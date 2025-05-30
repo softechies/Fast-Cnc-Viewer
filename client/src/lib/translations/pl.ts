@@ -175,6 +175,8 @@ const translations = {
   model_delete_error: "Błąd usuwania modelu",
   delete_model: "Usuń model",
   delete_model_confirmation: "Czy na pewno chcesz usunąć ten model? Tej operacji nie można cofnąć.",
+  gallery_images: "Obrazy galerii",
+  no_gallery_images: "Brak obrazów w galerii",
   
   // Shared model access
   sharedModel: "Udostępniony model",
