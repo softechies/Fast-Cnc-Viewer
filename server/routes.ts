@@ -3393,7 +3393,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Gallery image not found" });
       }
       
-      const updatedImage = await storage.updateGalleryImageOrder(imageId, targetImage.displayOrder);
+      // Najpierw usuń flagę thumbnail z innych obrazów galerii
+      await storage.clearGalleryThumbnails(modelId);
+      
+      // Ustaw nowy obraz jako thumbnail w galerii
+      const updatedImage = await storage.setGalleryThumbnail(imageId);
+      
+      // Skopiuj obraz z galerii jako główną miniaturkę modelu
+      if (s3Service.isInitialized() && targetImage.s3Key) {
+        // Pobierz obraz z S3
+        const downloadUrl = await s3Service.getSignedDownloadUrl(targetImage.s3Key, 3600);
+        const response = await fetch(downloadUrl);
+        const buffer = Buffer.from(await response.arrayBuffer());
+        
+        // Utwórz klucz dla miniaturki modelu
+        const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.${targetImage.filename.split('.').pop()}`;
+        
+        // Przesłij jako miniaturkę modelu
+        await s3Service.uploadBuffer(thumbnailKey, buffer, targetImage.mimeType);
+        
+        // Zaktualizuj model z nowym S3 key dla miniaturki
+        await storage.updateModelThumbnail(modelId, thumbnailKey);
+      } else if (!s3Service.isInitialized()) {
+        // Dla lokalnego przechowywania - skopiuj plik
+        const sourcePath = path.join('./uploads', 'gallery', targetImage.filename);
+        const thumbnailPath = path.join('./uploads', 'thumbnails', `model_${modelId}_thumbnail.${targetImage.filename.split('.').pop()}`);
+        
+        await fs.promises.mkdir(path.dirname(thumbnailPath), { recursive: true });
+        await fs.promises.copyFile(sourcePath, thumbnailPath);
+        
+        await storage.updateModelThumbnail(modelId, `model_${modelId}_thumbnail.${targetImage.filename.split('.').pop()}`);
+      }
       
       res.json({ 
         success: true, 

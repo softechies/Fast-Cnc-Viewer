@@ -47,6 +47,9 @@ export interface IStorage {
   addGalleryImage(image: InsertModelGalleryImage): Promise<ModelGalleryImage>;
   deleteGalleryImage(imageId: number): Promise<boolean>;
   updateGalleryImageOrder(imageId: number, newOrder: number): Promise<ModelGalleryImage | undefined>;
+  clearGalleryThumbnails(modelId: number): Promise<void>;
+  setGalleryThumbnail(imageId: number): Promise<ModelGalleryImage | undefined>;
+  updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void>;
 }
 
 // In-memory storage implementation
@@ -424,6 +427,28 @@ export class MemStorage implements IStorage {
       return image;
     }
     return undefined;
+  }
+
+  async clearGalleryThumbnails(modelId: number): Promise<void> {
+    this.galleryImages
+      .filter(img => img.modelId === modelId)
+      .forEach(img => img.isThumbnail = false);
+  }
+
+  async setGalleryThumbnail(imageId: number): Promise<ModelGalleryImage | undefined> {
+    const image = this.galleryImages.find(img => img.id === imageId);
+    if (image) {
+      image.isThumbnail = true;
+      return image;
+    }
+    return undefined;
+  }
+
+  async updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void> {
+    const model = this.models.get(modelId);
+    if (model) {
+      model.thumbnailPath = thumbnailPath;
+    }
   }
 }
 
@@ -819,6 +844,39 @@ export class PostgresStorage implements IStorage {
     } catch (error) {
       console.error("Error updating gallery image order:", error);
       return undefined;
+    }
+  }
+
+  async clearGalleryThumbnails(modelId: number): Promise<void> {
+    try {
+      await db.update(modelGallery)
+        .set({ isThumbnail: false })
+        .where(eq(modelGallery.modelId, modelId));
+    } catch (error) {
+      console.error("Error clearing gallery thumbnails:", error);
+    }
+  }
+
+  async setGalleryThumbnail(imageId: number): Promise<ModelGalleryImage | undefined> {
+    try {
+      const [updatedImage] = await db.update(modelGallery)
+        .set({ isThumbnail: true })
+        .where(eq(modelGallery.id, imageId))
+        .returning();
+      return updatedImage;
+    } catch (error) {
+      console.error("Error setting gallery thumbnail:", error);
+      return undefined;
+    }
+  }
+
+  async updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void> {
+    try {
+      await db.update(models)
+        .set({ thumbnailPath })
+        .where(eq(models.id, modelId));
+    } catch (error) {
+      console.error("Error updating model thumbnail:", error);
     }
   }
 }
