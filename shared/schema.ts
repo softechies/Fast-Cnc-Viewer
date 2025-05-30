@@ -223,6 +223,7 @@ export type SearchLibrary = z.infer<typeof searchLibrarySchema>;
 export const stlModelMetadataSchema = z.object({
   filePath: z.string(),
   stlFilePath: z.string(),
+  s3Key: z.string().nullable(), // Klucz S3 dla plików przechowywanych w chmurze
   isDirectStl: z.boolean().default(false),
   stlFormat: z.string().default('unknown'),
   parts: z.number(),

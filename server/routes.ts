@@ -918,7 +918,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const metadata = model.metadata as any;
       const filePath = metadata?.filePath;
+      const s3Key = metadata?.s3Key;
       
+      // Jeśli plik jest w S3, użyj podpisanego URL
+      if (s3Key && s3Service.isInitialized()) {
+        try {
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
+          return res.redirect(signedUrl);
+        } catch (s3Error) {
+          console.error('Failed to get S3 signed URL:', s3Error);
+          // Kontynuuj próbę lokalnego pliku
+        }
+      }
+      
+      // Fallback do lokalnego pliku
       if (!filePath || !fs.existsSync(filePath)) {
         return res.status(404).json({ message: "File not found" });
       }
@@ -954,8 +967,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const metadata = model.metadata as any;
       const stlFilePath = metadata?.stlFilePath;
+      const s3Key = metadata?.s3Key;
       
-      // Sprawdź czy istnieje plik STL
+      // Jeśli plik jest w S3, użyj podpisanego URL
+      if (s3Key && s3Service.isInitialized()) {
+        try {
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600); // 1 godzina
+          return res.redirect(signedUrl);
+        } catch (s3Error) {
+          console.error('Failed to get S3 signed URL for STL:', s3Error);
+          // Kontynuuj próbę lokalnego pliku
+        }
+      }
+      
+      // Fallback do lokalnego pliku
       if (!stlFilePath || !fs.existsSync(stlFilePath)) {
         return res.status(404).json({ message: "STL file not found" });
       }
@@ -1108,6 +1133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isOwner = req.isAuthenticated();
       const shareId = nanoid(10); // Zawsze generujemy shareId, ale włączamy udostępnianie tylko jeśli autoShare = true
       
+      // Przesyłanie pliku do S3 (jeśli skonfigurowane)
+      let filePath = file.path;
+      let s3Key = null;
+      
+      if (s3Service.isInitialized()) {
+        try {
+          s3Key = s3Service.generateS3Key(userId, file.originalname, 'stl');
+          await s3Service.uploadFile(file.path, s3Key, 'application/octet-stream');
+          filePath = s3Key; // Używamy klucza S3 jako ścieżki
+          console.log(`STL file uploaded to S3: ${s3Key}`);
+        } catch (s3Error) {
+          console.error('Failed to upload to S3, using local storage:', s3Error);
+          // Kontynuujemy z lokalnym przechowywaniem w przypadku błędu S3
+        }
+      }
+
       // Create model record directly for the STL file
       const modelData = {
         userId: userId,
@@ -1122,8 +1163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Ustawienie shareEnabled na podstawie parametru autoShare
         shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         metadata: {
-          filePath: file.path,
-          stlFilePath: file.path, // For STL direct upload, the original file is also the STL file
+          filePath: filePath,
+          stlFilePath: filePath, // For STL direct upload, the original file is also the STL file
+          s3Key: s3Key, // Dodajemy klucz S3 do metadanych
           isDirectStl: true,
           stlFormat: isSTLBinary ? 'binary' : 'ascii', // Dodajemy informację o formacie STL
           parts: 1,
@@ -1147,6 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Dodajemy token dostępu do metadanych
       const stlMetadata = modelData.metadata as StlModelMetadata;
       stlMetadata.viewToken = viewToken;
+      stlMetadata.s3Key = s3Key; // Dodajemy klucz S3
       modelData.metadata = stlMetadata;
       
       // Walidacja i tworzenie modelu
