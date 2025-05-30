@@ -8,6 +8,8 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 interface DxfViewerProps {
   modelId: number | null;
+  isPublic?: boolean;
+  publicId?: string;
 }
 
 // Interfejs dla wymiarów modelu 2D
@@ -21,7 +23,7 @@ interface ModelDimensions2D {
   units: string;   // Jednostki miary (domyślnie mm)
 }
 
-export default function DxfViewer({ modelId }: DxfViewerProps) {
+export default function DxfViewer({ modelId, isPublic, publicId }: DxfViewerProps) {
   // Get translation function
   const { t } = useLanguage();
   
