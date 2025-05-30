@@ -15,21 +15,38 @@ interface ModelGalleryModalProps {
 }
 
 interface GalleryImage {
-  file: File;
-  previewUrl: string;
-  croppedPreviewUrl?: string;
+  id: number;
+  filename: string;
+  originalName: string;
+  filesize: number;
+  mimeType: string;
+  displayOrder: number;
+  isThumbnail: boolean;
+  uploadedAt: string;
+  s3Key?: string;
 }
 
 export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Pobierz istniejące obrazy galerii z serwera
+  const { data: galleryImages = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/models', modelId, 'gallery'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/models/${modelId}/gallery`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch gallery images');
+      }
+      return await response.json();
+    },
+    enabled: isOpen
+  });
 
   // Check if model has existing thumbnail when modal opens
   const loadCurrentThumbnail = async () => {
