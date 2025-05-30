@@ -421,7 +421,15 @@ const translations = {
     previous: "Previous",
     next: "Next",
     tryAgain: "Try Again",
-    error: "Error"
+    error: "Error",
+    backToLibrary: "Back to Library",
+    download: "Download",
+    modelInfo: "Model Information",
+    filename: "Filename",
+    format: "Format",
+    filesize: "File Size",
+    gallery: "Gallery",
+    goBack: "Go Back"
   },
   
   admin: {

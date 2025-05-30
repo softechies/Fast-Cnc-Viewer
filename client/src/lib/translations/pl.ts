@@ -321,6 +321,7 @@ const translations = {
     noModels: "Nie znaleziono modeli",
     noModelsDescription: "Nie ma publicznych modeli pasujących do Twoich kryteriów wyszukiwania. Spróbuj dostosować filtry lub sprawdź później.",
     error: "Błąd ładowania biblioteki",
+    modelNotFound: "Model nie został znaleziony"
   },
   
   // Common pagination texts
@@ -329,7 +330,15 @@ const translations = {
     previous: "Poprzednia",
     next: "Następna",
     tryAgain: "Spróbuj ponownie",
-    error: "Błąd"
+    error: "Błąd",
+    backToLibrary: "Powrót do biblioteki",
+    download: "Pobierz",
+    modelInfo: "Informacje o modelu",
+    filename: "Nazwa pliku",
+    format: "Format",
+    filesize: "Rozmiar pliku",
+    gallery: "Galeria",
+    goBack: "Wróć"
   },
   
   admin: {
