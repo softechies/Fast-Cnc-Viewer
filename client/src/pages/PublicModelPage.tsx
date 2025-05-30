@@ -156,117 +156,112 @@ export default function PublicModelPage() {
             {t("common.backToLibrary") || "Back to Library"}
           </Button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* 3D Viewer */}
-            <div className="lg:col-span-2">
-              <Card className="h-fit">
+          {/* 3D Viewer - Full Width */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {getFileIcon(modelInfo)}
+                {modelInfo.filename}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden">
+                <ModelViewer
+                  modelId={modelInfo.id}
+                  isPublic={true}
+                  publicId={publicId}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="uppercase font-medium">{modelInfo.format}</span>
+                  <span>•</span>
+                  <span>{formatFileSize(modelInfo.filesize)}</span>
+                </div>
+                
+                <Button onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  {t("common.download") || "Download"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Model Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("common.modelInfo") || "Model Information"}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium">{t("common.filename") || "Filename"}:</span>
+                  <p className="text-sm text-muted-foreground break-all">{modelInfo.filename}</p>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-medium">{t("common.format") || "Format"}:</span>
+                  <p className="text-sm text-muted-foreground">{modelInfo.format}</p>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-medium">{t("common.filesize") || "File Size"}:</span>
+                  <p className="text-sm text-muted-foreground">{formatFileSize(modelInfo.filesize)}</p>
+                </div>
+                
+                {modelInfo.tags && modelInfo.tags.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium">{t("common.tags") || "Tags"}:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {modelInfo.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Gallery */}
+            {galleryImages && galleryImages.length > 0 && (
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    {getFileIcon(modelInfo)}
-                    {modelInfo.filename}
+                    <ImageIcon className="h-5 w-5" />
+                    {t("common.gallery") || "Gallery"} ({galleryImages.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden">
-                    <ModelViewer
-                      modelId={modelInfo.id}
-                      isPublic={true}
-                      publicId={publicId}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="uppercase font-medium">{modelInfo.format}</span>
-                      <span>•</span>
-                      <span>{formatFileSize(modelInfo.filesize)}</span>
+                  {isLoadingGallery ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="aspect-square" />
+                      ))}
                     </div>
-                    
-                    <Button onClick={handleDownload}>
-                      <Download className="h-4 w-4 mr-2" />
-                      {t("common.download") || "Download"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Model Info & Gallery */}
-            <div className="space-y-6">
-              {/* Model Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("common.modelInfo") || "Model Information"}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium">{t("common.filename") || "Filename"}:</span>
-                    <p className="text-sm text-muted-foreground break-all">{modelInfo.filename}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="text-sm font-medium">{t("common.format") || "Format"}:</span>
-                    <p className="text-sm text-muted-foreground">{modelInfo.format}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="text-sm font-medium">{t("common.filesize") || "File Size"}:</span>
-                    <p className="text-sm text-muted-foreground">{formatFileSize(modelInfo.filesize)}</p>
-                  </div>
-                  
-                  {modelInfo.tags && modelInfo.tags.length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium">{t("common.tags") || "Tags"}:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {modelInfo.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {galleryImages.map((image) => (
+                        <div
+                          key={image.id}
+                          className="aspect-square bg-muted/30 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => handleImageClick(image)}
+                        >
+                          <img
+                            src={getImageUrl(image)}
+                            alt={image.originalName}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </CardContent>
               </Card>
-
-              {/* Gallery */}
-              {galleryImages && galleryImages.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ImageIcon className="h-5 w-5" />
-                      {t("common.gallery") || "Gallery"} ({galleryImages.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingGallery ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <Skeleton key={i} className="aspect-square" />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        {galleryImages.map((image) => (
-                          <div
-                            key={image.id}
-                            className="aspect-square bg-muted/30 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => handleImageClick(image)}
-                          >
-                            <img
-                              src={getImageUrl(image)}
-                              alt={image.originalName}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </main>
