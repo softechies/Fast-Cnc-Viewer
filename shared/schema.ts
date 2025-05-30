@@ -62,6 +62,7 @@ export const models = pgTable("models", {
   shareNotificationSent: boolean("share_notification_sent").default(false), // Czy powiadomienie zostało wysłane
   shareLastAccessed: text("share_last_accessed"), // Ostatni dostęp do udostępnionego modelu
   tags: text("tags").array(), // Tablica tagów dla łatwego wyszukiwania
+  isPublic: boolean("is_public").default(false), // Czy model jest dostępny w publicznej bibliotece CAD
 });
 
 export const insertModelSchema = createInsertSchema(models).omit({

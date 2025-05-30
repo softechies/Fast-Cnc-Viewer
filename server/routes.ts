@@ -2857,6 +2857,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint do zarządzania statusem publicznej biblioteki CAD
+  app.post("/api/client/models/:id/public-library", async (req: Request, res: Response) => {
+    try {
+      // Sprawdź czy użytkownik jest zalogowany
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Niezalogowany" });
+      }
+      
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Nieprawidłowe ID modelu" });
+      }
+      
+      const { isPublic } = req.body;
+      if (typeof isPublic !== 'boolean') {
+        return res.status(400).json({ error: "Nieprawidłowa wartość isPublic" });
+      }
+      
+      // Pobierz model
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model nie istnieje" });
+      }
+      
+      // Sprawdź czy model należy do zalogowanego użytkownika
+      const user = req.user as User;
+      if (!user.isAdmin && user.email !== model.shareEmail) {
+        return res.status(403).json({ error: "Brak uprawnień do modyfikacji tego modelu" });
+      }
+      
+      // Aktualizuj status publicznej biblioteki
+      await storage.updateModel(modelId, {
+        isPublic: isPublic
+      });
+      
+      return res.json({ 
+        success: true, 
+        isPublic: isPublic,
+        message: isPublic ? "Model dodany do publicznej biblioteki CAD" : "Model usunięty z publicznej biblioteki CAD"
+      });
+    } catch (error) {
+      console.error("Error updating public library status:", error);
+      res.status(500).json({ error: "Błąd podczas aktualizacji statusu publicznej biblioteki" });
+    }
+  });
+
   // Endpoint do wyszukiwania/pobierania modeli z otwartej biblioteki
   app.get("/api/library", async (req: Request, res: Response) => {
     try {

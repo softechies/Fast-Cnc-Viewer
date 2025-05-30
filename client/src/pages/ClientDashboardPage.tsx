@@ -36,6 +36,7 @@ interface ClientModel {
   hasPassword: boolean;
   shareExpiryDate: string | null;
   shareLastAccessed: string | null;
+  isPublic: boolean;
 }
 
 export default function ClientDashboardPage() {
