@@ -2733,6 +2733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint do pobierania modeli przypisanych do zalogowanego użytkownika
   app.get("/api/client/models", async (req: Request, res: Response) => {
     try {
+      console.log("=== DEBUG: /api/client/models endpoint called ===");
       // Sprawdź czy użytkownik jest zalogowany
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Niezalogowany" });
@@ -2740,6 +2741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Pobierz zalogowanego użytkownika
       const user = req.user as User;
+      console.log(`User: ${user.email}, isAdmin: ${user.isAdmin}`);
       
       // Jeśli użytkownik jest adminem, zwróć wszystkie modele
       if (user.isAdmin) {
@@ -2750,15 +2752,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Dla zwykłego użytkownika, pobierz modele powiązane z jego adresem email
       if (user.email) {
         const userModels = await storage.getModelsByEmail(user.email);
+        console.log(`Retrieved ${userModels.length} models for user ${user.email}`);
+        
         // Dodaj obliczone pole hasPassword do każdego modelu
         const modelsWithPassword = userModels.map(model => {
           const hasPassword = !!(model.sharePassword || (model as any).share_password);
-          console.log(`Model ${model.id} (${model.filename}): sharePassword=${!!model.sharePassword}, share_password=${!!(model as any).share_password}, hasPassword=${hasPassword}`);
+          console.log(`Model ${model.id} (${model.filename}): sharePassword="${model.sharePassword}", share_password="${(model as any).share_password}", hasPassword=${hasPassword}`);
           return {
             ...model,
             hasPassword
           };
         });
+        
+        console.log(`Final result:`, JSON.stringify(modelsWithPassword.map(m => ({id: m.id, filename: m.filename, hasPassword: m.hasPassword})), null, 2));
         return res.json(modelsWithPassword);
       }
       
