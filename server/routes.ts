@@ -869,10 +869,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Dodane informacje o udostępnianiu
         shareEnabled: model.shareEnabled || false,
         shareId: model.shareId,
-        hasPassword: !!model.sharePassword
+        hasPassword: !!model.sharePassword,
+        tags: model.tags || []
       };
       
-      res.json(modelInfoSchema.parse(modelInfo));
+      res.json(modelInfo);
     } catch (error) {
       console.error("Error getting model info:", error);
       res.status(500).json({ message: "Failed to get model info" });
