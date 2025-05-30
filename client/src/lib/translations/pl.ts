@@ -380,7 +380,7 @@ const translations = {
   shared_status: "Status udostępnienia",
   shared_with: "Udostępniono dla",
   last_accessed: "Ostatni dostęp",
-  add_to_cad_library: "Dodaj do biblioteki CAD",
+  add_to_cad_library: "Dodaj do publicznej biblioteki CAD",
   logout: "Wyloguj"
 };
 

@@ -178,7 +178,7 @@ const translations = {
   status: "Status",
   shared_status: "Shared Status",
   last_accessed: "Last Accessed",
-  add_to_cad_library: "Add to CAD Library",
+  add_to_cad_library: "Add to Public CAD Library",
   active: "Active",
   inactive: "Inactive",
   view_model: "View Model",
