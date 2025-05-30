@@ -36,12 +36,14 @@ class ErrorBoundary extends Component<{
 
 interface ModelViewerProps {
   modelId: number | null;
+  isPublic?: boolean;
+  publicId?: string;
 }
 
 // Typ modelu określa, jaki renderer będzie używany
 type ModelType = '3d' | '2d' | 'unknown';
 
-export default function ModelViewer({ modelId }: ModelViewerProps) {
+export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewerProps) {
   const { t } = useLanguage();
   const [modelType, setModelType] = useState<ModelType>('unknown');
   const [modelInfo, setModelInfo] = useState<any>(null);
@@ -63,7 +65,12 @@ export default function ModelViewer({ modelId }: ModelViewerProps) {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/models/${modelId}`);
+        // Użyj odpowiedniego endpointu w zależności od tego, czy model jest publiczny
+        const endpoint = isPublic && publicId 
+          ? `/api/public/models/${publicId}` 
+          : `/api/models/${modelId}`;
+        
+        const response = await fetch(endpoint);
         if (!response.ok) {
           throw new Error(`Nie można pobrać informacji o modelu (${response.status})`);
         }

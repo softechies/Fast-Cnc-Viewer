@@ -255,7 +255,13 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
       </div>
       
       <div className="h-[calc(100vh-180px)] bg-background border rounded-lg overflow-hidden">
-        {modelId && <ModelViewer modelId={modelId} />}
+        {modelId && (
+          <ModelViewer 
+            modelId={modelId} 
+            isPublic={isPublicModel}
+            publicId={isPublicModel ? shareId : undefined}
+          />
+        )}
       </div>
     </div>
   );
