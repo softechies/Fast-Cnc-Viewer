@@ -65,7 +65,8 @@ export default function CadLibraryPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getFileTypeIcon = (fileType: string) => {
+  const getFileTypeIcon = (fileType?: string) => {
+    if (!fileType) return '📄';
     const type = fileType.toLowerCase();
     if (type.includes('step') || type.includes('stp')) return '🔧';
     if (type.includes('stl')) return '📐';
