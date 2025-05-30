@@ -42,8 +42,8 @@ export default function PublicModelPage() {
 
   // Fetch gallery images
   const { data: galleryImages, isLoading: isLoadingGallery } = useQuery<GalleryImage[]>({
-    queryKey: ['/api/models', modelInfo?.id, 'gallery'],
-    enabled: !!modelInfo?.id,
+    queryKey: ['/api/public/models', publicId, 'gallery'],
+    enabled: !!publicId,
   });
 
   const formatFileSize = (bytes: number): string => {

@@ -247,7 +247,7 @@ export default function LibraryPage() {
                           <CardFooter className="pt-2">
                             <Button 
                               className="w-full"
-                              onClick={() => setLocation(`/shared/${model.shareId}`)}
+                              onClick={() => setLocation(`/library/model/${model.publicId}`)}
                             >
                               {t("library.viewModel") || "View Model"}
                               <ExternalLink className="h-4 w-4 ml-2" />

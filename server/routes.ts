@@ -969,6 +969,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public model gallery by publicId
+  app.get("/api/public/models/:publicId/gallery", async (req: Request, res: Response) => {
+    try {
+      const publicId = req.params.publicId;
+      const model = await storage.getModelByPublicId(publicId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy model jest publiczny
+      if (!model.isPublic) {
+        return res.status(403).json({ 
+          message: "This model is not available in the public library" 
+        });
+      }
+      
+      // Pobierz galerię obrazów dla tego modelu
+      const galleryImages = await storage.getModelGallery(model.id);
+      res.json(galleryImages);
+    } catch (error) {
+      console.error("Error getting public model gallery:", error);
+      res.status(500).json({ message: "Failed to get model gallery" });
+    }
+  });
+
   // Get public model file by publicId
   app.get("/api/public/models/:publicId/file", async (req: Request, res: Response) => {
     try {
