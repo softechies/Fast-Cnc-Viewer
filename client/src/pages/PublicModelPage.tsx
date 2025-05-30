@@ -40,7 +40,7 @@ export default function PublicModelPage() {
 
   // Fetch model info
   const { data: modelInfo, isLoading: isLoadingModel, error: modelError } = useQuery<Model>({
-    queryKey: ['/api/public/models', publicId],
+    queryKey: [`/api/public/models/${publicId}`],
     enabled: !!publicId,
   });
 
