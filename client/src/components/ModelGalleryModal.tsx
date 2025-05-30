@@ -73,7 +73,11 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
 
       console.log('FormData entries count:', formData.has('images'));
 
-      const response = await apiRequest('POST', `/api/models/${modelId}/gallery`, formData);
+      const response = await fetch(`/api/models/${modelId}/gallery`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
