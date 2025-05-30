@@ -94,8 +94,8 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
       }
     };
     
-    fetchSharedModelInfo();
-  }, [shareId]);
+    fetchModelInfo();
+  }, [shareId, t, isPublicModel]);
 
   // Funkcja do uzyskania dostępu do modelu (z hasłem lub bez)
   const accessSharedModel = async () => {

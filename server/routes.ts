@@ -864,6 +864,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public model info from library (without authentication)
+  app.get("/api/models/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const model = await storage.getModel(id);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy model jest publiczny w bibliotece
+      if (!model.isPublic) {
+        return res.status(403).json({ 
+          message: "This model is not available in the public library" 
+        });
+      }
+      
+      const metadata = model.metadata as any;
+      
+      const modelInfo = {
+        id: model.id,
+        filename: model.filename,
+        filesize: model.filesize,
+        format: model.format,
+        created: model.created,
+        sourceSystem: model.sourceSystem,
+        parts: metadata?.parts,
+        assemblies: metadata?.assemblies,
+        surfaces: metadata?.surfaces,
+        solids: metadata?.solids,
+        properties: metadata?.properties,
+        isPublic: model.isPublic,
+        requiresPassword: false // Publiczne modele nie wymagają hasła
+      };
+      
+      res.json(modelInfo);
+    } catch (error) {
+      console.error("Error getting public model info:", error);
+      res.status(500).json({ message: "Failed to get model info" });
+    }
+  });
+
   // Get model tree structure
   app.get("/api/models/:id/tree", async (req: Request, res: Response) => {
     try {
