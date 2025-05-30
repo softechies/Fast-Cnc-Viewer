@@ -221,6 +221,7 @@ const translations = {
   uploaded_images: "Uploaded Images",
   set_as_thumbnail: "Set as Thumbnail",
   click_set_thumbnail_note: "Click 'Set as Thumbnail' on any image to make it the model's thumbnail",
+  thumbnail_updated_successfully: "Thumbnail updated successfully",
   close_gallery: "Close",
   gallery_images: "Gallery Images",
   no_gallery_images: "No gallery images available",

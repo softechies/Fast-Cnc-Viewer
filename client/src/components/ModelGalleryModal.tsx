@@ -12,6 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
 interface ModelGalleryModalProps {
   modelId: number;
   modelName: string;
+  onThumbnailUpdate?: () => void;
 }
 
 interface GalleryImage {
@@ -26,7 +27,7 @@ interface GalleryImage {
   s3Key?: string;
 }
 
-export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps) {
+export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,7 +122,15 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
         description: t('thumbnail_updated_successfully'),
       });
       refetch();
+      // Invalidate multiple cache keys to refresh all related data
       queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/models', modelId] });
+      // Force refresh of the parent component if callback is provided
+      if (onThumbnailUpdate) {
+        onThumbnailUpdate();
+      }
     },
     onError: (error) => {
       toast({

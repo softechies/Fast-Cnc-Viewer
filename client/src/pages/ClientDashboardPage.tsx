@@ -458,6 +458,11 @@ export default function ClientDashboardPage() {
                             <ModelGalleryModal 
                               modelId={model.id} 
                               modelName={model.filename}
+                              onThumbnailUpdate={() => {
+                                // Odśwież listę modeli aby zaktualizować miniaturki
+                                refetch();
+                                queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+                              }}
                             />
                           </TableCell>
                           <TableCell>
