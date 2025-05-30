@@ -3415,11 +3415,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Gallery image not found" });
       }
       
+      console.log(`Setting thumbnail for model ${modelId}, image ${imageId}`);
+      console.log(`Target image:`, JSON.stringify(targetImage, null, 2));
+      
       // Najpierw usuń flagę thumbnail z innych obrazów galerii
       await storage.clearGalleryThumbnails(modelId);
+      console.log(`Cleared existing gallery thumbnails for model ${modelId}`);
       
       // Ustaw nowy obraz jako thumbnail w galerii
       const updatedImage = await storage.setGalleryThumbnail(imageId);
+      console.log(`Set gallery thumbnail:`, JSON.stringify(updatedImage, null, 2));
       
       // Skopiuj obraz z galerii jako główną miniaturkę modelu
       if (s3Service.isInitialized() && targetImage.s3Key) {
