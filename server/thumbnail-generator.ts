@@ -199,11 +199,14 @@ export async function generateSTEPThumbnail(
 export async function generateThumbnail(
   filePath: string, 
   outputPath: string, 
-  options: ThumbnailOptions = {}
+  options: ThumbnailOptions = {},
+  originalFilename?: string
 ): Promise<boolean> {
-  const ext = path.extname(filePath).toLowerCase();
+  // Użyj oryginalnej nazwy pliku jeśli jest dostępna, w przeciwnym razie użyj ścieżki
+  const filenameForExtension = originalFilename || filePath;
+  const ext = path.extname(filenameForExtension).toLowerCase();
   
-  console.log(`[THUMBNAIL] Generating thumbnail for file: ${filePath}, extension: ${ext}, output: ${outputPath}`);
+  console.log(`[THUMBNAIL] Generating thumbnail for file: ${filePath}, original: ${originalFilename}, extension: ${ext}, output: ${outputPath}`);
   
   // Ensure output directory exists
   const outputDir = path.dirname(outputPath);

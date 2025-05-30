@@ -1383,7 +1383,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Sprawdź czy plik nadal istnieje
           if (fs.existsSync(file.path)) {
-            const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
+            // Przekaż originalname aby funkcja mogła poprawnie wykryć rozszerzenie
+            const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath, {}, file.originalname);
             
             if (thumbnailGenerated) {
               console.log(`Thumbnail generated successfully for STL model ID ${model.id}`);
