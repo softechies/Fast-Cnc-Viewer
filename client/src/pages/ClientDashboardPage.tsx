@@ -435,7 +435,6 @@ export default function ClientDashboardPage() {
                       <TableRow>
                         <TableHead>{t('filename')}</TableHead>
                         <TableHead>{t('upload_thumbnail')}</TableHead>
-                        <TableHead>{t('shared_with')}</TableHead>
                         <TableHead>{t('shared_status')}</TableHead>
                         <TableHead>{t('last_accessed')}</TableHead>
                         <TableHead>{t('add_to_cad_library')}</TableHead>
@@ -461,7 +460,6 @@ export default function ClientDashboardPage() {
                               modelName={model.filename}
                             />
                           </TableCell>
-                          <TableCell>{model.shareEmail || "-"}</TableCell>
                           <TableCell>
                             <div className="flex items-center">
                               {model.shareEnabled ? (
