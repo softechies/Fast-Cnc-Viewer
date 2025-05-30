@@ -77,7 +77,7 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         if (isPublicModel) {
           // Publiczne modele nie wymagają hasła
           setRequiresPassword(false);
-          setModelId(parseInt(shareId));
+          setModelId(data.id); // Użyj prawdziwego ID z odpowiedzi serwera
           setModelAccessed(true);
         } else {
           setRequiresPassword(data.requiresPassword);
