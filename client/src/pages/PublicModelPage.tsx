@@ -34,6 +34,9 @@ export default function PublicModelPage() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const publicId = params?.publicId;
 
+  console.log('PublicModelPage rendered with params:', params);
+  console.log('PublicId:', publicId);
+
   // Fetch model info
   const { data: modelInfo, isLoading: isLoadingModel, error: modelError } = useQuery<Model>({
     queryKey: ['/api/public/models', publicId],
