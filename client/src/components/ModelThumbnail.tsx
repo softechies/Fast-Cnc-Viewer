@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { File, Image } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ModelThumbnailProps {
   modelId: number;
@@ -11,8 +12,35 @@ interface ModelThumbnailProps {
 export function ModelThumbnail({ modelId, filename, format, className = "w-16 h-16" }: ModelThumbnailProps) {
   const [thumbnailError, setThumbnailError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(Date.now());
+  const queryClient = useQueryClient();
 
-  const thumbnailUrl = `/api/models/${modelId}/thumbnail`;
+  const thumbnailUrl = `/api/models/${modelId}/thumbnail?t=${refreshKey}`;
+
+  // Listen for thumbnail updates from query invalidation
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      // Check if any thumbnail-related query was invalidated
+      const thumbnailQueries = queryClient.getQueryCache().findAll({
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && (
+            key.includes(`/api/models/${modelId}/thumbnail`) ||
+            (key.includes('/api/models') && key.includes(modelId) && key.includes('thumbnail')) ||
+            key.includes('/api/client/models')
+          );
+        }
+      });
+      
+      if (thumbnailQueries.length > 0) {
+        setRefreshKey(Date.now());
+        setThumbnailError(false);
+        setIsLoading(true);
+      }
+    });
+
+    return unsubscribe;
+  }, [modelId, queryClient]);
 
   const handleThumbnailError = () => {
     setThumbnailError(true);
