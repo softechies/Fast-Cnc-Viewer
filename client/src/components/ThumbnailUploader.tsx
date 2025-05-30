@@ -119,7 +119,7 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
   };
 
   const cropImageToSquare = (image: HTMLImageElement): Promise<Blob> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const canvas = canvasRef.current!;
       const ctx = canvas.getContext('2d')!;
       
@@ -147,6 +147,9 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
       canvas.toBlob((blob) => {
         if (blob) {
           resolve(blob);
+        } else {
+          console.error('Canvas toBlob returned null');
+          reject(new Error('Failed to convert canvas to blob'));
         }
       }, 'image/jpeg', 0.85);
     });
@@ -162,11 +165,14 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
       const image = document.createElement('img');
       image.onload = async () => {
         try {
+          console.log('Image loaded, starting crop process');
           // Kadruj do kwadratu
           const croppedBlob = await cropImageToSquare(image);
+          console.log('Image cropped successfully, blob size:', croppedBlob.size);
           
           // Prześlij na serwer
           await uploadThumbnailMutation.mutateAsync(croppedBlob);
+          console.log('Thumbnail uploaded successfully');
         } catch (error) {
           console.error('Error processing image:', error);
           toast({
