@@ -135,8 +135,37 @@ def generate_stl_thumbnail(input_path, output_path, width=300, height=300, quali
             print("No valid triangles found", file=sys.stderr)
             return False
         
-        # Utwórz kolekcję 3D
-        poly3d = Poly3DCollection(triangles, alpha=0.8, facecolor='lightblue', edgecolor='darkblue', linewidth=0.1)
+        # Przygotuj mesh z lepszym renderowaniem
+        vertices_array = np.array(vertices)
+        
+        # Oblicz normalne dla lepszego oświetlenia
+        face_normals = []
+        for triangle in triangles:
+            v1 = triangle[1] - triangle[0]
+            v2 = triangle[2] - triangle[0]
+            normal = np.cross(v1, v2)
+            if np.linalg.norm(normal) > 0:
+                normal = normal / np.linalg.norm(normal)
+            face_normals.append(normal)
+        
+        face_normals = np.array(face_normals)
+        
+        # Symuluj oświetlenie z góry-przodu
+        light_direction = np.array([0.3, 0.3, 1.0])
+        light_direction = light_direction / np.linalg.norm(light_direction)
+        
+        # Oblicz intensywność oświetlenia
+        if len(face_normals) > 0:
+            lighting = np.dot(face_normals, light_direction)
+            lighting = np.clip(lighting, 0.3, 1.0)  # Minimum 30% jasności
+            
+            # Mapuj intensywność na kolory
+            colors = plt.cm.plasma(lighting)
+        else:
+            colors = 'lightblue'
+        
+        # Utwórz kolekcję 3D z lepszymi kolorami
+        poly3d = Poly3DCollection(triangles, alpha=0.85, facecolors=colors, edgecolor='black', linewidth=0.05)
         ax.add_collection3d(poly3d)
         
         # Oblicz granice modelu
