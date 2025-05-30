@@ -256,8 +256,11 @@ export default function ClientDashboardPage() {
   
   // Otwiera model do podglądu
   const handleViewModel = (modelId: number) => {
-    // Przekieruj do strony głównej z parametrem id modelu w tym samym oknie
-    window.location.href = `/?id=${modelId}`;
+    // Przekieruj do strony głównej z parametrem id modelu zachowując kontekst językowy
+    const currentPath = location.split('/')[1];
+    const isLanguagePath = ['en', 'pl', 'cs', 'de', 'fr'].includes(currentPath);
+    const targetPath = isLanguagePath ? `/${currentPath}?id=${modelId}` : `/?id=${modelId}`;
+    setLocation(targetPath);
   };
 
   if (isLoading) {
