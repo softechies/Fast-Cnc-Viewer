@@ -3423,19 +3423,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Skopiuj obraz z galerii jako główną miniaturkę modelu
       if (s3Service.isInitialized() && targetImage.s3Key) {
-        // Pobierz obraz z S3
-        const downloadUrl = await s3Service.getSignedDownloadUrl(targetImage.s3Key, 3600);
-        const response = await fetch(downloadUrl);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        
-        // Utwórz klucz dla miniaturki modelu
-        const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.${targetImage.filename.split('.').pop()}`;
-        
-        // Przesłij jako miniaturkę modelu
-        await s3Service.uploadBuffer(thumbnailKey, buffer, targetImage.mimeType);
-        
-        // Zaktualizuj model z nowym S3 key dla miniaturki
-        await storage.updateModelThumbnail(modelId, thumbnailKey);
+        try {
+          console.log(`Copying gallery image to model thumbnail: ${targetImage.s3Key}`);
+          
+          // Pobierz obraz z S3
+          const downloadUrl = await s3Service.getSignedDownloadUrl(targetImage.s3Key, 3600);
+          console.log(`Downloaded signed URL: ${downloadUrl}`);
+          
+          const response = await fetch(downloadUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image from S3: ${response.status}`);
+          }
+          
+          const buffer = Buffer.from(await response.arrayBuffer());
+          console.log(`Image buffer size: ${buffer.length}`);
+          
+          // Utwórz klucz dla miniaturki modelu
+          const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.${targetImage.filename.split('.').pop()}`;
+          console.log(`Uploading thumbnail to S3 with key: ${thumbnailKey}`);
+          
+          // Przesłij jako miniaturkę modelu
+          await s3Service.uploadBuffer(thumbnailKey, buffer, targetImage.mimeType);
+          console.log(`Thumbnail uploaded successfully to S3`);
+          
+          // Zaktualizuj model z nowym S3 key dla miniaturki
+          await storage.updateModelThumbnail(modelId, thumbnailKey);
+          console.log(`Model thumbnail metadata updated`);
+        } catch (s3Error) {
+          console.error('Error copying gallery image to model thumbnail:', s3Error);
+          throw s3Error;
+        }
       } else if (!s3Service.isInitialized()) {
         // Dla lokalnego przechowywania - skopiuj plik
         const sourcePath = path.join('./uploads', 'gallery', targetImage.filename);
