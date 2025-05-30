@@ -2751,10 +2751,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.email) {
         const userModels = await storage.getModelsByEmail(user.email);
         // Dodaj obliczone pole hasPassword do każdego modelu
-        const modelsWithPassword = userModels.map(model => ({
-          ...model,
-          hasPassword: !!(model.sharePassword || (model as any).share_password)
-        }));
+        const modelsWithPassword = userModels.map(model => {
+          const hasPassword = !!(model.sharePassword || (model as any).share_password);
+          console.log(`Model ${model.id} (${model.filename}): sharePassword=${!!model.sharePassword}, share_password=${!!(model as any).share_password}, hasPassword=${hasPassword}`);
+          return {
+            ...model,
+            hasPassword
+          };
+        });
         return res.json(modelsWithPassword);
       }
       
