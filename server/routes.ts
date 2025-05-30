@@ -983,15 +983,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/models/:id/thumbnail", async (req: Request, res: Response) => {
     try {
       const modelId = parseInt(req.params.id);
-      const thumbnailPath = getThumbnailPath(modelId);
+      const model = await storage.getModel(modelId);
       
-      if (!fs.existsSync(thumbnailPath)) {
-        return res.status(404).json({ message: "Thumbnail not found" });
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+
+      // Sprawdź czy model ma miniaturkę w metadata
+      const metadata = model.metadata as any;
+      const thumbnailPath = metadata?.thumbnailPath;
+      
+      if (thumbnailPath && s3Service.isInitialized()) {
+        // Serve from S3
+        try {
+          const signedUrl = await s3Service.getSignedDownloadUrl(thumbnailPath, 3600);
+          res.redirect(signedUrl);
+          return;
+        } catch (s3Error) {
+          console.error('Failed to get thumbnail from S3:', s3Error);
+        }
       }
       
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
-      fs.createReadStream(thumbnailPath).pipe(res);
+      // Fallback do lokalnego pliku
+      const localThumbnailPath = getThumbnailPath(modelId);
+      if (fs.existsSync(localThumbnailPath)) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        fs.createReadStream(localThumbnailPath).pipe(res);
+        return;
+      }
+      
+      return res.status(404).json({ message: "Thumbnail not found" });
     } catch (error) {
       console.error("Error serving thumbnail:", error);
       res.status(500).json({ message: "Failed to serve thumbnail" });
@@ -3355,8 +3377,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const signedUrl = await s3Service.getSignedDownloadUrl(image.s3Key);
         res.redirect(signedUrl);
       } else {
-        const imagePath = path.join(uploadsDir, 'gallery', image.filename);
-        if (await fs.access(imagePath).then(() => true).catch(() => false)) {
+        const imagePath = path.join('./uploads', 'gallery', image.filename);
+        if (await fs.promises.access(imagePath).then(() => true).catch(() => false)) {
           res.sendFile(path.resolve(imagePath));
         } else {
           res.status(404).json({ error: "Image file not found" });

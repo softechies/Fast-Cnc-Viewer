@@ -447,7 +447,10 @@ export class MemStorage implements IStorage {
   async updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void> {
     const model = this.models.get(modelId);
     if (model) {
-      model.thumbnailPath = thumbnailPath;
+      if (!model.metadata || typeof model.metadata !== 'object') {
+        model.metadata = {};
+      }
+      (model.metadata as any).thumbnailPath = thumbnailPath;
     }
   }
 }
@@ -872,8 +875,18 @@ export class PostgresStorage implements IStorage {
 
   async updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void> {
     try {
+      // Pobierz obecne metadata modelu
+      const [currentModel] = await db.select().from(models).where(eq(models.id, modelId)).limit(1);
+      if (!currentModel) return;
+
+      const currentMetadata = currentModel.metadata || {};
+      const updatedMetadata = {
+        ...currentMetadata,
+        thumbnailPath
+      };
+
       await db.update(models)
-        .set({ thumbnailPath })
+        .set({ metadata: updatedMetadata })
         .where(eq(models.id, modelId));
     } catch (error) {
       console.error("Error updating model thumbnail:", error);
