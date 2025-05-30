@@ -25,8 +25,10 @@ export default function Header({ onUploadClick }: HeaderProps) {
   const [location] = useLocation();
   
   // Wyodrębnij kod języka z aktualnego URL-a
-  const langMatch = location.match(/^\/([a-z]{2})\//);
+  const langMatch = location.match(/^\/([a-z]{2})(?:\/|$)/);
   const currentLang = langMatch ? langMatch[1] : '';
+  
+  console.log('Header location:', location, 'detected lang:', currentLang); // Debug
   
   // Funkcja do budowania URL-a z aktualnym językiem
   const buildUrlWithLang = (path: string) => {
