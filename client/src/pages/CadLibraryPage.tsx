@@ -165,7 +165,7 @@ export default function CadLibraryPage() {
         {/* Results Count */}
         <div className="text-center mb-6">
           <p className="text-gray-600">
-            {t('showing_models', { count: filteredModels.length, total: models?.length || 0 })}
+            {t('showing_models').replace('{count}', filteredModels.length.toString()).replace('{total}', (models?.length || 0).toString())}
           </p>
         </div>
 
@@ -222,7 +222,7 @@ export default function CadLibraryPage() {
                   {/* Dimensions */}
                   {model.dimensions && (
                     <div className="text-sm text-gray-600">
-                      <strong>{t('dimensions')}:</strong>
+                      <strong>{t('cad_library_dimensions')}:</strong>
                       <span className="ml-1">
                         {model.dimensions.width}×{model.dimensions.height}
                         {model.dimensions.depth && `×${model.dimensions.depth}`} mm
@@ -255,7 +255,7 @@ export default function CadLibraryPage() {
                       className="flex-1"
                     >
                       <Eye className="h-4 w-4 mr-1" />
-                      {t('view')}
+                      {t('cad_library_view')}
                     </Button>
                     <Button
                       size="sm"
@@ -264,7 +264,7 @@ export default function CadLibraryPage() {
                       className="flex-1"
                     >
                       <Download className="h-4 w-4 mr-1" />
-                      {t('download')}
+                      {t('cad_library_download')}
                     </Button>
                   </div>
                 </CardContent>
