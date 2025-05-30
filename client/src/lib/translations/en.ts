@@ -456,7 +456,8 @@ const translations = {
   please_select_image_file: "Please select an image file",
   file_too_large_5mb: "File is too large. Maximum size is 5MB",
   image_processing_failed: "Image processing failed",
-  invalid_image_file: "Invalid image file"
+  invalid_image_file: "Invalid image file",
+  thumbnail_required_for_public: "A thumbnail is required to add this model to the public library. Please upload a thumbnail first."
 };
 
 export default translations;

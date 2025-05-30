@@ -484,7 +484,31 @@ export default function ClientDashboardPage() {
                           <TableCell>
                             <Switch 
                               checked={model.isPublic || false}
-                              onCheckedChange={(checked: boolean) => {
+                              onCheckedChange={async (checked: boolean) => {
+                                if (checked) {
+                                  // Sprawdź czy model ma miniaturkę przed dodaniem do publicznej biblioteki
+                                  try {
+                                    const response = await fetch(`/api/models/${model.id}/thumbnail`, {
+                                      method: 'HEAD'
+                                    });
+                                    if (!response.ok) {
+                                      toast({
+                                        title: t('error'),
+                                        description: t('thumbnail_required_for_public'),
+                                        variant: "destructive",
+                                      });
+                                      return;
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: t('error'),
+                                      description: t('thumbnail_required_for_public'),
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                }
+                                
                                 togglePublicLibraryMutation.mutate({
                                   modelId: model.id,
                                   isPublic: checked

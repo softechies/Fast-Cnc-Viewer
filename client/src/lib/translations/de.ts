@@ -438,7 +438,25 @@ const translations = {
     revokeConfirmDescription: "Sind Sie sicher, dass Sie die Freigabe für dieses Modell widerrufen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     cancel: "Abbrechen",
     confirmRevoke: "Ja, widerrufen"
-  }
+  },
+  
+  // Thumbnail upload
+  upload_thumbnail: "Vorschaubild hochladen",
+  upload_custom_thumbnail: "Benutzerdefiniertes Vorschaubild hochladen",
+  upload_thumbnail_description: "Laden Sie ein benutzerdefiniertes Vorschaubild für '{modelName}' hoch. Das Bild wird automatisch zu einem quadratischen Format zugeschnitten.",
+  select_image_file: "Bilddatei auswählen",
+  supported_formats_jpg_png_max_5mb: "Unterstützte Formate: JPG, PNG. Maximale Größe: 5MB",
+  preview: "Vorschau",
+  original: "Original",
+  cropped_to_square: "Zu Quadrat zugeschnitten",
+  processing: "Verarbeitung...",
+  thumbnail_uploaded_successfully: "Vorschaubild erfolgreich hochgeladen",
+  thumbnail_upload_failed: "Fehler beim Hochladen des Vorschaubilds",
+  please_select_image_file: "Bitte wählen Sie eine Bilddatei aus",
+  file_too_large_5mb: "Datei ist zu groß. Maximale Größe ist 5MB",
+  image_processing_failed: "Bildverarbeitung fehlgeschlagen",
+  invalid_image_file: "Ungültige Bilddatei",
+  thumbnail_required_for_public: "Ein Vorschaubild ist erforderlich, um dieses Modell zur öffentlichen Bibliothek hinzuzufügen. Bitte laden Sie zuerst ein Vorschaubild hoch."
 };
 
 export default translations;

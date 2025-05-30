@@ -415,7 +415,8 @@ const translations = {
   please_select_image_file: "Proszę wybrać plik obrazu",
   file_too_large_5mb: "Plik jest za duży. Maksymalny rozmiar to 5MB",
   image_processing_failed: "Przetwarzanie obrazu nie powiodło się",
-  invalid_image_file: "Nieprawidłowy plik obrazu"
+  invalid_image_file: "Nieprawidłowy plik obrazu",
+  thumbnail_required_for_public: "Miniaturka jest wymagana aby dodać model do publicznej biblioteki. Proszę najpierw przesłać miniaturkę."
 };
 
 export default translations;
