@@ -18,6 +18,7 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,6 +84,38 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
     // Stwórz podgląd
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+    
+    // Stwórz podgląd przycięcia
+    const image = document.createElement('img');
+    image.onload = () => {
+      const canvas = canvasRef.current!;
+      const ctx = canvas.getContext('2d')!;
+      
+      // Ustaw rozmiar canvas na kwadrat 300x300
+      canvas.width = 300;
+      canvas.height = 300;
+      
+      // Oblicz wymiary do kadrowania na kwadrat
+      const size = Math.min(image.width, image.height);
+      const startX = (image.width - size) / 2;
+      const startY = (image.height - size) / 2;
+      
+      // Wyczyść canvas
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(0, 0, 300, 300);
+      
+      // Narysuj obraz w kwadracie
+      ctx.drawImage(
+        image,
+        startX, startY, size, size, // źródło
+        0, 0, 300, 300 // cel
+      );
+      
+      // Stwórz URL podglądu
+      const croppedUrl = canvas.toDataURL('image/jpeg', 0.85);
+      setCroppedPreviewUrl(croppedUrl);
+    };
+    image.src = url;
   };
 
   const cropImageToSquare = (image: HTMLImageElement): Promise<Blob> => {
@@ -168,6 +201,7 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
       URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
     }
+    setCroppedPreviewUrl(null);
   };
 
   return (
@@ -222,9 +256,17 @@ export function ThumbnailUploader({ modelId, modelName }: ThumbnailUploaderProps
                   </div>
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">{t('cropped_to_square')}</p>
-                    <div className="w-32 h-32 border rounded bg-gray-100 flex items-center justify-center text-sm text-muted-foreground">
-                      300x300px
-                    </div>
+                    {croppedPreviewUrl ? (
+                      <img 
+                        src={croppedPreviewUrl} 
+                        alt="Cropped preview" 
+                        className="w-32 h-32 object-cover border rounded"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 border rounded bg-gray-100 flex items-center justify-center text-sm text-muted-foreground">
+                        300x300px
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
