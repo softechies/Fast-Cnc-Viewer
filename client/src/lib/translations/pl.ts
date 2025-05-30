@@ -378,6 +378,8 @@ const translations = {
   shared_models: "Twoja Biblioteka CAD",
   shared_models_description: "Zarządzaj przesłanymi i udostępnionymi modelami 3D",
   shared_status: "Status udostępnienia",
+  shared_with: "Udostępniono dla",
+  last_accessed: "Ostatni dostęp",
   logout: "Wyloguj"
 };
 
