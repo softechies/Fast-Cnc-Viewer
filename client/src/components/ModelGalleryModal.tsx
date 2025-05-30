@@ -71,16 +71,9 @@ export function ModelGalleryModal({ modelId, modelName }: ModelGalleryModalProps
         formData.append('images', file);
       });
 
-      console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => ({
-        key,
-        value: value instanceof File ? `${value.name} (${value.size} bytes)` : value
-      })));
+      console.log('FormData entries count:', formData.has('images'));
 
-      const response = await fetch(`/api/models/${modelId}/gallery`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
+      const response = await apiRequest('POST', `/api/models/${modelId}/gallery`, formData);
 
       if (!response.ok) {
         const errorText = await response.text();
