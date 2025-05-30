@@ -78,7 +78,7 @@ export default function CadLibraryPage() {
   const handleViewModel = (model: any) => {
     // Używamy publicId do maskowania prawdziwego ID modelu
     const publicId = model.publicId || model.id;
-    window.open(`/models/${publicId}`, '_blank');
+    window.open(`/library/model/${publicId}`, '_blank');
   };
 
   const handleDownloadModel = (model: any) => {
