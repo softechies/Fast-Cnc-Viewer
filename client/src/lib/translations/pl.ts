@@ -397,6 +397,7 @@ const translations = {
   cad_library_dimensions: "Wymiary",
   cad_library_view: "Zobacz",
   cad_library_download: "Pobierz",
+  password_protected_public_error: "Nie można dodać modelu chronionego hasłem do publicznej biblioteki. Najpierw usuń udostępnianie prywatne lub usuń hasło.",
   logout: "Wyloguj"
 };
 

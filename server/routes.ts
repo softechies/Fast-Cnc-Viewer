@@ -2887,6 +2887,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Brak uprawnień do modyfikacji tego modelu" });
       }
       
+      // Walidacja: sprawdź czy model jest udostępniony z hasłem
+      if (isPublic && model.shareEnabled && model.sharePassword && model.sharePassword.trim() !== '') {
+        return res.status(400).json({ 
+          error: "Nie można dodać do publicznej biblioteki modelu chronionego hasłem. Najpierw usuń udostępnianie prywatne lub usuń hasło.",
+          requiresPasswordRemoval: true
+        });
+      }
+      
       // Aktualizuj status publicznej biblioteki
       await storage.updateModel(modelId, {
         isPublic: isPublic

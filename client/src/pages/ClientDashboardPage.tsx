@@ -227,12 +227,25 @@ export default function ClientDashboardPage() {
       });
       refetch();
     },
-    onError: (error: Error) => {
-      toast({
-        title: t('error'),
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: Error, variables) => {
+      // Sprawdź czy to błąd związany z modelem chronionym hasłem
+      if (error.message.includes("chronionego hasłem") || 
+          error.message.includes("password-protected") ||
+          error.message.includes("chráněný heslem") ||
+          error.message.includes("Passwort-geschützt") ||
+          error.message.includes("protégé par mot de passe")) {
+        toast({
+          title: t('error'),
+          description: t('password_protected_public_error'),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t('error'),
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   });
 

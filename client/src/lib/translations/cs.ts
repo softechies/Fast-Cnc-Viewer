@@ -202,6 +202,7 @@ const translations = {
   cad_library_dimensions: "Rozměry",
   cad_library_view: "Zobrazit",
   cad_library_download: "Stáhnout",
+  password_protected_public_error: "Nelze přidat model chráněný heslem do veřejné knihovny. Nejprve odstraňte soukromé sdílení nebo odstraňte heslo.",
   active: "Aktivní",
   inactive: "Neaktivní",
   view_model: "Zobrazit model",

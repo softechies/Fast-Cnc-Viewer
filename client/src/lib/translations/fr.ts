@@ -202,6 +202,7 @@ const translations = {
   cad_library_dimensions: "Dimensions",
   cad_library_view: "Voir",
   cad_library_download: "Télécharger",
+  password_protected_public_error: "Impossible d'ajouter un modèle protégé par mot de passe à la bibliothèque publique. Veuillez d'abord supprimer le partage privé ou supprimer le mot de passe.",
   active: "Actif",
   inactive: "Inactif",
   view_model: "Voir le modèle",
