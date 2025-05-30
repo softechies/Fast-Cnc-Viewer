@@ -21,6 +21,7 @@ import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
+import { generateThumbnail, getThumbnailPath } from "./thumbnail-generator";
 
 // Rozszerzenie typu Session aby zawierał viewTokens
 declare module 'express-session' {

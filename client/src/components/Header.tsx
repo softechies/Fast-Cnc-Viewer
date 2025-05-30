@@ -29,7 +29,7 @@ export default function Header({ onUploadClick }: HeaderProps) {
   const langMatch = location.match(/^\/([a-z]{2})(?:\/|$)/);
   const currentLang = langMatch ? langMatch[1] : '';
   
-  console.log('Header location:', location, 'detected lang:', currentLang); // Debug
+
   
   // Automatyczne przekierowanie do URL-a z kodem języka
   useEffect(() => {
@@ -40,7 +40,6 @@ export default function Header({ onUploadClick }: HeaderProps) {
     const needsLangRedirect = pathsRequiringLang.some(path => location === path || location.startsWith(`${path}/`));
     
     if (needsLangRedirect && !currentLang) {
-      console.log('Redirecting to URL with language code:', `/en${location}`);
       setLocation(`/en${location}`);
     }
   }, [location, currentLang, setLocation]);
