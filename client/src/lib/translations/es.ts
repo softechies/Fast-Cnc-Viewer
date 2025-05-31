@@ -358,13 +358,38 @@ const translations = {
   // Missing translations from logs
   noPreviousFiles: "No hay archivos anteriores",
   supportedFormats: "Formatos soportados",
-  "library.title": "Biblioteca",
-  "library.description": "Explora nuestra colección de modelos",
+  "library.title": "Biblioteca CAD",
+  "library.description": "Explora nuestra colección de modelos CAD",
   client_dashboard: "Panel del Cliente",
   "button.upload": "Subir",
   "button.cancel": "Cancelar",
+  "button.share": "Compartir",
   "message.no.model": "No hay modelos disponibles",
-  email_autofilled: "Correo electrónico completado automáticamente"
+  "message.share.warning": "Advertencia al compartir",
+  email_autofilled: "Correo electrónico completado automáticamente",
+  email_required: "Correo electrónico requerido",
+  "header.error": "Error en cabecera",
+  "common.gallery": "Galería",
+  "dimensions.title": "Dimensiones",
+  "dimensions.width": "Ancho",
+  "dimensions.height": "Alto",
+  "dimensions.depth": "Profundidad",
+  mode: "Modo",
+
+  // Alternative keys without dots for nested structure
+  library_title: "Biblioteca CAD",
+  library_description: "Explora nuestra colección de modelos CAD",
+  button_upload: "Subir",
+  button_cancel: "Cancelar",
+  button_share: "Compartir",
+  message_no_model: "No hay modelos disponibles",
+  message_share_warning: "Advertencia al compartir",
+  header_error: "Error en cabecera",
+  common_gallery: "Galería",
+  dimensions_title: "Dimensiones",
+  dimensions_width: "Ancho",
+  dimensions_height: "Alto",
+  dimensions_depth: "Profundidad"
 };
 
 export default translations;
