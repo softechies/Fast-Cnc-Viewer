@@ -123,22 +123,55 @@ export default function ContactPage() {
     setSubmitError('');
     
     try {
-      // W rzeczywistości tutaj byłoby wysłanie danych do API
-      // Symulacja odpowiedzi API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSubmitSuccess(true);
-      toast({
-        title: t('contact.success.title', 'Wiadomość wysłana'),
-        description: t('contact.success.description', 'Dziękujemy za wiadomość. Skontaktujemy się z Tobą najszybciej jak to możliwe.'),
-        variant: 'default',
+      // Przygotowanie danych do wysłania
+      const urlParams = new URLSearchParams(window.location.search);
+      const subject = urlParams.get('subject') || '';
+      
+      const submitData = {
+        name: inquiryType === 'abuse' ? '' : formData.name,
+        email: inquiryType === 'abuse' ? '' : formData.email,
+        phone: inquiryType === 'abuse' ? '' : formData.phone,
+        company: inquiryType === 'abuse' ? '' : formData.company,
+        message: formData.message,
+        modelId: modelId,
+        subject: subject
+      };
+
+      // Wysłanie danych do API
+      const response = await fetch('/api/contact-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
       });
-      // Resetowanie formularza
-      setFormData({ name: '', email: '', phone: '', company: '', message: '' });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSubmitSuccess(true);
+        toast({
+          title: inquiryType === 'abuse' 
+            ? t('abuse.report_sent', 'Your abuse report has been submitted. Thank you for helping us maintain a safe community.')
+            : t('contact.success.title', 'Wiadomość wysłana'),
+          description: inquiryType === 'abuse' 
+            ? t('abuse.report_sent', 'Your abuse report has been submitted. Thank you for helping us maintain a safe community.')
+            : t('contact.success.description', 'Dziękujemy za wiadomość. Skontaktujemy się z Tobą najszybciej jak to możliwe.'),
+          variant: 'default',
+        });
+        // Resetowanie formularza
+        setFormData({ name: '', email: '', phone: '', company: '', message: '' });
+      } else {
+        throw new Error(result.message || 'Failed to send message');
+      }
     } catch (error) {
-      setSubmitError(t('contact.error.submit', 'Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.'));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setSubmitError(inquiryType === 'abuse' 
+        ? 'Failed to submit abuse report. Please try again later.'
+        : t('contact.error.submit', 'Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.'));
       toast({
-        title: t('contact.error.title', 'Błąd wysyłania'),
-        description: t('contact.error.submit', 'Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później.'),
+        title: inquiryType === 'abuse' ? 'Report Submission Failed' : t('contact.error.title', 'Błąd wysyłania'),
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

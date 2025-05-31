@@ -10,6 +10,7 @@ export interface ContactFormData {
   company?: string;
   message: string;
   modelId?: string | number | null;
+  subject?: string;
 }
 
 // Konfiguracja transportera do własnego serwera SMTP

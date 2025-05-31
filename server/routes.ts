@@ -2918,9 +2918,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const language = req.query.lang as Language || 'en';
       let modelInfo;
       
-      // Walidacja podstawowych pól formularza
-      if (!formData.name || !formData.email || !formData.message) {
-        return res.status(400).json({ success: false, message: 'Missing required fields' });
+      // Walidacja pól formularza - dla zgłoszeń nadużyć wystarczy tylko wiadomość
+      const isAbuseReport = formData.subject && formData.subject.toLowerCase().includes('abuse');
+      
+      if (!formData.message) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
+      }
+      
+      // Dla innych typów zapytań wymagamy imienia i emaila
+      if (!isAbuseReport && (!formData.name || !formData.email)) {
+        return res.status(400).json({ success: false, message: 'Name and email are required for non-abuse reports' });
       }
       
       // Jeśli podano ID modelu, pobierz informacje o nim
