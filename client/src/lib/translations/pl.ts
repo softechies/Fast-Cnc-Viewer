@@ -341,6 +341,21 @@ const translations = {
     gallery: "Galeria",
     goBack: "Wróć"
   },
+
+  // Zgłaszanie nadużyć
+  abuse: {
+    subtitle: "Zgłoś nieodpowiednie lub obraźliwe treści",
+    report_for_model: "Zgłoś nieodpowiednie treści dla modelu",
+    report_title: "Zgłoś nieodpowiednie treści",
+    form_instruction: "Proszę podać szczegóły dotyczące nieodpowiednich treści, które chcesz zgłosić. Traktujemy wszystkie zgłoszenia poważnie i niezwłocznie je badamy.",
+    details_label: "Szczegóły zgłoszenia",
+    details_placeholder: "Proszę opisać nieodpowiednie treści. Podaj konkretne szczegóły dotyczące rodzaju treści naruszających nasze wytyczne społeczności (np. obraźliwe obrazy, nieodpowiednie opisy, naruszenie praw autorskich itp.).",
+    guidelines_title: "Wytyczne społeczności",
+    guidelines_text: "Nie tolerujemy nieodpowiednich, obraźliwych lub naruszających prawa autorskie treści. Wszystkie zgłoszenia są sprawdzane przez nasz zespół moderacyjny i podejmowane są odpowiednie działania.",
+    report_sent: "Twoje zgłoszenie nadużycia zostało przesłane. Dziękujemy za pomoc w utrzymaniu bezpiecznej społeczności.",
+    submitting: "Wysyłanie zgłoszenia...",
+    submit_report: "Wyślij zgłoszenie"
+  },
   
   admin: {
     loginTitle: "Logowanie do Panelu Administratora",

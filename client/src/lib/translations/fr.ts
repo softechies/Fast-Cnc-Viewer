@@ -410,6 +410,21 @@ const translations = {
     gallery: "Galerie",
     goBack: "Retour"
   },
+
+  // Signalement d'abus
+  abuse: {
+    subtitle: "Signaler du contenu inapproprié ou offensant",
+    report_for_model: "Signaler du contenu inapproprié pour le modèle",
+    report_title: "Signaler du contenu inapproprié",
+    form_instruction: "Veuillez fournir des détails sur le contenu inapproprié que vous souhaitez signaler. Nous prenons tous les signalements au sérieux et enquêtons rapidement.",
+    details_label: "Détails du signalement",
+    details_placeholder: "Veuillez décrire le contenu inapproprié. Incluez des détails spécifiques sur le type de contenu qui viole nos directives communautaires (par ex. images offensantes, descriptions inappropriées, violation de droits d'auteur, etc.).",
+    guidelines_title: "Directives communautaires",
+    guidelines_text: "Nous ne tolérons pas les contenus inappropriés, offensants ou portant atteinte aux droits d'auteur. Tous les signalements sont examinés par notre équipe de modération et des mesures appropriées seront prises.",
+    report_sent: "Votre signalement d'abus a été soumis. Merci de nous aider à maintenir une communauté sûre.",
+    submitting: "Envoi du signalement...",
+    submit_report: "Envoyer le signalement"
+  },
   
   // Admin panel
   admin: {

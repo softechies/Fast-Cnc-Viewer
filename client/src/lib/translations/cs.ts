@@ -410,6 +410,21 @@ const translations = {
     gallery: "Galerie",
     goBack: "Zpět"
   },
+
+  // Nahlášení zneužití
+  abuse: {
+    subtitle: "Nahlásit nevhodný nebo urážlivý obsah",
+    report_for_model: "Nahlásit nevhodný obsah pro model",
+    report_title: "Nahlásit nevhodný obsah",
+    form_instruction: "Prosím poskytněte podrobnosti o nevhodném obsahu, který chcete nahlásit. Všechna hlášení bereme vážně a rychle je vyšetřujeme.",
+    details_label: "Podrobnosti hlášení",
+    details_placeholder: "Prosím popište nevhodný obsah. Uveďte konkrétní podrobnosti o typu obsahu, který porušuje naše komunitní směrnice (např. urážlivé obrázky, nevhodné popisy, porušení autorských práv atd.).",
+    guidelines_title: "Komunitní směrnice",
+    guidelines_text: "Netolerujeme nevhodný, urážlivý nebo obsah porušující autorská práva. Všechna hlášení jsou kontrolována naším moderátorským týmem a budou přijata odpovídající opatření.",
+    report_sent: "Vaše hlášení zneužití bylo odesláno. Děkujeme, že nám pomáháte udržovat bezpečnou komunitu.",
+    submitting: "Odesílání hlášení...",
+    submit_report: "Odeslat hlášení"
+  },
   
   // Admin panel
   admin: {

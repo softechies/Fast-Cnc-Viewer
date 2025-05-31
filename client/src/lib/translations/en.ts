@@ -436,6 +436,21 @@ const translations = {
     gallery: "Gallery",
     goBack: "Go Back"
   },
+
+  // Abuse reporting translations
+  abuse: {
+    subtitle: "Report inappropriate or offensive content",
+    report_for_model: "Report inappropriate content for model",
+    report_title: "Report Inappropriate Content",
+    form_instruction: "Please provide details about the inappropriate content you wish to report. We take all reports seriously and will investigate promptly.",
+    details_label: "Report Details",
+    details_placeholder: "Please describe the inappropriate content. Include specific details about what type of content violates our community guidelines (e.g., offensive imagery, inappropriate descriptions, copyright infringement, etc.).",
+    guidelines_title: "Community Guidelines",
+    guidelines_text: "We do not tolerate inappropriate, offensive, or copyrighted content. All reports are reviewed by our moderation team and appropriate action will be taken.",
+    report_sent: "Your abuse report has been submitted. Thank you for helping us maintain a safe community.",
+    submitting: "Submitting Report...",
+    submit_report: "Submit Report"
+  },
   
   admin: {
     loginTitle: "Admin Panel Login",

@@ -308,7 +308,10 @@ export default function ContactPage() {
               {submitSuccess && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-600">
                   <CheckCircle className="w-4 h-4 inline-block mr-2" />
-                  {t('contact.message_sent', 'Twoja wiadomość została wysłana. Dziękujemy za kontakt.')}
+                  {inquiryType === 'abuse' 
+                    ? t('abuse.report_sent', 'Your abuse report has been submitted. Thank you for helping us maintain a safe community.')
+                    : t('contact.message_sent', 'Twoja wiadomość została wysłana. Dziękujemy za kontakt.')
+                  }
                 </div>
               )}
             </CardContent>
@@ -329,16 +332,21 @@ export default function ContactPage() {
                 
                 <Button 
                   type="submit" 
-                  className="bg-blue-600 hover:bg-blue-700" 
+                  className={inquiryType === 'abuse' ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"} 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
                       <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                      {t('contact.sending', 'Wysyłanie...')}
+                      {inquiryType === 'abuse' 
+                        ? t('abuse.submitting', 'Submitting Report...') 
+                        : t('contact.sending', 'Wysyłanie...')
+                      }
                     </>
                   ) : (
-                    t('contact.send', 'Wyślij wiadomość')
+                    inquiryType === 'abuse' 
+                      ? t('abuse.submit_report', 'Submit Report')
+                      : t('contact.send', 'Wyślij wiadomość')
                   )}
                 </Button>
               </div>

@@ -411,6 +411,21 @@ const translations = {
     gallery: "Galerie",
     goBack: "Zurück"
   },
+
+  // Missbrauch melden
+  abuse: {
+    subtitle: "Unangemessene oder beleidigende Inhalte melden",
+    report_for_model: "Unangemessene Inhalte für Modell melden",
+    report_title: "Unangemessene Inhalte melden",
+    form_instruction: "Bitte geben Sie Details zu den unangemessenen Inhalten an, die Sie melden möchten. Wir nehmen alle Meldungen ernst und untersuchen sie umgehend.",
+    details_label: "Meldungsdetails",
+    details_placeholder: "Bitte beschreiben Sie die unangemessenen Inhalte. Geben Sie spezifische Details über die Art von Inhalten an, die gegen unsere Community-Richtlinien verstoßen (z.B. beleidigende Bilder, unangemessene Beschreibungen, Urheberrechtsverletzungen usw.).",
+    guidelines_title: "Community-Richtlinien",
+    guidelines_text: "Wir tolerieren keine unangemessenen, beleidigenden oder urheberrechtsverletzenden Inhalte. Alle Meldungen werden von unserem Moderationsteam überprüft und entsprechende Maßnahmen ergriffen.",
+    report_sent: "Ihre Missbrauchsmeldung wurde eingereicht. Vielen Dank, dass Sie uns dabei helfen, eine sichere Community zu erhalten.",
+    submitting: "Meldung wird eingereicht...",
+    submit_report: "Meldung einreichen"
+  },
   
   // Admin panel
   admin: {
