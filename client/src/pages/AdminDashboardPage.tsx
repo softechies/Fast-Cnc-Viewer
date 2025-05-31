@@ -360,7 +360,8 @@ export default function AdminDashboardPage() {
       const query = searchQuery.toLowerCase();
       result = result.filter(model => 
         (model.filename && model.filename.toLowerCase().includes(query)) ||
-        (model.shareEmail && model.shareEmail.toLowerCase().includes(query))
+        (model.shareEmail && model.shareEmail.toLowerCase().includes(query)) ||
+        (model.id && model.id.toString().includes(query))
       );
     }
     
@@ -429,7 +430,7 @@ export default function AdminDashboardPage() {
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by filename or email..."
+                    placeholder="Search by ID, filename, or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8"

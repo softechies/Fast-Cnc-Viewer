@@ -71,7 +71,8 @@ export default function TemporaryFilesTab() {
         (model) =>
           model.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (model.userEmail && model.userEmail.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          model.format.toLowerCase().includes(searchQuery.toLowerCase())
+          model.format.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          model.id.toString().includes(searchQuery.toLowerCase())
       )
     : [];
 
@@ -103,7 +104,7 @@ export default function TemporaryFilesTab() {
         <div className="flex items-center space-x-2 mt-2">
           <Search className="w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by filename or email..."
+            placeholder="Search by ID, filename, email, or type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
