@@ -24,6 +24,7 @@ export default function ContactPage() {
   
   // Pobierz ID modelu z parametrów URL
   const [modelId, setModelId] = useState<string | null>(null);
+  const [inquiryType, setInquiryType] = useState<'general' | 'quote' | 'abuse'>('general');
   
   // Zabezpieczenie przed auto-przekierowaniem na stronę główną
   useEffect(() => {
@@ -41,6 +42,15 @@ export default function ContactPage() {
     
     if (id) {
       setModelId(id);
+    }
+    
+    // Determine inquiry type based on subject
+    if (subject && subject.toLowerCase().includes('abuse')) {
+      setInquiryType('abuse');
+    } else if (id) {
+      setInquiryType('quote');
+    } else {
+      setInquiryType('general');
     }
     
     // Wypełnij formularz danymi z URL
@@ -133,17 +143,35 @@ export default function ContactPage() {
         <div className="text-center mb-8">
           <img src={fastCncLogo} alt="FastCNC Logo" className="h-12 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {t('contact.title', 'Formularz kontaktowy')}
+            {inquiryType === 'abuse' 
+              ? t('common.reportAbuse', 'Report Abuse')
+              : t('contact.title', 'Formularz kontaktowy')
+            }
           </h1>
           <p className="text-lg text-gray-600">
-            {t('contact.subtitle', 'Skontaktuj się z nami w sprawie realizacji Twojego projektu')}
+            {inquiryType === 'abuse'
+              ? t('abuse.subtitle', 'Report inappropriate or offensive content')
+              : t('contact.subtitle', 'Skontaktuj się z nami w sprawie realizacji Twojego projektu')
+            }
           </p>
         </div>
         
         <Card className="bg-white shadow-md">
           <CardHeader>
             <CardTitle>
-              {modelInfo ? (
+              {inquiryType === 'abuse' ? (
+                <div className="flex items-center text-red-600">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  {modelInfo ? (
+                    <div>
+                      <span>{t('abuse.report_for_model', 'Report inappropriate content for model')}:</span>
+                      <span className="ml-2 font-semibold">{modelInfo.filename}</span>
+                    </div>
+                  ) : (
+                    t('abuse.report_title', 'Report Inappropriate Content')
+                  )}
+                </div>
+              ) : modelInfo ? (
                 <div className="flex items-center">
                   <span>{t('contact.inquiry_about', 'Zapytanie o realizację modelu')}:</span>
                   <span className="ml-2 font-semibold text-blue-600">{modelInfo.filename}</span>
@@ -153,7 +181,10 @@ export default function ContactPage() {
               )}
             </CardTitle>
             <CardDescription>
-              {t('contact.form_instruction', 'Wypełnij poniższy formularz, aby wysłać zapytanie o wycenę lub realizację.')}
+              {inquiryType === 'abuse' 
+                ? t('abuse.form_instruction', 'Please provide details about the inappropriate content you wish to report. We take all reports seriously and will investigate promptly.')
+                : t('contact.form_instruction', 'Wypełnij poniższy formularz, aby wysłać zapytanie o wycenę lub realizację.')
+              }
             </CardDescription>
           </CardHeader>
           
@@ -234,17 +265,38 @@ export default function ContactPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="message">{t('contact.message', 'Treść wiadomości')} *</Label>
+                <Label htmlFor="message">
+                  {inquiryType === 'abuse' 
+                    ? t('abuse.details_label', 'Report Details') 
+                    : t('contact.message', 'Treść wiadomości')
+                  } *
+                </Label>
                 <Textarea 
                   id="message" 
                   name="message" 
                   value={formData.message} 
                   onChange={handleChange} 
-                  placeholder={t('contact.message_placeholder', 'Opisz szczegóły swojego projektu, potrzebną ilość części, materiał, termin realizacji, itp.')} 
-                  rows={5} 
+                  placeholder={
+                    inquiryType === 'abuse' 
+                      ? t('abuse.details_placeholder', 'Please describe the inappropriate content. Include specific details about what type of content violates our community guidelines (e.g., offensive imagery, inappropriate descriptions, copyright infringement, etc.).')
+                      : t('contact.message_placeholder', 'Opisz szczegóły swojego projektu, potrzebną ilość części, materiał, termin realizacji, itp.')
+                  }
+                  rows={inquiryType === 'abuse' ? 6 : 5} 
                   required 
                 />
               </div>
+              
+              {inquiryType === 'abuse' && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium mb-1">{t('abuse.guidelines_title', 'Community Guidelines')}</p>
+                      <p>{t('abuse.guidelines_text', 'We do not tolerate inappropriate, offensive, or copyrighted content. All reports are reviewed by our moderation team and appropriate action will be taken.')}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {submitError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
