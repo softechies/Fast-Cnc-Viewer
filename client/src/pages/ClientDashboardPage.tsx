@@ -88,6 +88,12 @@ export default function ClientDashboardPage() {
     }
   });
 
+  // Pobieranie kategorii
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/categories"],
+    enabled: !!user
+  });
+
   // Mutacja zmiany hasła modelu
   const changePasswordMutation = useMutation({
     mutationFn: async ({ modelId, password }: { modelId: number, password: string }) => {
@@ -204,6 +210,31 @@ export default function ClientDashboardPage() {
     onError: (error: Error) => {
       toast({
         title: t('sharing_error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutacja aktualizacji kategorii modelu
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ modelId, categoryId }: { modelId: number, categoryId: number | null }) => {
+      const res = await apiRequest("PUT", `/api/models/${modelId}/category`, { categoryId });
+      if (!res.ok) {
+        throw new Error("Błąd podczas aktualizacji kategorii");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: "Kategoria została zaktualizowana",
+      });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('error'),
         description: error.message,
         variant: "destructive",
       });
@@ -467,6 +498,36 @@ export default function ClientDashboardPage() {
                                 queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
                               }}
                             />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={model.categoryId?.toString() || "none"}
+                              onValueChange={(value) => {
+                                const categoryId = value === "none" ? null : parseInt(value);
+                                updateCategoryMutation.mutate({ modelId: model.id, categoryId });
+                              }}
+                              disabled={updateCategoryMutation.isPending}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue placeholder={t('select_category')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">{t('no_category')}</SelectItem>
+                                {categories.map((category: any) => (
+                                  <SelectItem key={category.id} value={category.id.toString()}>
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                                        style={{ backgroundColor: category.color }}
+                                      />
+                                      <span className="truncate">
+                                        {t(category.slug) || category.nameEn}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center">
