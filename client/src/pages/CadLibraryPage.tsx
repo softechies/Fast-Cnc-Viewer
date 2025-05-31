@@ -17,6 +17,7 @@ interface PublicModel {
   fileType: string;
   uploadDate: string;
   tags: string[];
+  categoryId: number | null;
   description?: string;
   fileSize?: number;
   dimensions?: {
@@ -26,11 +27,18 @@ interface PublicModel {
   };
 }
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export default function CadLibraryPage() {
   const { t, language } = useLanguage();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   // Pobieranie publicznych modeli
   const { data: models, isLoading, error } = useQuery<PublicModel[]>({
@@ -44,6 +52,18 @@ export default function CadLibraryPage() {
     }
   });
 
+  // Pobieranie kategorii
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Błąd podczas pobierania kategorii');
+      }
+      return response.json();
+    }
+  });
+
   // Filtrowanie modeli
   const filteredModels = models?.filter(model => {
     const matchesSearch = model.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +71,9 @@ export default function CadLibraryPage() {
     
     const matchesTag = !selectedTag || (model.tags && Array.isArray(model.tags) && model.tags.includes(selectedTag));
     
-    return matchesSearch && matchesTag;
+    const matchesCategory = !selectedCategory || model.categoryId === selectedCategory;
+    
+    return matchesSearch && matchesTag && matchesCategory;
   }) || [];
 
   // Pobieranie wszystkich unikalnych tagów
@@ -144,6 +166,7 @@ export default function CadLibraryPage() {
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
+          {/* Search Bar */}
           <div className="relative max-w-md mx-auto">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -155,20 +178,44 @@ export default function CadLibraryPage() {
             />
           </div>
 
+          {/* Categories Filter */}
+          {categories && categories.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              <Badge
+                variant={selectedCategory === null ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setSelectedCategory(null)}
+              >
+                {t('all_categories')}
+              </Badge>
+              {categories.map(category => (
+                <Badge
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                >
+                  {t(category.slug)}
+                </Badge>
+              ))}
+            </div>
+          )}
+
           {/* Tags Filter */}
           {allTags.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2">
+              <span className="text-sm text-gray-600 mr-2">{t('tags')}:</span>
               <Badge
-                variant={selectedTag === null ? "default" : "outline"}
+                variant={selectedTag === null ? "secondary" : "outline"}
                 className="cursor-pointer"
                 onClick={() => setSelectedTag(null)}
               >
-                {t('all_categories')}
+                {t('all_tags')}
               </Badge>
               {allTags.map(tag => (
                 <Badge
                   key={tag}
-                  variant={selectedTag === tag ? "default" : "outline"}
+                  variant={selectedTag === tag ? "secondary" : "outline"}
                   className="cursor-pointer"
                   onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 >

@@ -187,6 +187,8 @@ const translations = {
   public_library_description: "Browse and download CAD models shared by our community. All models are free to use for your projects.",
   search_models_tags: "Search models and tags...",
   all_categories: "All Categories",
+  all_tags: "All Tags",
+  tags: "Tags",
   showing_models: "Showing {count} of {total} models",
   no_models_found: "No models found",
   try_different_search: "Try a different search term or clear filters",
