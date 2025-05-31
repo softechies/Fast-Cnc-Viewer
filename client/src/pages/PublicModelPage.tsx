@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -29,9 +29,10 @@ interface GalleryImage {
 }
 
 export default function PublicModelPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [, params] = useRoute("/library/model/:publicId");
   const [, paramsWithLang] = useRoute("/:lang/library/model/:publicId");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const publicId = params?.publicId || paramsWithLang?.publicId;
@@ -151,7 +152,10 @@ export default function PublicModelPage() {
           <Button 
             variant="ghost" 
             className="mb-4"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              const libraryPath = language && language !== 'en' ? `/${language}/library` : '/library';
+              setLocation(libraryPath);
+            }}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {t("common.backToLibrary") || "Back to Library"}
