@@ -556,6 +556,16 @@ export default function ClientDashboardPage() {
                               checked={model.isPublic || false}
                               onCheckedChange={async (checked: boolean) => {
                                 if (checked) {
+                                  // Sprawdź czy model ma kategorię przed dodaniem do publicznej biblioteki
+                                  if (!model.categoryId) {
+                                    toast({
+                                      title: t('error'),
+                                      description: t('category_required_for_public'),
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+
                                   // Sprawdź czy model ma miniaturkę przed dodaniem do publicznej biblioteki
                                   try {
                                     const response = await fetch(`/api/models/${model.id}/thumbnail`, {

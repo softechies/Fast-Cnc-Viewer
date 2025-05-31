@@ -475,12 +475,14 @@ const translations = {
   set_as_thumbnail: "Ustaw jako miniaturkę",
   click_set_thumbnail_note: "Kliknij 'Ustaw jako miniaturkę' na dowolnym zdjęciu, aby ustawić je jako miniaturkę modelu",
   close_gallery: "Zamknij",
+  category_required_for_public: "Kategoria jest wymagana aby dodać model do publicznej biblioteki. Najpierw wybierz kategorię.",
   
   // Categories
   category: "Kategoria",
   select_category: "Wybierz kategorię",
   no_category: "Bez kategorii",
   art: "Sztuka",
+  "home-garden": "Dom i Ogród",
   home_garden: "Dom i Ogród",
   architecture: "Architektura",
   gadget: "Gadżety",

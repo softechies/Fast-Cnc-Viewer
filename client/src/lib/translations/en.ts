@@ -515,12 +515,14 @@ const translations = {
   image_processing_failed: "Image processing failed",
   invalid_image_file: "Invalid image file",
   thumbnail_required_for_public: "A thumbnail is required to add this model to the public library. Please upload a thumbnail first.",
+  category_required_for_public: "A category is required to add this model to the public library. Please select a category first.",
   
   // Categories
   category: "Category",
   select_category: "Select category",
   no_category: "No category",
   art: "Art",
+  "home-garden": "Home & Garden",
   home_garden: "Home & Garden",
   architecture: "Architecture",
   gadget: "Gadget",
