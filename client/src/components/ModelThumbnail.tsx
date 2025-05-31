@@ -17,25 +17,23 @@ export function ModelThumbnail({ modelId, filename, format, className = "w-16 h-
 
   const thumbnailUrl = `/api/models/${modelId}/thumbnail?t=${refreshKey}`;
 
-  // Listen for thumbnail updates from query invalidation
+  // Listen for thumbnail updates from query invalidation - only specific thumbnail queries
   useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
-      // Check if any thumbnail-related query was invalidated
-      const thumbnailQueries = queryClient.getQueryCache().findAll({
-        predicate: (query) => {
-          const key = query.queryKey;
-          return Array.isArray(key) && (
-            key.includes(`/api/models/${modelId}/thumbnail`) ||
-            (key.includes('/api/models') && key.includes(modelId) && key.includes('thumbnail')) ||
-            key.includes('/api/client/models')
-          );
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      // Only listen for specific thumbnail invalidations, not general model list updates
+      if (event.type === 'queryRemoved' || event.type === 'queryUpdated') {
+        const query = event.query;
+        const key = query.queryKey;
+        
+        // Only update if this specific model's thumbnail was invalidated
+        if (Array.isArray(key) && (
+          key.includes(`/api/models/${modelId}/thumbnail`) ||
+          (key.includes('/api/models') && key.includes(modelId) && key.includes('thumbnail'))
+        )) {
+          setRefreshKey(Date.now());
+          setThumbnailError(false);
+          setIsLoading(true);
         }
-      });
-      
-      if (thumbnailQueries.length > 0) {
-        setRefreshKey(Date.now());
-        setThumbnailError(false);
-        setIsLoading(true);
       }
     });
 
