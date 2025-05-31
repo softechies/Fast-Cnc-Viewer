@@ -5,6 +5,7 @@ import multer from "multer";
 import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User, models, type StlModelMetadata, type CadModelMetadata, updateModelTagsSchema } from "@shared/schema";
 import { z } from "zod";
 import fs from "fs";
+import path from "path";
 import { nanoid } from "nanoid";
 import os from "os";
 import { exec } from "child_process";
