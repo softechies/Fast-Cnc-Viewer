@@ -230,6 +230,10 @@ const translations = {
   add_gallery: "Galerie souborů",
   add_gallery_title: "Nahrát galerii modelu",
   add_gallery_description: "Nahrajte až 6 obrázků pro model {modelName}. První obrázek bude použit jako náhled.",
+  generate_thumbnail: "Vygenerovat náhled",
+  generating_thumbnail: "Generování...",
+  thumbnail_generated_successfully: "Náhled byl úspěšně vygenerován",
+  thumbnail_generation_failed: "Generování náhledu se nezdařilo",
   
   // Shared model access
   sharedModel: "Sdílený model",

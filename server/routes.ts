@@ -3420,6 +3420,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate thumbnail from model file
+  app.post("/api/models/:id/generate-thumbnail", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      
+      // Sprawdź czy użytkownik ma dostęp do modelu
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+
+      const metadata = model.metadata as any;
+      const filePath = metadata?.filePath;
+      
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(400).json({ message: "Model file not found" });
+      }
+
+      // Generuj miniaturkę
+      const thumbnailPath = getThumbnailPath(modelId);
+      const thumbnailGenerated = await generateThumbnail(filePath, thumbnailPath, {}, model.filename);
+      
+      if (!thumbnailGenerated) {
+        return res.status(500).json({ message: "Failed to generate thumbnail" });
+      }
+
+      // Jeśli S3 jest włączone, prześlij miniaturkę
+      if (s3Service.isInitialized()) {
+        try {
+          const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.png`;
+          await s3Service.uploadFile(thumbnailKey, thumbnailPath);
+          await storage.updateModelThumbnail(modelId, thumbnailKey);
+          console.log(`Thumbnail uploaded to S3 for model ${modelId}`);
+        } catch (s3Error) {
+          console.error('Failed to upload thumbnail to S3:', s3Error);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Thumbnail generated successfully",
+        thumbnailUrl: `/api/models/${modelId}/thumbnail?t=${Date.now()}`
+      });
+    } catch (error) {
+      console.error("Error generating thumbnail:", error);
+      res.status(500).json({ message: "Failed to generate thumbnail" });
+    }
+  });
+
   app.put("/api/models/:modelId/gallery/:imageId/thumbnail", async (req: Request, res: Response) => {
     try {
       const modelId = parseInt(req.params.modelId);

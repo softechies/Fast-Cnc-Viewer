@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, ImageIcon } from 'lucide-react';
+import { Camera, ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -163,6 +163,39 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
       toast({
         title: t('error'),
         description: t('thumbnail_update_failed'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Generate thumbnail mutation
+  const generateThumbnailMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', `/api/models/${modelId}/generate-thumbnail`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate thumbnail');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: t('thumbnail_generated_successfully'),
+        variant: "default",
+      });
+      // Invalidate cache to refresh thumbnails
+      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+      if (onThumbnailUpdate) {
+        onThumbnailUpdate();
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('error'),
+        description: error.message || t('thumbnail_generation_failed'),
         variant: "destructive",
       });
     },

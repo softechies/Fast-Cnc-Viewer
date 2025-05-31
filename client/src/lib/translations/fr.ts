@@ -230,6 +230,10 @@ const translations = {
   add_gallery: "Galerie de fichiers",
   add_gallery_title: "Télécharger la galerie du modèle",
   add_gallery_description: "Téléchargez jusqu'à 6 images pour le modèle {modelName}. La première image sera utilisée comme miniature.",
+  generate_thumbnail: "Générer miniature",
+  generating_thumbnail: "Génération...",
+  thumbnail_generated_successfully: "Miniature générée avec succès",
+  thumbnail_generation_failed: "Échec de la génération de miniature",
   
   // Shared model access
   sharedModel: "Modèle partagé",

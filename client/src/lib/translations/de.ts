@@ -231,6 +231,10 @@ const translations = {
   add_gallery: "Datei-Galerie",
   add_gallery_title: "Modell-Galerie hochladen",
   add_gallery_description: "Laden Sie bis zu 6 Bilder für Modell {modelName} hoch. Das erste Bild wird als Miniaturansicht verwendet.",
+  generate_thumbnail: "Miniaturansicht erstellen",
+  generating_thumbnail: "Erstelle...",
+  thumbnail_generated_successfully: "Miniaturansicht erfolgreich erstellt",
+  thumbnail_generation_failed: "Erstellen der Miniaturansicht fehlgeschlagen",
   
   // Shared model access
   sharedModel: "Geteiltes Modell",
