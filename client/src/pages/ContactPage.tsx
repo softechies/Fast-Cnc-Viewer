@@ -26,13 +26,7 @@ export default function ContactPage() {
   const [modelId, setModelId] = useState<string | null>(null);
   const [inquiryType, setInquiryType] = useState<'general' | 'quote' | 'abuse'>('general');
   
-  // Zabezpieczenie przed auto-przekierowaniem na stronę główną
-  useEffect(() => {
-    // Zatrzymujemy działanie jakichkolwiek przekierowań, gdy jesteśmy na stronie kontaktowej
-    if (location.includes('/contact')) {
-      return; // Celowo przerywamy efekt przekierowania
-    }
-  }, [location]);
+
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
