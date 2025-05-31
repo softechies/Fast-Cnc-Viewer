@@ -758,19 +758,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             console.log(`Conversion completed successfully for model ID ${model.id}`);
             
-            // Wygeneruj miniaturkę
-            try {
-              const thumbnailPath = getThumbnailPath(model.id);
-              const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
-              
-              if (thumbnailGenerated) {
-                console.log(`Thumbnail generated successfully for model ID ${model.id}`);
-              } else {
-                console.log(`Thumbnail generation failed for model ID ${model.id}`);
-              }
-            } catch (thumbnailError) {
-              console.error(`Error generating thumbnail for model ID ${model.id}:`, thumbnailError);
-            }
+            // Automatyczne generowanie miniatur wyłączone - użytkownicy mogą generować ręcznie w galerii
+            console.log(`Model uploaded without automatic thumbnail generation. Model ID: ${model.id}`);
           } else {
             // Konwersja nie powiodła się
             const updatedMetadata = {
@@ -1544,28 +1533,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log upload success
       console.log(`STL model uploaded by ${isOwner ? 'authenticated user' : 'anonymous user'}, ID: ${model.id}, shareEnabled was set to ${updatedModel.shareEnabled}`);
       
-      // Wygeneruj miniaturkę w tle - musi być przed przesłaniem do S3
-      (async () => {
-        try {
-          const thumbnailPath = getThumbnailPath(model.id);
-          
-          // Sprawdź czy plik nadal istnieje
-          if (fs.existsSync(file.path)) {
-            // Przekaż originalname aby funkcja mogła poprawnie wykryć rozszerzenie
-            const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath, {}, file.originalname);
-            
-            if (thumbnailGenerated) {
-              console.log(`Thumbnail generated successfully for STL model ID ${model.id}`);
-            } else {
-              console.log(`Thumbnail generation failed for STL model ID ${model.id}`);
-            }
-          } else {
-            console.log(`File no longer exists for thumbnail generation: ${file.path}`);
-          }
-        } catch (thumbnailError) {
-          console.error(`Error generating thumbnail for STL model ID ${model.id}:`, thumbnailError);
-        }
-      })();
+      // Automatyczne generowanie miniatur wyłączone - użytkownicy mogą generować ręcznie w galerii
+      console.log(`STL model uploaded without automatic thumbnail generation. Model ID: ${model.id}`);
     
       res.status(201).json({
         id: model.id,
@@ -1715,21 +1684,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`CAD model ID: ${model.id} przypisany token dostępu: ${viewToken}`);
       console.log(`Token zapisany w sesji użytkownika: ${req.session.viewTokens[model.id]}`);
       
-      // Wygeneruj miniaturkę w tle
-      (async () => {
-        try {
-          const thumbnailPath = getThumbnailPath(model.id);
-          const thumbnailGenerated = await generateThumbnail(file.path, thumbnailPath);
-          
-          if (thumbnailGenerated) {
-            console.log(`Thumbnail generated successfully for CAD model ID ${model.id}`);
-          } else {
-            console.log(`Thumbnail generation failed for CAD model ID ${model.id}`);
-          }
-        } catch (thumbnailError) {
-          console.error(`Error generating thumbnail for CAD model ID ${model.id}:`, thumbnailError);
-        }
-      })();
+      // Automatyczne generowanie miniatur wyłączone - użytkownicy mogą generować ręcznie w galerii
+      console.log(`CAD model uploaded without automatic thumbnail generation. Model ID: ${model.id}`);
       
       res.status(201).json({
         id: model.id,
