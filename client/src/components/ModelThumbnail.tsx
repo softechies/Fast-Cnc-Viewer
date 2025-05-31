@@ -17,28 +17,32 @@ export function ModelThumbnail({ modelId, filename, format, className = "w-16 h-
 
   const thumbnailUrl = `/api/models/${modelId}/thumbnail?t=${refreshKey}`;
 
-  // Listen for thumbnail updates from query invalidation - only specific thumbnail queries
-  useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      // Only listen for specific thumbnail invalidations, not general model list updates
-      if (event.type === 'queryRemoved' || event.type === 'queryUpdated') {
-        const query = event.query;
-        const key = query.queryKey;
-        
-        // Only update if this specific model's thumbnail was invalidated
-        if (Array.isArray(key) && (
-          key.includes(`/api/models/${modelId}/thumbnail`) ||
-          (key.includes('/api/models') && key.includes(modelId) && key.includes('thumbnail'))
-        )) {
-          setRefreshKey(Date.now());
-          setThumbnailError(false);
-          setIsLoading(true);
-        }
-      }
-    });
+  // Function to refresh thumbnail manually
+  const refreshThumbnail = () => {
+    setRefreshKey(Date.now());
+    setThumbnailError(false);
+    setIsLoading(true);
+  };
 
-    return unsubscribe;
-  }, [modelId, queryClient]);
+  // Listen for specific thumbnail updates from the gallery modal
+  useEffect(() => {
+    const handleThumbnailUpdate = () => {
+      refreshThumbnail();
+    };
+
+    // Custom event listener for thumbnail updates
+    window.addEventListener(`thumbnail-updated-${modelId}`, handleThumbnailUpdate);
+    
+    return () => {
+      window.removeEventListener(`thumbnail-updated-${modelId}`, handleThumbnailUpdate);
+    };
+  }, [modelId]);
+
+  // Reset state when modelId changes
+  useEffect(() => {
+    setThumbnailError(false);
+    setIsLoading(true);
+  }, [modelId]);
 
   const handleThumbnailError = () => {
     setThumbnailError(true);

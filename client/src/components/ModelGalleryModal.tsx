@@ -150,6 +150,10 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
         description: t('thumbnail_updated_successfully'),
       });
       refetch();
+      // Dispatch custom event to notify ModelThumbnail components
+      window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
+      // Force thumbnail re-render by updating key
+      setThumbnailKey(prev => prev + 1);
       // Invalidate multiple cache keys to refresh all related data
       queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
       queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
@@ -187,6 +191,8 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
       });
       // Force thumbnail re-render by updating key
       setThumbnailKey(prev => prev + 1);
+      // Dispatch custom event to notify ModelThumbnail components
+      window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
       // Invalidate cache to refresh thumbnails
       queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
       queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
