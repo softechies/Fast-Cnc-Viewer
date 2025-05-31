@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,8 @@ interface PublicModel {
 }
 
 export default function CadLibraryPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
@@ -78,7 +80,8 @@ export default function CadLibraryPage() {
   const handleViewModel = (model: any) => {
     // Używamy publicId do maskowania prawdziwego ID modelu
     const publicId = model.publicId || model.id;
-    window.open(`/library/model/${publicId}`, '_blank');
+    const modelPath = language && language !== 'en' ? `/${language}/library/model/${publicId}` : `/library/model/${publicId}`;
+    setLocation(modelPath);
   };
 
   const handleDownloadModel = (model: any) => {
