@@ -3,6 +3,9 @@ import {
   models, type Model, type InsertModel,
   modelViews, type ModelView, type InsertModelView,
   modelGallery, type ModelGalleryImage, type InsertModelGalleryImage,
+  categories, type Category, type InsertCategory,
+  tags, type Tag, type InsertTag,
+  modelTags, type ModelTag,
   type ModelViewStats
 } from "@shared/schema";
 import { eq, sql, and, desc, or, like, ilike } from "drizzle-orm";
@@ -49,6 +52,17 @@ export interface IStorage {
   updateGalleryImageOrder(imageId: number, newOrder: number): Promise<ModelGalleryImage | undefined>;
   clearGalleryThumbnails(modelId: number): Promise<void>;
   setGalleryThumbnail(imageId: number): Promise<ModelGalleryImage | undefined>;
+  
+  // Category and tag operations
+  getCategories(): Promise<Category[]>;
+  getCategory(id: number): Promise<Category | undefined>;
+  getTags(categoryId?: number): Promise<Tag[]>;
+  getTag(id: number): Promise<Tag | undefined>;
+  createTag(tag: InsertTag): Promise<Tag>;
+  updateModelCategory(modelId: number, categoryId: number | null): Promise<Model | undefined>;
+  addModelTags(modelId: number, tagIds: number[]): Promise<void>;
+  removeModelTags(modelId: number, tagIds: number[]): Promise<void>;
+  getModelTags(modelId: number): Promise<Tag[]>;
   updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void>;
 }
 
@@ -891,6 +905,98 @@ export class PostgresStorage implements IStorage {
     } catch (error) {
       console.error("Error updating model thumbnail:", error);
     }
+  }
+
+  // Category and tag operations
+  async getCategories(): Promise<Category[]> {
+    const result = await db.select().from(categories).where(eq(categories.isActive, true)).orderBy(categories.sortOrder);
+    return result;
+  }
+
+  async getCategory(id: number): Promise<Category | undefined> {
+    const result = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
+    return result[0] || undefined;
+  }
+
+  async getTags(categoryId?: number): Promise<Tag[]> {
+    const query = db.select().from(tags).where(eq(tags.isActive, true));
+    if (categoryId) {
+      query.where(eq(tags.categoryId, categoryId));
+    }
+    const result = await query.orderBy(desc(tags.usageCount));
+    return result;
+  }
+
+  async getTag(id: number): Promise<Tag | undefined> {
+    const result = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
+    return result[0] || undefined;
+  }
+
+  async createTag(tag: InsertTag): Promise<Tag> {
+    const result = await db.insert(tags).values(tag).returning();
+    return result[0];
+  }
+
+  async updateModelCategory(modelId: number, categoryId: number | null): Promise<Model | undefined> {
+    const result = await db.update(models)
+      .set({ categoryId })
+      .where(eq(models.id, modelId))
+      .returning();
+    return result[0] || undefined;
+  }
+
+  async addModelTags(modelId: number, tagIds: number[]): Promise<void> {
+    if (tagIds.length === 0) return;
+    
+    const insertData = tagIds.map(tagId => ({
+      modelId,
+      tagId
+    }));
+    
+    await db.insert(modelTags).values(insertData).onConflictDoNothing();
+    
+    // Update usage count for tags
+    await db.update(tags)
+      .set({ usageCount: sql`${tags.usageCount} + 1` })
+      .where(sql`${tags.id} = ANY(${tagIds})`);
+  }
+
+  async removeModelTags(modelId: number, tagIds: number[]): Promise<void> {
+    if (tagIds.length === 0) return;
+    
+    await db.delete(modelTags)
+      .where(and(
+        eq(modelTags.modelId, modelId),
+        sql`${modelTags.tagId} = ANY(${tagIds})`
+      ));
+    
+    // Update usage count for tags
+    await db.update(tags)
+      .set({ usageCount: sql`GREATEST(0, ${tags.usageCount} - 1)` })
+      .where(sql`${tags.id} = ANY(${tagIds})`);
+  }
+
+  async getModelTags(modelId: number): Promise<Tag[]> {
+    const result = await db
+      .select({
+        id: tags.id,
+        nameEn: tags.nameEn,
+        namePl: tags.namePl,
+        nameDe: tags.nameDe,
+        nameFr: tags.nameFr,
+        nameCs: tags.nameCs,
+        slug: tags.slug,
+        categoryId: tags.categoryId,
+        color: tags.color,
+        usageCount: tags.usageCount,
+        isActive: tags.isActive,
+        createdAt: tags.createdAt,
+      })
+      .from(modelTags)
+      .innerJoin(tags, eq(modelTags.tagId, tags.id))
+      .where(eq(modelTags.modelId, modelId));
+    
+    return result;
   }
 }
 
