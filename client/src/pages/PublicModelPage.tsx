@@ -153,7 +153,7 @@ export default function PublicModelPage() {
             variant="ghost" 
             className="mb-4"
             onClick={() => {
-              const libraryPath = language && language !== 'en' ? `/${language}/library` : '/library';
+              const libraryPath = language && language !== 'en' ? `/${language}/cad-library` : '/cad-library';
               setLocation(libraryPath);
             }}
           >
