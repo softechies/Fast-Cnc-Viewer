@@ -8,6 +8,49 @@ import sys
 import os
 import numpy as np
 
+def optimize_image(image_path, quality=75, max_size=(300, 300)):
+    """Optymalizuje obraz przez kompresję i zmniejszenie rozmiaru"""
+    try:
+        from PIL import Image
+        
+        # Wczytaj obraz
+        with Image.open(image_path) as img:
+            # Konwertuj do RGB jeśli potrzebne
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Utwórz białe tło dla przezroczystości
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Zmień rozmiar jeśli za duży
+            if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Zapisz jako JPEG z kompresją
+            if image_path.endswith('.png'):
+                jpeg_path = image_path.replace('.png', '.jpg')
+                img.save(jpeg_path, 'JPEG', quality=quality, optimize=True)
+                # Usuń oryginalny PNG
+                os.remove(image_path)
+                # Zmień nazwę z powrotem na PNG dla kompatybilności
+                os.rename(jpeg_path, image_path)
+            else:
+                img.save(image_path, 'JPEG', quality=quality, optimize=True)
+                
+        print(f"Image optimized: {image_path}")
+        return True
+        
+    except ImportError:
+        print("PIL/Pillow not available for image optimization", file=sys.stderr)
+        return False
+    except Exception as e:
+        print(f"Error optimizing image: {e}", file=sys.stderr)
+        return False
+
 def render_stl_with_open3d(input_path, output_path, width=300, height=300):
     """Renderuje plik STL używając Open3D"""
     try:
@@ -55,6 +98,9 @@ def render_stl_with_open3d(input_path, output_path, width=300, height=300):
         # Zrób screenshot
         vis.capture_screen_image(output_path)
         vis.destroy_window()
+        
+        # Optymalizuj rozmiar obrazu
+        optimize_image(output_path)
         
         return True
         
@@ -116,6 +162,9 @@ def render_stl_with_vtk(input_path, output_path, width=300, height=300):
         writer.SetFileName(output_path)
         writer.SetInputConnection(window_to_image.GetOutputPort())
         writer.Write()
+        
+        # Optymalizuj rozmiar obrazu
+        optimize_image(output_path)
         
         return True
         
@@ -190,6 +239,9 @@ def render_stl_fallback(input_path, output_path, width=300, height=300):
         plt.savefig(output_path, dpi=150, bbox_inches='tight', 
                    pad_inches=0, facecolor='white')
         plt.close()
+        
+        # Optymalizuj rozmiar obrazu
+        optimize_image(output_path)
         
         return True
         
