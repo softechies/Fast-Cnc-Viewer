@@ -353,7 +353,18 @@ const translations = {
   model_id: "ID del modelo",
   file_path: "Ruta del archivo",
   checksum: "Suma de verificación",
-  metadata: "Metadatos"
+  metadata: "Metadatos",
+
+  // Missing translations from logs
+  noPreviousFiles: "No hay archivos anteriores",
+  supportedFormats: "Formatos soportados",
+  "library.title": "Biblioteca",
+  "library.description": "Explora nuestra colección de modelos",
+  client_dashboard: "Panel del Cliente",
+  "button.upload": "Subir",
+  "button.cancel": "Cancelar",
+  "message.no.model": "No hay modelos disponibles",
+  email_autofilled: "Correo electrónico completado automáticamente"
 };
 
 export default translations;
