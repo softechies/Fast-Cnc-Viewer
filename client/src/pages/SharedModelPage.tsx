@@ -265,17 +265,15 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         )}
       </div>
       
-      {/* FastCNC Services Advertisement - ukryte na urządzeniach mobilnych lub mniejsze */}
-      <div className="hidden sm:block">
-        <Card className="mb-4">
-          <CardContent className="p-0">
-            <CncServicesAd 
-              modelType={modelInfo?.format?.toLowerCase() === 'stl' ? '3d' : modelInfo?.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
-              modelInfo={modelInfo} 
-            />
-          </CardContent>
-        </Card>
-      </div>
+      {/* FastCNC Services Advertisement */}
+      <Card className="mb-4">
+        <CardContent className="p-0">
+          <CncServicesAd 
+            modelType={modelInfo?.format?.toLowerCase() === 'stl' ? '3d' : modelInfo?.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
+            modelInfo={modelInfo} 
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
