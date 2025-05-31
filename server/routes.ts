@@ -1042,6 +1042,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if model has thumbnail (HEAD request)
+  app.head("/api/models/:id/thumbnail", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      const model = await storage.getModel(modelId);
+      
+      if (!model) {
+        return res.status(404).end();
+      }
+
+      // Sprawdź czy model ma miniaturkę w metadata
+      const metadata = model.metadata as any;
+      const thumbnailPath = metadata?.thumbnailPath;
+      
+      if (thumbnailPath && s3Service.isInitialized()) {
+        // Check if exists in S3
+        try {
+          await s3Service.getSignedDownloadUrl(thumbnailPath, 3600);
+          res.status(200).end();
+          return;
+        } catch (s3Error) {
+          console.error('Failed to check thumbnail in S3:', s3Error);
+        }
+      }
+      
+      // Check local file
+      const localThumbnailPath = getThumbnailPath(modelId);
+      if (fs.existsSync(localThumbnailPath)) {
+        res.status(200).end();
+        return;
+      }
+      
+      return res.status(404).end();
+    } catch (error) {
+      console.error("Error checking thumbnail:", error);
+      res.status(500).end();
+    }
+  });
+
   // Get model thumbnail
   app.get("/api/models/:id/thumbnail", async (req: Request, res: Response) => {
     try {
