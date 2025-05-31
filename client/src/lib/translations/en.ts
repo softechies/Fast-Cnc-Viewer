@@ -514,7 +514,18 @@ const translations = {
   file_too_large_5mb: "File is too large. Maximum size is 5MB",
   image_processing_failed: "Image processing failed",
   invalid_image_file: "Invalid image file",
-  thumbnail_required_for_public: "A thumbnail is required to add this model to the public library. Please upload a thumbnail first."
+  thumbnail_required_for_public: "A thumbnail is required to add this model to the public library. Please upload a thumbnail first.",
+  
+  // Categories
+  category: "Category",
+  select_category: "Select category",
+  no_category: "No category",
+  art: "Art",
+  home_garden: "Home & Garden",
+  architecture: "Architecture",
+  gadget: "Gadget",
+  game: "Game",
+  tools: "Tools"
 };
 
 export default translations;

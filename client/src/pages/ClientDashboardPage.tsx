@@ -40,6 +40,7 @@ interface ClientModel {
   shareExpiryDate: string | null;
   shareLastAccessed: string | null;
   isPublic: boolean;
+  categoryId: number | null;
 }
 
 export default function ClientDashboardPage() {
@@ -436,6 +437,7 @@ export default function ClientDashboardPage() {
                       <TableRow>
                         <TableHead>{t('filename')}</TableHead>
                         <TableHead>{t('upload_thumbnail')}</TableHead>
+                        <TableHead>{t('category')}</TableHead>
                         <TableHead>{t('shared_status')}</TableHead>
                         <TableHead>{t('last_accessed')}</TableHead>
                         <TableHead>{t('add_to_cad_library')}</TableHead>
