@@ -428,6 +428,7 @@ const translations = {
     error: "Error",
     backToLibrary: "Back to Library",
     download: "Download",
+    reportAbuse: "Report Abuse",
     modelInfo: "Model Information",
     filename: "Filename",
     format: "Format",

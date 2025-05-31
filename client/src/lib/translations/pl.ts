@@ -333,6 +333,7 @@ const translations = {
     error: "Błąd",
     backToLibrary: "Powrót do biblioteki",
     download: "Pobierz",
+    reportAbuse: "Zgłoś nadużycie",
     modelInfo: "Informacje o modelu",
     filename: "Nazwa pliku",
     format: "Format",
