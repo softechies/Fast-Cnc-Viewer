@@ -31,6 +31,7 @@ interface GalleryImage {
 export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
+  const [thumbnailKey, setThumbnailKey] = useState(0); // Force re-render of thumbnail
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -184,6 +185,8 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
         description: t('thumbnail_generated_successfully'),
         variant: "default",
       });
+      // Force thumbnail re-render by updating key
+      setThumbnailKey(prev => prev + 1);
       // Invalidate cache to refresh thumbnails
       queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
       queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
@@ -283,22 +286,31 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
             <div>
               <h4 className="font-medium mb-3">{t('current_thumbnail')}</h4>
               <div className="flex items-center gap-4">
-                {currentThumbnail ? (
-                  <div className="relative">
-                    <img
-                      src={currentThumbnail}
-                      alt="Current thumbnail"
-                      className="w-24 h-24 object-cover rounded border"
-                    />
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded">
-                      {t('active')}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                <div className="relative">
+                  <img
+                    src={`/api/models/${modelId}/thumbnail?t=${thumbnailKey}_${Date.now()}`}
+                    alt="Current thumbnail"
+                    className="w-24 h-24 object-cover rounded border"
+                    onError={(e) => {
+                      // If thumbnail fails to load, show placeholder
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                    onLoad={(e) => {
+                      // If thumbnail loads successfully, hide placeholder
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'block';
+                      target.nextElementSibling?.classList.add('hidden');
+                    }}
+                  />
+                  <div className="w-24 h-24 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center absolute top-0 left-0">
                     <ImageIcon className="h-8 w-8 text-gray-400" />
                   </div>
-                )}
+                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-1 rounded">
+                    {t('active')}
+                  </div>
+                </div>
                 <div className="text-sm text-muted-foreground">
                   {currentThumbnail ? t('thumbnail_active') : t('no_thumbnail_set')}
                 </div>
