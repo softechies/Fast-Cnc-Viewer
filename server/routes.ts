@@ -3658,6 +3658,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Categories and tags endpoints
+  app.get("/api/categories", async (req: Request, res: Response) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.get("/api/tags", async (req: Request, res: Response) => {
+    try {
+      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+      const tags = await storage.getTags(categoryId);
+      res.json(tags);
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      res.status(500).json({ error: "Failed to fetch tags" });
+    }
+  });
+
+  app.post("/api/tags", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { nameEn, namePl, nameDe, nameFr, nameCs, slug, categoryId } = req.body;
+      
+      if (!nameEn || !slug) {
+        return res.status(400).json({ error: "Name (English) and slug are required" });
+      }
+
+      const newTag = await storage.createTag({
+        nameEn,
+        namePl: namePl || nameEn,
+        nameDe: nameDe || nameEn,
+        nameFr: nameFr || nameEn,
+        nameCs: nameCs || nameEn,
+        slug,
+        categoryId
+      });
+
+      res.status(201).json(newTag);
+    } catch (error) {
+      console.error("Error creating tag:", error);
+      res.status(500).json({ error: "Failed to create tag" });
+    }
+  });
+
+  app.put("/api/models/:id/category", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const modelId = parseInt(req.params.id);
+      const { categoryId } = req.body;
+
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      // Check if user has access to the model
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const updatedModel = await storage.updateModelCategory(modelId, categoryId || null);
+      
+      if (!updatedModel) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+
+      res.json(updatedModel);
+    } catch (error) {
+      console.error("Error updating model category:", error);
+      res.status(500).json({ error: "Failed to update model category" });
+    }
+  });
+
+  app.put("/api/models/:id/tags", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const modelId = parseInt(req.params.id);
+      const { tagIds } = req.body;
+
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      if (!Array.isArray(tagIds)) {
+        return res.status(400).json({ error: "tagIds must be an array" });
+      }
+
+      // Check if user has access to the model
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Get current tags and calculate differences
+      const currentTags = await storage.getModelTags(modelId);
+      const currentTagIds = currentTags.map(tag => tag.id);
+      
+      const tagsToAdd = tagIds.filter(id => !currentTagIds.includes(id));
+      const tagsToRemove = currentTagIds.filter(id => !tagIds.includes(id));
+
+      // Update tags
+      if (tagsToRemove.length > 0) {
+        await storage.removeModelTags(modelId, tagsToRemove);
+      }
+      if (tagsToAdd.length > 0) {
+        await storage.addModelTags(modelId, tagsToAdd);
+      }
+
+      // Return updated tags
+      const updatedTags = await storage.getModelTags(modelId);
+      res.json(updatedTags);
+    } catch (error) {
+      console.error("Error updating model tags:", error);
+      res.status(500).json({ error: "Failed to update model tags" });
+    }
+  });
+
+  app.get("/api/models/:id/tags", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      // Check if user has access to the model
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const tags = await storage.getModelTags(modelId);
+      res.json(tags);
+    } catch (error) {
+      console.error("Error fetching model tags:", error);
+      res.status(500).json({ error: "Failed to fetch model tags" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

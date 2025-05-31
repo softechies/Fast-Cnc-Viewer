@@ -919,12 +919,17 @@ export class PostgresStorage implements IStorage {
   }
 
   async getTags(categoryId?: number): Promise<Tag[]> {
-    const query = db.select().from(tags).where(eq(tags.isActive, true));
     if (categoryId) {
-      query.where(eq(tags.categoryId, categoryId));
+      const result = await db.select().from(tags)
+        .where(and(eq(tags.isActive, true), eq(tags.categoryId, categoryId)))
+        .orderBy(desc(tags.usageCount));
+      return result;
+    } else {
+      const result = await db.select().from(tags)
+        .where(eq(tags.isActive, true))
+        .orderBy(desc(tags.usageCount));
+      return result;
     }
-    const result = await query.orderBy(desc(tags.usageCount));
-    return result;
   }
 
   async getTag(id: number): Promise<Tag | undefined> {
