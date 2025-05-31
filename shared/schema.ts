@@ -44,6 +44,62 @@ export const clientLoginSchema = z.object({
   password: z.string().min(1, "Hasło jest wymagane"),
 });
 
+// Define categories table for model classification
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  nameEn: text("name_en").notNull(),
+  namePl: text("name_pl").notNull(),
+  nameDe: text("name_de").notNull(),
+  nameFr: text("name_fr").notNull(),
+  nameCs: text("name_cs").notNull(),
+  slug: text("slug").notNull().unique(),
+  descriptionEn: text("description_en"),
+  descriptionPl: text("description_pl"),
+  descriptionDe: text("description_de"),
+  descriptionFr: text("description_fr"),
+  descriptionCs: text("description_cs"),
+  icon: text("icon"), // Lucide icon name
+  color: text("color").default("#3B82F6"), // Hex color for category
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Define tags table for flexible tagging system
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  nameEn: text("name_en").notNull(),
+  namePl: text("name_pl").notNull(),
+  nameDe: text("name_de").notNull(),
+  nameFr: text("name_fr").notNull(),
+  nameCs: text("name_cs").notNull(),
+  slug: text("slug").notNull().unique(),
+  categoryId: integer("category_id").references(() => categories.id),
+  color: text("color").default("#6B7280"),
+  usageCount: integer("usage_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTagSchema = createInsertSchema(tags).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+});
+
+// Junction table for model-tag relationships
+export const modelTags = pgTable("model_tags", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").references(() => models.id, { onDelete: "cascade" }).notNull(),
+  tagId: integer("tag_id").references(() => tags.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Define models table for storing model information
 export const models = pgTable("models", {
   id: serial("id").primaryKey(),
@@ -64,6 +120,7 @@ export const models = pgTable("models", {
   shareNotificationSent: boolean("share_notification_sent").default(false), // Czy powiadomienie zostało wysłane
   shareLastAccessed: text("share_last_accessed"), // Ostatni dostęp do udostępnionego modelu
   tags: text("tags").array(), // Tablica tagów dla łatwego wyszukiwania
+  categoryId: integer("category_id").references(() => categories.id),
   isPublic: boolean("is_public").default(false), // Czy model jest dostępny w publicznej bibliotece CAD
 });
 
@@ -300,3 +357,49 @@ export type ModelViewStats = z.infer<typeof modelViewStatsSchema>;
 export type UserData = z.infer<typeof userDataSchema>;
 export type StlModelMetadata = z.infer<typeof stlModelMetadataSchema>;
 export type CadModelMetadata = z.infer<typeof cadModelMetadataSchema>;
+
+// Relations for categories, tags, and models
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  models: many(models),
+  tags: many(tags),
+}));
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [tags.categoryId],
+    references: [categories.id],
+  }),
+  modelTags: many(modelTags),
+}));
+
+export const modelsRelations = relations(models, ({ one, many }) => ({
+  user: one(users, {
+    fields: [models.userId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [models.categoryId],
+    references: [categories.id],
+  }),
+  modelTags: many(modelTags),
+  gallery: many(modelGallery),
+  views: many(modelViews),
+}));
+
+export const modelTagsRelations = relations(modelTags, ({ one }) => ({
+  model: one(models, {
+    fields: [modelTags.modelId],
+    references: [models.id],
+  }),
+  tag: one(tags, {
+    fields: [modelTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+// Types for categories and tags
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type ModelTag = typeof modelTags.$inferSelect;
