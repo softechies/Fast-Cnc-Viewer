@@ -229,18 +229,18 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
 
   // Gdy model został pomyślnie otwarty
   return (
-    <div className="container mx-auto py-4">
-      <div className="bg-muted/40 rounded-lg p-2 mb-4 border text-sm">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img src={fastCncLogo} alt="FastCNC Logo" className="h-10 mr-2" />
-            <FileIcon className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{modelInfo?.filename}</span>
-            <span className="text-xs text-muted-foreground">
+    <div className="container mx-auto py-2 px-2 sm:py-4 sm:px-4">
+      <div className="bg-muted/40 rounded-lg p-2 mb-2 sm:mb-4 border text-sm">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <img src={fastCncLogo} alt="FastCNC Logo" className="h-8 sm:h-10 flex-shrink-0" />
+            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="font-medium truncate">{modelInfo?.filename}</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">
               ({t("shared.model_info.shared_status")})
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <LanguageSelector />
             <Button
               variant="outline"
@@ -255,7 +255,7 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         </div>
       </div>
       
-      <div className="h-[calc(100vh-280px)] bg-background border rounded-lg overflow-hidden mb-4">
+      <div className="h-[calc(100vh-200px)] sm:h-[calc(100vh-280px)] bg-background border rounded-lg overflow-hidden mb-2 sm:mb-4">
         {modelId && (
           <ModelViewer 
             modelId={modelId} 
@@ -265,15 +265,17 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         )}
       </div>
       
-      {/* FastCNC Services Advertisement */}
-      <Card className="mb-4">
-        <CardContent className="p-0">
-          <CncServicesAd 
-            modelType={modelInfo?.format?.toLowerCase() === 'stl' ? '3d' : modelInfo?.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
-            modelInfo={modelInfo} 
-          />
-        </CardContent>
-      </Card>
+      {/* FastCNC Services Advertisement - ukryte na urządzeniach mobilnych lub mniejsze */}
+      <div className="hidden sm:block">
+        <Card className="mb-4">
+          <CardContent className="p-0">
+            <CncServicesAd 
+              modelType={modelInfo?.format?.toLowerCase() === 'stl' ? '3d' : modelInfo?.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
+              modelInfo={modelInfo} 
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
