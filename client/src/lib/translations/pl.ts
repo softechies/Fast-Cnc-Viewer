@@ -431,7 +431,7 @@ const translations = {
   thumbnail_required_for_public: "Miniaturka jest wymagana aby dodać model do publicznej biblioteki. Proszę najpierw przesłać miniaturkę.",
   
   // Galeria zdjęć
-  add_gallery: "Dodaj galerię",
+  add_gallery: "Galeria plików",
   add_gallery_title: "Prześlij galerię modelu",
   add_gallery_description: "Prześlij do 6 zdjęć dla modelu {modelName}. Pierwsze zdjęcie będzie użyte jako miniaturka.",
   upload_gallery: "Prześlij galerię",

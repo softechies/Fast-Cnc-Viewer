@@ -226,6 +226,11 @@ const translations = {
   delete_model: "Smazat model",
   delete_model_confirmation: "Opravdu chcete smazat tento model? Tuto akci nelze vrátit zpět.",
   
+  // Gallery upload translations
+  add_gallery: "Galerie souborů",
+  add_gallery_title: "Nahrát galerii modelu",
+  add_gallery_description: "Nahrajte až 6 obrázků pro model {modelName}. První obrázek bude použit jako náhled.",
+  
   // Shared model access
   sharedModel: "Sdílený model",
   enterPassword: "Zadejte heslo pro zobrazení tohoto modelu",

@@ -200,7 +200,7 @@ const translations = {
   inactive: "Inactive",
   
   // Gallery upload translations
-  add_gallery: "Add Gallery",
+  add_gallery: "File Gallery",
   add_gallery_title: "Upload Model Gallery",
   add_gallery_description: "Upload up to 6 images for model {modelName}. The first image will be used as thumbnail.",
   upload_gallery: "Upload Gallery",

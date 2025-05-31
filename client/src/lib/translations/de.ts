@@ -227,6 +227,11 @@ const translations = {
   delete_model: "Modell löschen",
   delete_model_confirmation: "Sind Sie sicher, dass Sie dieses Modell löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
   
+  // Gallery upload translations
+  add_gallery: "Datei-Galerie",
+  add_gallery_title: "Modell-Galerie hochladen",
+  add_gallery_description: "Laden Sie bis zu 6 Bilder für Modell {modelName} hoch. Das erste Bild wird als Miniaturansicht verwendet.",
+  
   // Shared model access
   sharedModel: "Geteiltes Modell",
   enterPassword: "Geben Sie das Passwort ein, um dieses Modell anzuzeigen",
