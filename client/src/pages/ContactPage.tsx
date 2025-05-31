@@ -232,30 +232,7 @@ export default function ContactPage() {
           
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              {modelId && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                  {isLoadingModel ? (
-                    <div className="flex items-center">
-                      <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                      {t('contact.loading_model_info', 'Ładowanie informacji o modelu...')}
-                    </div>
-                  ) : modelInfo ? (
-                    <div>
-                      <p className="font-medium">{t('contact.selected_model', 'Wybrany model')}:</p>
-                      <p className="mt-1">
-                        <span className="font-medium">{t('contact.filename', 'Nazwa pliku')}:</span> {modelInfo.filename}<br />
-                        <span className="font-medium">{t('contact.file_format', 'Format pliku')}:</span> {modelInfo.filetype}<br />
-                        <span className="font-medium">{t('contact.model_id', 'ID modelu')}:</span> {modelInfo.id}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-amber-700">
-                      <AlertCircle className="w-4 h-4 mr-2" />
-                      {t('contact.model_not_found', 'Nie znaleziono informacji o modelu.')}
-                    </div>
-                  )}
-                </div>
-              )}
+
               
               {inquiryType !== 'abuse' && (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
