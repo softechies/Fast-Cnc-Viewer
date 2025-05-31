@@ -36,8 +36,19 @@ export default function ContactPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('modelId');
+    const subject = urlParams.get('subject');
+    const message = urlParams.get('message');
+    
     if (id) {
       setModelId(id);
+    }
+    
+    // Wypełnij formularz danymi z URL
+    if (subject || message) {
+      setFormData(prev => ({
+        ...prev,
+        message: message || prev.message
+      }));
     }
   }, []);
   

@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowLeft, File, FileText, Download, Image as ImageIcon } from "lucide-react";
+import { AlertTriangle, ArrowLeft, File, FileText, Download, Image as ImageIcon, Flag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import ModelViewer from "@/components/ModelViewer";
 import CncServicesAd from "@/components/CncServicesAd";
@@ -97,6 +97,32 @@ export default function PublicModelPage() {
     return `/api/models/${modelInfo?.id}/gallery/${image.id}`;
   };
 
+  const handleReportAbuse = () => {
+    if (!modelInfo || !publicId) return;
+    
+    // Przygotuj dane do formularza kontaktowego
+    const subject = `Report Abuse - Model: ${modelInfo.filename}`;
+    const modelUrl = `${window.location.origin}/library/model/${publicId}`;
+    const message = `I would like to report inappropriate content for the following model:
+    
+Model: ${modelInfo.filename}
+URL: ${modelUrl}
+Model ID: ${modelInfo.id}
+
+Reason for report:
+[Please describe the issue]`;
+
+    // Przekieruj do strony kontaktowej z wypełnionymi danymi
+    const contactPath = language && language !== 'en' ? `/${language}/contact` : '/contact';
+    const params = new URLSearchParams({
+      subject: subject,
+      message: message,
+      modelId: modelInfo.id.toString()
+    });
+    
+    setLocation(`${contactPath}?${params.toString()}`);
+  };
+
   if (isLoadingModel) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -185,10 +211,17 @@ export default function PublicModelPage() {
                   <span>{formatFileSize(modelInfo.filesize)}</span>
                 </div>
                 
-                <Button onClick={handleDownload}>
-                  <Download className="h-4 w-4 mr-2" />
-                  {t("common.download") || "Download"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleDownload}>
+                    <Download className="h-4 w-4 mr-2" />
+                    {t("common.download") || "Download"}
+                  </Button>
+                  
+                  <Button variant="outline" onClick={handleReportAbuse}>
+                    <Flag className="h-4 w-4 mr-2" />
+                    {t("common.reportAbuse") || "Report Abuse"}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
