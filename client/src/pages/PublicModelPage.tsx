@@ -112,8 +112,8 @@ Model ID: ${modelInfo.id}
 Reason for report:
 [Please describe the issue]`;
 
-    // Przekieruj do strony kontaktowej z wypełnionymi danymi
-    const contactPath = language && language !== 'en' ? `/${language}/contact` : '/contact';
+    // Przekieruj do strony kontaktowej z wypełnionymi danymi - zawsze używaj wersji angielskiej dla zgłoszeń nadużyć
+    const contactPath = '/en/contact';
     const params = new URLSearchParams({
       subject: subject,
       message: message,
