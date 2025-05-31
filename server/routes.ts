@@ -3490,18 +3490,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to generate thumbnail" });
       }
 
-      // Jeśli S3 jest włączone, prześlij miniaturkę
-      if (s3Service.isInitialized() && fs.existsSync(thumbnailPath)) {
-        try {
-          const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.png`;
-          await s3Service.uploadFile(thumbnailKey, thumbnailPath);
-          await storage.updateModelThumbnail(modelId, thumbnailKey);
-          console.log(`Thumbnail uploaded to S3 for model ${modelId}`);
-        } catch (s3Error) {
-          console.error('Failed to upload thumbnail to S3:', s3Error);
-          // Kontynuuj pomimo błędu S3 - miniaturka lokalna nadal istnieje
-        }
+      // Sprawdź czy miniaturka została wygenerowana lokalnie
+      if (!fs.existsSync(thumbnailPath)) {
+        return res.status(500).json({ message: "Thumbnail file was not created" });
       }
+
+      // Pomiń upload do S3 tymczasowo - zostaw miniaturkę lokalnie
+      console.log(`Thumbnail generated locally for model ${modelId}: ${thumbnailPath}`);
 
       res.json({ 
         success: true, 
