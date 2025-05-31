@@ -143,6 +143,8 @@ function Router() {
           <Route path="/:lang(en|pl|cs|de|fr)/library/model/:publicId" component={PublicModelPage} />
 
           {/* Strona kontaktowa */}
+          <Route path="/contact" component={ContactPage} />
+          <Route path="/:lang(en|pl|cs|de|fr)/contact" component={ContactPage} />
           <Route path="/quote" component={ContactPage} />
           <Route path="/:lang(en|pl|cs|de|fr)/quote" component={ContactPage} />
           
