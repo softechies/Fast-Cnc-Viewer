@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ModelViewer from "@/components/ModelViewer";
 import LanguageSelector from "@/components/LanguageSelector";
+import CncServicesAd from "@/components/CncServicesAd";
 import { useLanguage } from "@/lib/LanguageContext";
 import fastCncLogo from "@/assets/fastcnc-logo.jpg";
 import {
@@ -254,7 +255,17 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         </div>
       </div>
       
-      <div className="h-[calc(100vh-180px)] bg-background border rounded-lg overflow-hidden">
+      {/* FastCNC Services Advertisement */}
+      <Card className="mb-4">
+        <CardContent className="p-0">
+          <CncServicesAd 
+            modelType={modelInfo?.format?.toLowerCase() === 'stl' ? '3d' : modelInfo?.format?.toLowerCase() === 'dxf' ? '2d' : 'unknown'} 
+            modelInfo={modelInfo} 
+          />
+        </CardContent>
+      </Card>
+      
+      <div className="h-[calc(100vh-280px)] bg-background border rounded-lg overflow-hidden">
         {modelId && (
           <ModelViewer 
             modelId={modelId} 
