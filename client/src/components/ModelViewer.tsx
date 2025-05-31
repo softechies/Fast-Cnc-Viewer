@@ -114,8 +114,7 @@ export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewer
         modelId={modelId || 0}
         modelInfo={modelInfo}
       />
-      
-      <div className="w-full h-full flex flex-col md:flex-row min-h-[440px]">
+      <div className="w-full h-full flex flex-col md:flex-row min-h-[440px] bg-[#ffffff]">
         <div className="flex flex-col flex-grow w-3/4">
           {/* Kontrolki widoku */}
           <div className="h-10 bg-slate-100 border-b border-slate-200 flex items-center px-3 justify-between">
