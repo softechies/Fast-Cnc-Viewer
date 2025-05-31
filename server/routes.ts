@@ -3495,12 +3495,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Thumbnail file was not created" });
       }
 
-      // Pomiń upload do S3 tymczasowo - zostaw miniaturkę lokalnie
-      console.log(`Thumbnail generated locally for model ${modelId}: ${thumbnailPath}`);
+      // Jeśli S3 jest włączone, prześlij miniaturkę używając buffer zamiast stream
+      let s3UploadSuccess = false;
+      if (s3Service.isInitialized()) {
+        try {
+          const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.png`;
+          const thumbnailBuffer = fs.readFileSync(thumbnailPath);
+          await s3Service.uploadBuffer(thumbnailKey, thumbnailBuffer, 'image/png');
+          await storage.updateModelThumbnail(modelId, thumbnailKey);
+          s3UploadSuccess = true;
+          console.log(`Thumbnail uploaded to S3 for model ${modelId}`);
+        } catch (s3Error) {
+          console.error('Failed to upload thumbnail to S3:', s3Error);
+          console.log('Thumbnail will remain stored locally');
+        }
+      }
 
       res.json({ 
         success: true, 
-        message: "Thumbnail generated successfully",
+        message: s3UploadSuccess ? "Thumbnail generated and uploaded to cloud storage" : "Thumbnail generated locally",
         thumbnailUrl: `/api/models/${modelId}/thumbnail?t=${Date.now()}`
       });
     } catch (error) {
