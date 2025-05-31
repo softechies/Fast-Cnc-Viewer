@@ -34,6 +34,13 @@ export default function ContactPage() {
     const subject = urlParams.get('subject');
     const message = urlParams.get('message');
     
+    // If this is an abuse report without language prefix, redirect to /en/contact
+    if (subject && subject.toLowerCase().includes('abuse') && !location.includes('/en/')) {
+      const newUrl = `/en/contact${window.location.search}`;
+      setLocation(newUrl);
+      return;
+    }
+    
     if (id) {
       setModelId(id);
     }
