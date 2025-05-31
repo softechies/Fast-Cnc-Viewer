@@ -226,6 +226,11 @@ const translations = {
   delete_model: "Supprimer le modèle",
   delete_model_confirmation: "Êtes-vous sûr de vouloir supprimer ce modèle? Cette action ne peut pas être annulée.",
   
+  // Gallery upload translations
+  add_gallery: "Galerie de fichiers",
+  add_gallery_title: "Télécharger la galerie du modèle",
+  add_gallery_description: "Téléchargez jusqu'à 6 images pour le modèle {modelName}. La première image sera utilisée comme miniature.",
+  
   // Shared model access
   sharedModel: "Modèle partagé",
   enterPassword: "Entrez le mot de passe pour voir ce modèle",
