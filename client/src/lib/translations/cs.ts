@@ -402,6 +402,7 @@ const translations = {
     error: "Chyba",
     backToLibrary: "Zpět do knihovny",
     download: "Stáhnout",
+    reportAbuse: "Nahlásit zneužití",
     modelInfo: "Informace o modelu",
     filename: "Název souboru",
     format: "Formát",

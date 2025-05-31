@@ -402,6 +402,7 @@ const translations = {
     error: "Erreur",
     backToLibrary: "Retour à la bibliothèque",
     download: "Télécharger",
+    reportAbuse: "Signaler un abus",
     modelInfo: "Informations du modèle",
     filename: "Nom de fichier",
     format: "Format",
