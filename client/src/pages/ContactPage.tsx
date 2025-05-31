@@ -18,7 +18,7 @@ interface ModelInfo {
 }
 
 export default function ContactPage() {
-  const { t } = useLanguage();
+  const { t, setLanguage } = useLanguage();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   
@@ -47,6 +47,8 @@ export default function ContactPage() {
     // Determine inquiry type based on subject
     if (subject && subject.toLowerCase().includes('abuse')) {
       setInquiryType('abuse');
+      // Force English language for abuse reports
+      setLanguage('en');
     } else if (id) {
       setInquiryType('quote');
     } else {
