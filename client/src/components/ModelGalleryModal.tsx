@@ -302,6 +302,25 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
                 <div className="text-sm text-muted-foreground">
                   {currentThumbnail ? t('thumbnail_active') : t('no_thumbnail_set')}
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateThumbnailMutation.mutate()}
+                  disabled={generateThumbnailMutation.isPending}
+                  className="mt-2"
+                >
+                  {generateThumbnailMutation.isPending ? (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2 animate-spin" />
+                      {t('generating_thumbnail')}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {t('generate_thumbnail')}
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
