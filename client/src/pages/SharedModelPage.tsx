@@ -255,6 +255,16 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
         </div>
       </div>
       
+      <div className="h-[calc(100vh-280px)] bg-background border rounded-lg overflow-hidden mb-4">
+        {modelId && (
+          <ModelViewer 
+            modelId={modelId} 
+            isPublic={isPublicModel}
+            publicId={isPublicModel ? shareId : undefined}
+          />
+        )}
+      </div>
+      
       {/* FastCNC Services Advertisement */}
       <Card className="mb-4">
         <CardContent className="p-0">
@@ -264,16 +274,6 @@ export default function SharedModelPage({ shareId: propShareId, language, isPubl
           />
         </CardContent>
       </Card>
-      
-      <div className="h-[calc(100vh-280px)] bg-background border rounded-lg overflow-hidden">
-        {modelId && (
-          <ModelViewer 
-            modelId={modelId} 
-            isPublic={isPublicModel}
-            publicId={isPublicModel ? shareId : undefined}
-          />
-        )}
-      </div>
     </div>
   );
 }
