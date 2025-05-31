@@ -417,6 +417,8 @@ const translations = {
   public_library_description: "Przeglądaj i pobieraj modele CAD udostępnione przez naszą społeczność. Wszystkie modele są darmowe do użytku w Twoich projektach.",
   search_models_tags: "Szukaj modeli i tagów...",
   all_categories: "Wszystkie Kategorie",
+  all_tags: "Wszystkie Tagi",
+  tags: "Tagi",
   showing_models: "Wyświetlane {count} z {total} modeli",
   no_models_found: "Nie znaleziono modeli",
   try_different_search: "Spróbuj innego terminu wyszukiwania lub wyczyść filtry",
