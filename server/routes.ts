@@ -4,7 +4,6 @@ import { storage } from "./storage";
 import multer from "multer";
 import { insertModelSchema, modelTreeSchema, modelInfoSchema, shareModelSchema, accessSharedModelSchema, adminLoginSchema, type Model, modelViewStatsSchema, type User, models, type StlModelMetadata, type CadModelMetadata, updateModelTagsSchema } from "@shared/schema";
 import { z } from "zod";
-import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
 import os from "os";
@@ -22,7 +21,6 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import { generateThumbnail, getThumbnailPath } from "./thumbnail-generator";
-import path from "path";
 
 // Rozszerzenie typu Session aby zawierał viewTokens
 declare module 'express-session' {
@@ -3492,7 +3490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Jeśli S3 jest włączone, prześlij miniaturkę
-      if (s3Service.isInitialized()) {
+      if (s3Service.isInitialized() && fs.existsSync(thumbnailPath)) {
         try {
           const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.png`;
           await s3Service.uploadFile(thumbnailKey, thumbnailPath);
@@ -3500,6 +3498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Thumbnail uploaded to S3 for model ${modelId}`);
         } catch (s3Error) {
           console.error('Failed to upload thumbnail to S3:', s3Error);
+          // Kontynuuj pomimo błędu S3 - miniaturka lokalna nadal istnieje
         }
       }
 
