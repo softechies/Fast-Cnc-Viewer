@@ -22,6 +22,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import { generateThumbnail, getThumbnailPath } from "./thumbnail-generator";
+import path from "path";
 
 // Rozszerzenie typu Session aby zawierał viewTokens
 declare module 'express-session' {
@@ -3437,7 +3438,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const metadata = model.metadata as any;
-      const filePath = metadata?.filePath;
+      let filePath = metadata?.filePath;
+      let tempFile = null;
+
+      // Sprawdź czy plik jest w S3
+      if (metadata?.s3Key && s3Service.isInitialized()) {
+        try {
+          // Pobierz plik z S3 do tymczasowego pliku
+          const tempDir = path.join(process.cwd(), 'uploads/temp-thumbnails');
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+          }
+          
+          tempFile = path.join(tempDir, `temp_${modelId}_${Date.now()}_${model.filename}`);
+          const signedUrl = await s3Service.getSignedDownloadUrl(metadata.s3Key, 3600);
+          
+          // Pobierz plik z S3
+          const response = await fetch(signedUrl);
+          if (!response.ok) {
+            throw new Error('Failed to download file from S3');
+          }
+          
+          const buffer = Buffer.from(await response.arrayBuffer());
+          fs.writeFileSync(tempFile, buffer);
+          filePath = tempFile;
+          
+          console.log(`Downloaded file from S3 for thumbnail generation: ${metadata.s3Key}`);
+        } catch (s3Error) {
+          console.error('Failed to download file from S3:', s3Error);
+          return res.status(400).json({ message: "Failed to access model file in storage" });
+        }
+      }
       
       if (!filePath || !fs.existsSync(filePath)) {
         return res.status(400).json({ message: "Model file not found" });
@@ -3446,6 +3477,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generuj miniaturkę
       const thumbnailPath = getThumbnailPath(modelId);
       const thumbnailGenerated = await generateThumbnail(filePath, thumbnailPath, {}, model.filename);
+      
+      // Usuń tymczasowy plik jeśli został utworzony
+      if (tempFile && fs.existsSync(tempFile)) {
+        try {
+          fs.unlinkSync(tempFile);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup temp file:', cleanupError);
+        }
+      }
       
       if (!thumbnailGenerated) {
         return res.status(500).json({ message: "Failed to generate thumbnail" });
