@@ -28,7 +28,7 @@ function getNestedValue(obj: any, path: string): any {
 // Helper function to extract language from URL path
 function getLanguageFromUrl(pathname: string): Language | null {
   // Check if the pathname starts with a language code
-  const pathLangMatch = pathname.match(/^\/(en|pl|cs|de|fr)(\/|$)/);
+  const pathLangMatch = pathname.match(/^\/(en|pl|cs|de|fr|es)(\/|$)/);
   if (pathLangMatch) {
     const langCode = pathLangMatch[1] as Language;
     return langCode;
