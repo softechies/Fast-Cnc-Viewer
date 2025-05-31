@@ -445,6 +445,7 @@ const translations = {
     form_instruction: "Please provide details about the inappropriate content you wish to report. We take all reports seriously and will investigate promptly.",
     details_label: "Report Details",
     details_placeholder: "Please describe the inappropriate content. Include specific details about what type of content violates our community guidelines (e.g., offensive imagery, inappropriate descriptions, copyright infringement, etc.).",
+    details_required: "Report details are required",
     guidelines_title: "Community Guidelines",
     guidelines_text: "We do not tolerate inappropriate, offensive, or copyrighted content. All reports are reviewed by our moderation team and appropriate action will be taken.",
     report_sent: "Your abuse report has been submitted. Thank you for helping us maintain a safe community.",

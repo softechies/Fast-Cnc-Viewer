@@ -90,6 +90,13 @@ export default function ContactPage() {
   
   // Walidacja formularza
   const validateForm = () => {
+    // For abuse reports, only message is required (anonymous reporting)
+    if (inquiryType === 'abuse') {
+      if (!formData.message.trim()) return t('abuse.details_required', 'Report details are required');
+      return null;
+    }
+    
+    // For other inquiry types, require name and email
     if (!formData.name.trim()) return t('contact.error.name_required', 'Imię i nazwisko jest wymagane');
     if (!formData.email.trim()) return t('contact.error.email_required', 'Adres email jest wymagany');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
@@ -217,54 +224,56 @@ export default function ContactPage() {
                 </div>
               )}
               
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t('contact.name', 'Imię i nazwisko')} *</Label>
-                  <Input 
-                    id="name" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    placeholder={t('contact.name_placeholder', 'Wpisz swoje imię i nazwisko')} 
-                    required 
-                  />
+              {inquiryType !== 'abuse' && (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t('contact.name', 'Imię i nazwisko')} *</Label>
+                    <Input 
+                      id="name" 
+                      name="name" 
+                      value={formData.name} 
+                      onChange={handleChange} 
+                      placeholder={t('contact.name_placeholder', 'Wpisz swoje imię i nazwisko')} 
+                      required 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('contact.email', 'Adres email')} *</Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      type="email" 
+                      value={formData.email} 
+                      onChange={handleChange} 
+                      placeholder={t('contact.email_placeholder', 'twoj@email.com')} 
+                      required 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">{t('contact.phone', 'Numer telefonu')}</Label>
+                    <Input 
+                      id="phone" 
+                      name="phone" 
+                      value={formData.phone} 
+                      onChange={handleChange} 
+                      placeholder={t('contact.phone_placeholder', '+48 123 456 789')} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="company">{t('contact.company', 'Firma')}</Label>
+                    <Input 
+                      id="company" 
+                      name="company" 
+                      value={formData.company} 
+                      onChange={handleChange} 
+                      placeholder={t('contact.company_placeholder', 'Nazwa firmy (opcjonalnie)')} 
+                    />
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('contact.email', 'Adres email')} *</Label>
-                  <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={handleChange} 
-                    placeholder={t('contact.email_placeholder', 'twoj@email.com')} 
-                    required 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">{t('contact.phone', 'Numer telefonu')}</Label>
-                  <Input 
-                    id="phone" 
-                    name="phone" 
-                    value={formData.phone} 
-                    onChange={handleChange} 
-                    placeholder={t('contact.phone_placeholder', '+48 123 456 789')} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="company">{t('contact.company', 'Firma')}</Label>
-                  <Input 
-                    id="company" 
-                    name="company" 
-                    value={formData.company} 
-                    onChange={handleChange} 
-                    placeholder={t('contact.company_placeholder', 'Nazwa firmy (opcjonalnie)')} 
-                  />
-                </div>
-              </div>
+              )}
               
               <div className="space-y-2">
                 <Label htmlFor="message">
