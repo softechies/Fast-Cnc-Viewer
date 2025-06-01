@@ -985,6 +985,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public model description by publicId
+  app.get("/api/public/models/:publicId/description", async (req: Request, res: Response) => {
+    try {
+      const publicId = req.params.publicId;
+      const model = await storage.getModelByPublicId(publicId);
+      
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      
+      // Sprawdź czy model jest publiczny
+      if (!model.isPublic) {
+        return res.status(403).json({ 
+          message: "This model is not available in the public library" 
+        });
+      }
+      
+      // Pobierz opis modelu
+      const description = await storage.getModelDescription(model.id);
+      res.json(description);
+    } catch (error) {
+      console.error("Error getting public model description:", error);
+      res.status(500).json({ message: "Failed to get model description" });
+    }
+  });
+
   // Get public model file by publicId
   app.get("/api/public/models/:publicId/file", async (req: Request, res: Response) => {
     try {

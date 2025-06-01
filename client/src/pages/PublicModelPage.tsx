@@ -28,6 +28,19 @@ interface GalleryImage {
   s3Key?: string;
 }
 
+interface ModelDescription {
+  id: number;
+  modelId: number;
+  descriptionEn?: string;
+  descriptionPl?: string;
+  descriptionCs?: string;
+  descriptionDe?: string;
+  descriptionFr?: string;
+  descriptionEs?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function PublicModelPage() {
   const { t, language } = useLanguage();
   const [, params] = useRoute("/library/model/:publicId");
@@ -43,6 +56,12 @@ export default function PublicModelPage() {
   // Fetch model info
   const { data: modelInfo, isLoading: isLoadingModel, error: modelError } = useQuery<Model>({
     queryKey: [`/api/public/models/${publicId}`],
+    enabled: !!publicId,
+  });
+
+  // Fetch model description
+  const { data: modelDescription, isLoading: isLoadingDescription } = useQuery<ModelDescription>({
+    queryKey: [`/api/public/models/${publicId}/description`],
     enabled: !!publicId,
   });
 
@@ -91,6 +110,14 @@ export default function PublicModelPage() {
 
   const handleImageClick = (image: GalleryImage) => {
     setSelectedImage(image);
+  };
+
+  // Get description in current language
+  const getModelDescription = () => {
+    if (!modelDescription) return null;
+    
+    const languageKey = `description${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof typeof modelDescription;
+    return modelDescription[languageKey] || modelDescription.descriptionEn || null;
   };
 
   const getImageUrl = (image: GalleryImage) => {
@@ -235,6 +262,22 @@ Reason for report:
               />
             </CardContent>
           </Card>
+
+          {/* Model Description */}
+          {getModelDescription() && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t("common.description") || "Description"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-muted-foreground whitespace-pre-wrap">
+                    {getModelDescription()}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Model Information */}
