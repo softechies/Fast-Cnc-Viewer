@@ -3811,6 +3811,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Model description endpoints with automatic translation
+  app.get("/api/models/:id/description", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const description = await storage.getModelDescription(modelId);
+      res.json(description || null);
+    } catch (error) {
+      console.error("Error fetching model description:", error);
+      res.status(500).json({ error: "Failed to fetch model description" });
+    }
+  });
+
+  app.post("/api/models/:id/description", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const { description, language } = req.body;
+      
+      if (!description || !language) {
+        return res.status(400).json({ error: "Description and language are required" });
+      }
+
+      // Validate language
+      const supportedLanguages = ['en', 'pl', 'cs', 'de', 'fr', 'es'];
+      if (!supportedLanguages.includes(language)) {
+        return res.status(400).json({ error: "Unsupported language" });
+      }
+
+      try {
+        // Translate description to all supported languages
+        console.log(`Translating description from ${language}: "${description}"`);
+        const translations = await translateDescription(description, language as SupportedLanguage);
+        
+        // Check if description already exists
+        const existingDescription = await storage.getModelDescription(modelId);
+        
+        if (existingDescription) {
+          // Update existing description
+          const updatedDescription = await storage.updateModelDescription(modelId, {
+            ...translations,
+            originalLanguage: language,
+            originalDescription: description,
+          });
+          
+          res.json({ 
+            success: true, 
+            description: updatedDescription,
+            message: "Description updated and translated successfully"
+          });
+        } else {
+          // Create new description
+          const newDescription = await storage.createModelDescription({
+            modelId,
+            ...translations,
+            originalLanguage: language,
+            originalDescription: description,
+          });
+          
+          res.json({ 
+            success: true, 
+            description: newDescription,
+            message: "Description created and translated successfully"
+          });
+        }
+      } catch (translationError) {
+        console.error("Translation error:", translationError);
+        
+        // If translation fails, create/update with only the original language
+        const fallbackDescription = {
+          [`description${language.charAt(0).toUpperCase() + language.slice(1)}`]: description,
+          originalLanguage: language,
+          originalDescription: description,
+        };
+
+        const existingDescription = await storage.getModelDescription(modelId);
+        
+        if (existingDescription) {
+          const updatedDescription = await storage.updateModelDescription(modelId, fallbackDescription);
+          res.json({ 
+            success: true, 
+            description: updatedDescription,
+            message: "Description updated (translation service unavailable)",
+            warning: "Automatic translation failed - only original language saved"
+          });
+        } else {
+          const newDescription = await storage.createModelDescription({
+            modelId,
+            ...fallbackDescription,
+          });
+          res.json({ 
+            success: true, 
+            description: newDescription,
+            message: "Description created (translation service unavailable)",
+            warning: "Automatic translation failed - only original language saved"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error creating/updating model description:", error);
+      res.status(500).json({ error: "Failed to save model description" });
+    }
+  });
+
+  app.delete("/api/models/:id/description", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const deleted = await storage.deleteModelDescription(modelId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Description not found" });
+      }
+
+      res.json({ success: true, message: "Description deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting model description:", error);
+      res.status(500).json({ error: "Failed to delete model description" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

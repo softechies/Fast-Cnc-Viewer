@@ -29,6 +29,7 @@ import { useModelUpload } from "@/lib/hooks";
 import { ModelThumbnail } from "@/components/ModelThumbnail";
 import { ModelGalleryModal } from "@/components/ModelGalleryModal";
 import { ModelCategorization } from "@/components/ModelCategorization";
+import { ModelDescriptionDialog } from "@/components/ModelDescriptionDialog";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -57,6 +58,8 @@ export default function ClientDashboardPage() {
   const [shareLink, setShareLink] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCadUploaderOpen, setIsCadUploaderOpen] = useState(false);
+  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
+  const [selectedModelForDescription, setSelectedModelForDescription] = useState<ClientModel | null>(null);
   
   // Konfiguracja uploadera plików
   const { isUploading, uploadProgress, upload } = useModelUpload({
