@@ -732,12 +732,12 @@ export default function ClientDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">{t('category')}</Label>
-                    <Select value="" onValueChange={() => {}}>
+                    <Select value="none" onValueChange={() => {}}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={t('select_category')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t('no_category')}</SelectItem>
+                        <SelectItem value="none">{t('no_category')}</SelectItem>
                         <SelectItem value="1">CAD Parts</SelectItem>
                         <SelectItem value="2">Mechanical</SelectItem>
                         <SelectItem value="3">Electronics</SelectItem>
