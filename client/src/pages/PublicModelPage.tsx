@@ -116,7 +116,7 @@ export default function PublicModelPage() {
   const getModelDescription = () => {
     if (!modelDescription) return null;
     
-    const languageKey = `description${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof typeof modelDescription;
+    const languageKey = `description${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof ModelDescription;
     return modelDescription[languageKey] || modelDescription.descriptionEn || null;
   };
 
