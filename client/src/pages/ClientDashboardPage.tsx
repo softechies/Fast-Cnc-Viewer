@@ -482,9 +482,10 @@ export default function ClientDashboardPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {models.map((model) => (
-                        <TableRow key={model.id}>
-                          <TableCell className="font-medium">
+                      {models.flatMap((model) => {
+                        const mainRow = (
+                          <TableRow key={model.id}>
+                            <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
                               <ModelThumbnail 
                                 modelId={model.id} 
@@ -698,8 +699,120 @@ export default function ClientDashboardPage() {
                               </Button>
                             </div>
                           </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableRow>
+                        );
+
+                        const expandedRow = expandedModelId === model.id ? (
+                          <TableRow key={`${model.id}-expanded`}>
+                            <TableCell colSpan={7} className="bg-gray-50 p-0">
+                              <div className="p-6 space-y-4 border-t">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium text-lg">{t('model_details')} - {model.filename}</h4>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setExpandedModelId(null)}
+                                  >
+                                    {t('close')}
+                                  </Button>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-3">
+                                    <Label className="text-sm font-medium">{t('category')}</Label>
+                                    <Select 
+                                      value={model.categoryId?.toString() || "none"} 
+                                      onValueChange={(value) => {
+                                        const categoryId = value === "none" ? null : parseInt(value);
+                                        updateCategoryMutation.mutate({ modelId: model.id, categoryId });
+                                      }}
+                                      disabled={updateCategoryMutation.isPending}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder={t('select_category')} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="none">{t('no_category')}</SelectItem>
+                                        {Array.isArray(categories) && categories.map((category: any) => (
+                                          <SelectItem key={category.id} value={category.id.toString()}>
+                                            <div className="flex items-center gap-2">
+                                              <div 
+                                                className="w-3 h-3 rounded-full flex-shrink-0" 
+                                                style={{ backgroundColor: category.color }}
+                                              />
+                                              <span className="truncate">
+                                                {t(category.slug) || category.nameEn}
+                                              </span>
+                                            </div>
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <Label className="text-sm font-medium">{t('model_description')}</Label>
+                                    <div className="space-y-2">
+                                      <Select 
+                                        value={selectedLanguages[model.id] || currentLanguage} 
+                                        onValueChange={(value) => {
+                                          setSelectedLanguages(prev => ({ ...prev, [model.id]: value }));
+                                        }}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder={t('select_language')} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="en">English</SelectItem>
+                                          <SelectItem value="pl">Polski</SelectItem>
+                                          <SelectItem value="cs">Čeština</SelectItem>
+                                          <SelectItem value="de">Deutsch</SelectItem>
+                                          <SelectItem value="fr">Français</SelectItem>
+                                          <SelectItem value="es">Español</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      
+                                      <Textarea
+                                        placeholder={t('enter_model_description_placeholder')}
+                                        value={modelDescriptions[`${model.id}_${selectedLanguages[model.id] || currentLanguage}`] || ""}
+                                        onChange={(e) => {
+                                          const key = `${model.id}_${selectedLanguages[model.id] || currentLanguage}`;
+                                          setModelDescriptions(prev => ({ ...prev, [key]: e.target.value }));
+                                        }}
+                                        rows={3}
+                                        className="w-full"
+                                      />
+                                      
+                                      <Button 
+                                        size="sm"
+                                        onClick={() => {
+                                          const language = selectedLanguages[model.id] || currentLanguage;
+                                          const description = modelDescriptions[`${model.id}_${language}`];
+                                          if (description?.trim()) {
+                                            console.log(`Saving description for model ${model.id} in ${language}: ${description}`);
+                                            toast({
+                                              title: t('success'),
+                                              description: t('description_saved_successfully'),
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        {t('save_description')}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <p className="text-sm text-muted-foreground">
+                                  {t('auto_translation_note')}
+                                </p>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ) : null;
+
+                        return [mainRow, expandedRow].filter(Boolean);
+                      })}
                   </TableBody>
                 </Table>
                 </div>
