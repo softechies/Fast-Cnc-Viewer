@@ -613,6 +613,20 @@ export default function ClientDashboardPage() {
                                 <span className="sr-only">{t('view_model')}</span>
                               </Button>
                               
+                              {/* Przycisk dodawania/edycji opisu modelu */}
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedModelForDescription(model);
+                                  setIsDescriptionDialogOpen(true);
+                                }}
+                                title={t('add_description')}
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">{t('add_description')}</span>
+                              </Button>
+                              
                               {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
                               {model.shareEnabled && model.shareId ? (
                                 <Button
@@ -832,6 +846,16 @@ export default function ClientDashboardPage() {
         onClose={() => setIsCadUploaderOpen(false)}
         onSuccess={() => refetch()}
       />
+
+      {/* Model Description Dialog */}
+      {selectedModelForDescription && (
+        <ModelDescriptionDialog
+          open={isDescriptionDialogOpen}
+          onOpenChange={setIsDescriptionDialogOpen}
+          modelId={selectedModelForDescription.id}
+          modelName={selectedModelForDescription.filename}
+        />
+      )}
     </div>
   );
 }
