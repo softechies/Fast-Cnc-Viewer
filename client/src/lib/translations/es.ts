@@ -79,7 +79,7 @@ const translations = {
   model_info: "Información del modelo",
   model_details: "Detalles del modelo",
   model_properties: "Propiedades del modelo",
-  dimensions: "Dimensiones",
+
   material: "Material",
   created_at: "Creado el",
   updated_at: "Actualizado el",
@@ -278,7 +278,7 @@ const translations = {
   no_public_models_yet: "Aún no hay modelos públicos disponibles",
   cad_library_view: "Ver",
   cad_library_download: "Descargar",
-  cad_library_dimensions: "Dimensiones",
+
   failed_to_load_library: "Error al cargar la biblioteca",
   
   // Categories
@@ -376,11 +376,6 @@ const translations = {
   email_required: "Correo electrónico requerido",
   "header.error": "Error en cabecera",
   "common.gallery": "Galería",
-  "dimensions.title": "Dimensiones",
-  "dimensions.width": "Ancho",
-  "dimensions.height": "Alto", 
-  "dimensions.depth": "Profundidad",
-
   // Dimensions object structure
   dimensions: {
     title: "Dimensiones",
@@ -436,7 +431,44 @@ const translations = {
     prototyping: "Prototipado",
     prototyping_details: "Ejecución rápida de prototipos y pequeñas series de producción. Del diseño al elemento terminado en pocos días.",
     contact_us: "Contáctanos"
-  }
+  },
+
+  // Client dashboard translations
+  upload_thumbnail: "Subir miniatura",
+  shared_status: "Estado compartido",
+  last_accessed: "Último acceso",
+  add_to_cad_library: "Agregar a biblioteca CAD",
+  view_share_link: "Ver enlace compartido",
+  change_password: "Cambiar contraseña",
+  disable_sharing: "Deshabilitar compartir",
+  enable_sharing: "Habilitar compartir",
+  new_password: "Nueva contraseña",
+  leave_empty_to_remove: "Dejar vacío para eliminar",
+  delete_model: "Eliminar modelo",
+  delete_model_confirmation: "¿Estás seguro de que deseas eliminar este modelo?",
+  shareLink: "Enlace compartido",
+  open_in_browser: "Abrir en navegador",
+  add_gallery: "Agregar galería",
+  generate_thumbnail: "Generar miniatura",
+  back_to_home: "Volver al inicio",
+  welcome: "Bienvenido",
+  shared_models_description: "Gestiona tus modelos compartidos",
+
+  // Gallery management
+  gallery_management: "Gestión de galería",
+  manage_model_gallery: "Gestionar galería del modelo",
+  current_thumbnail: "Miniatura actual",
+  no_thumbnail_set: "Sin miniatura establecida",
+  upload_new_images: "Subir nuevas imágenes",
+  supported_formats_jpg_png_max_5mb: "Formatos soportados: JPG, PNG (máx. 5MB)",
+  gallery_images: "Imágenes de galería",
+  no_gallery_images: "Sin imágenes en galería",
+  click_set_thumbnail_note: "Haz clic en una imagen para establecerla como miniatura",
+  close_gallery: "Cerrar galería",
+
+  // Additional missing translations
+  set_as_thumbnail: "Establecer como miniatura",
+  thumbnail_active: "Miniatura activa"
 };
 
 export default translations;
