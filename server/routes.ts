@@ -22,6 +22,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import { generateThumbnail, getThumbnailPath } from "./thumbnail-generator";
+import { translateDescription, detectLanguage as detectTextLanguage, mapToSupportedLanguage, type SupportedLanguage } from "./google-translate";
 
 // Rozszerzenie typu Session aby zawierał viewTokens
 declare module 'express-session' {

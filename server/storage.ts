@@ -3,6 +3,7 @@ import {
   models, type Model, type InsertModel,
   modelViews, type ModelView, type InsertModelView,
   modelGallery, type ModelGalleryImage, type InsertModelGalleryImage,
+  modelDescriptions, type ModelDescription, type InsertModelDescription,
   categories, type Category, type InsertCategory,
   tags, type Tag, type InsertTag,
   modelTags, type ModelTag,
@@ -64,6 +65,12 @@ export interface IStorage {
   removeModelTags(modelId: number, tagIds: number[]): Promise<void>;
   getModelTags(modelId: number): Promise<Tag[]>;
   updateModelThumbnail(modelId: number, thumbnailPath: string): Promise<void>;
+  
+  // Model description operations
+  getModelDescription(modelId: number): Promise<ModelDescription | undefined>;
+  createModelDescription(description: InsertModelDescription): Promise<ModelDescription>;
+  updateModelDescription(modelId: number, updates: Partial<ModelDescription>): Promise<ModelDescription | undefined>;
+  deleteModelDescription(modelId: number): Promise<boolean>;
 }
 
 // In-memory storage implementation
@@ -1002,6 +1009,33 @@ export class PostgresStorage implements IStorage {
       .where(eq(modelTags.modelId, modelId));
     
     return result;
+  }
+
+  // Model description operations
+  async getModelDescription(modelId: number): Promise<ModelDescription | undefined> {
+    const result = await db.select().from(modelDescriptions).where(eq(modelDescriptions.modelId, modelId)).limit(1);
+    return result[0] || undefined;
+  }
+
+  async createModelDescription(description: InsertModelDescription): Promise<ModelDescription> {
+    const result = await db.insert(modelDescriptions).values(description).returning();
+    return result[0];
+  }
+
+  async updateModelDescription(modelId: number, updates: Partial<ModelDescription>): Promise<ModelDescription | undefined> {
+    const result = await db.update(modelDescriptions)
+      .set({ 
+        ...updates, 
+        updatedAt: new Date() 
+      })
+      .where(eq(modelDescriptions.modelId, modelId))
+      .returning();
+    return result[0] || undefined;
+  }
+
+  async deleteModelDescription(modelId: number): Promise<boolean> {
+    const result = await db.delete(modelDescriptions).where(eq(modelDescriptions.modelId, modelId));
+    return (result.rowCount || 0) > 0;
   }
 }
 
