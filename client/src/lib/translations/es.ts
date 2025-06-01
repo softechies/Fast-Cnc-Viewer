@@ -407,6 +407,27 @@ const translations = {
     filename: "Nombre del archivo",
     format: "Formato",
     filesize: "Tamaño del archivo"
+  },
+
+  // Services section translations
+  services: {
+    title: "Servicios CNC",
+    laser_cutting: "Corte láser",
+    laser_description: "Tu proyecto 2D es ideal para realizar mediante corte láser. Ofrecemos corte láser preciso de chapas metálicas, plásticos y otros materiales.",
+    get_quote: "Solicitar presupuesto",
+    cnc_machining: "Mecanizado CNC",
+    cnc_description: "Tu modelo 3D está listo para producción. Ofrecemos servicios profesionales de torneado y fresado CNC con la máxima precisión y calidad.",
+    manufacturing: "Servicios de manufactura",
+    manufacturing_description: "Realizaremos tu proyecto de producción de A a Z. Contáctanos para discutir los detalles y recibir un presupuesto personalizado.",
+    our_services: "Nuestros servicios de producción",
+    laser_details: "Corte preciso de chapa metálica, plásticos y otros materiales con precisión de hasta 0,05 mm. Ideal para piezas 2D.",
+    cnc_milling: "Fresado CNC",
+    milling_details: "Mecanizado por arranque de virutas de materiales como aluminio, acero, plásticos. Ideal para formas complejas 3D.",
+    cnc_turning: "Torneado CNC",
+    turning_details: "Mecanizado preciso de piezas rotativas de metal. Ideal para ejes, casquillos, piezas de máquinas con precisión de hasta 0,01 mm.",
+    prototyping: "Prototipado",
+    prototyping_details: "Ejecución rápida de prototipos y pequeñas series de producción. Del diseño al elemento terminado en pocos días.",
+    contact_us: "Contáctanos"
   }
 };
 

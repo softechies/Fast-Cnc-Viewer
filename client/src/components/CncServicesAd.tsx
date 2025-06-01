@@ -16,7 +16,7 @@ export default function CncServicesAd({ modelType, modelInfo }: CncServicesAdPro
     // Pobranie ID modelu i otworzenie formularza kontaktowego z tym ID
     const modelId = modelInfo?.id || '';
     // Sprawdzamy czy istnieje wersja językowa formularza, jeśli nie, używamy domyślnej
-    if (['en', 'pl', 'de', 'cs', 'fr'].includes(language)) {
+    if (['en', 'pl', 'de', 'cs', 'fr', 'es'].includes(language)) {
       window.open(`/quote/${language}.html?modelId=${modelId}`, '_blank');
     } else {
       window.open(`/quote/?modelId=${modelId}`, '_blank');
