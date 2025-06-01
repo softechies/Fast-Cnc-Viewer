@@ -478,6 +478,7 @@ const translations = {
   upload_thumbnail_description: "Nahrajte vlastní obrázek náhledu pro '{modelName}'. Obrázek bude automaticky oříznut na čtvercový formát.",
   select_image_file: "Vybrat soubor obrázku",
   supported_formats_jpg_png_max_5mb: "Podporované formáty: JPG, PNG. Maximální velikost: 5MB",
+  max_6_photos_at_once: "Maximálně 6 fotografií najednou.",
   preview: "Náhled",
   original: "Originál",
   cropped_to_square: "Oříznut na čtverec",

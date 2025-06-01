@@ -479,6 +479,7 @@ const translations = {
   upload_thumbnail_description: "Laden Sie ein benutzerdefiniertes Vorschaubild für '{modelName}' hoch. Das Bild wird automatisch zu einem quadratischen Format zugeschnitten.",
   select_image_file: "Bilddatei auswählen",
   supported_formats_jpg_png_max_5mb: "Unterstützte Formate: JPG, PNG. Maximale Größe: 5MB",
+  max_6_photos_at_once: "Maximal 6 Fotos auf einmal.",
   preview: "Vorschau",
   original: "Original",
   cropped_to_square: "Zu Quadrat zugeschnitten",

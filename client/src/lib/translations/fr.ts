@@ -478,6 +478,7 @@ const translations = {
   upload_thumbnail_description: "Téléchargez une image miniature personnalisée pour '{modelName}'. L'image sera automatiquement recadrée au format carré.",
   select_image_file: "Sélectionner un fichier image",
   supported_formats_jpg_png_max_5mb: "Formats supportés: JPG, PNG. Taille maximale: 5MB",
+  max_6_photos_at_once: "Maximum 6 photos à la fois.",
   preview: "Aperçu",
   original: "Original",
   cropped_to_square: "Recadré en carré",
