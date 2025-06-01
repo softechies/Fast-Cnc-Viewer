@@ -395,7 +395,19 @@ const translations = {
   dimensions_title: "Dimensiones",
   dimensions_width: "Ancho",
   dimensions_height: "Alto",
-  dimensions_depth: "Profundidad"
+  dimensions_depth: "Profundidad",
+
+  // Common elements
+  common: {
+    backToLibrary: "Volver a la biblioteca",
+    download: "Descargar",
+    reportAbuse: "Reportar abuso",
+    modelInfo: "Información del modelo",
+    gallery: "Galería",
+    filename: "Nombre del archivo",
+    format: "Formato",
+    filesize: "Tamaño del archivo"
+  }
 };
 
 export default translations;
