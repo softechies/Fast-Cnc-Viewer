@@ -125,7 +125,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (!params) return translation;
     
     return Object.entries(params).reduce((result, [key, value]) => {
-      return result.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+      // Support both {key} and {{key}} formats
+      return result
+        .replace(new RegExp(`{${key}}`, 'g'), String(value))
+        .replace(new RegExp(`{{${key}}}`, 'g'), String(value));
     }, translation);
   };
 
