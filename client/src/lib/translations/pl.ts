@@ -339,7 +339,10 @@ const translations = {
     format: "Format",
     filesize: "Rozmiar pliku",
     gallery: "Galeria",
-    goBack: "Wróć"
+    goBack: "Wróć",
+    description: "Opis",
+    category: "Kategoria",
+    tags: "Tagi"
   },
 
   // Zgłaszanie nadużyć
