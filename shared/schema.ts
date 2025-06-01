@@ -124,8 +124,30 @@ export const models = pgTable("models", {
   isPublic: boolean("is_public").default(false), // Czy model jest dostępny w publicznej bibliotece CAD
 });
 
+// Define model descriptions table for multilingual descriptions
+export const modelDescriptions = pgTable("model_descriptions", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").references(() => models.id, { onDelete: "cascade" }).notNull(),
+  descriptionEn: text("description_en"),
+  descriptionPl: text("description_pl"),
+  descriptionCs: text("description_cs"),
+  descriptionDe: text("description_de"),
+  descriptionFr: text("description_fr"),
+  descriptionEs: text("description_es"),
+  originalLanguage: text("original_language").notNull(), // Język oryginalnego opisu
+  originalDescription: text("original_description").notNull(), // Oryginalny opis użytkownika
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertModelSchema = createInsertSchema(models).omit({
   id: true
+});
+
+export const insertModelDescriptionSchema = createInsertSchema(modelDescriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Define the ModelTree type for the frontend - usztywnione aby uniknąć problemów z rekurencją
@@ -182,9 +204,23 @@ export const modelGalleryRelations = relations(modelGallery, ({ one }) => ({
   }),
 }));
 
+// Relations for model descriptions
+export const modelDescriptionsRelations = relations(modelDescriptions, ({ one }) => ({
+  model: one(models, {
+    fields: [modelDescriptions.modelId],
+    references: [models.id],
+  }),
+}));
+
+
+
 // Typy dla galerii
 export type ModelGalleryImage = typeof modelGallery.$inferSelect;
 export type InsertModelGalleryImage = typeof modelGallery.$inferInsert;
+
+// Typy dla opisów modeli
+export type ModelDescription = typeof modelDescriptions.$inferSelect;
+export type InsertModelDescription = typeof modelDescriptions.$inferInsert;
 
 // Schemat Zod dla galerii
 export const insertModelGallerySchema = createInsertSchema(modelGallery);
@@ -380,6 +416,10 @@ export const modelsRelations = relations(models, ({ one, many }) => ({
   category: one(categories, {
     fields: [models.categoryId],
     references: [categories.id],
+  }),
+  description: one(modelDescriptions, {
+    fields: [models.id],
+    references: [modelDescriptions.modelId],
   }),
   modelTags: many(modelTags),
   gallery: many(modelGallery),
