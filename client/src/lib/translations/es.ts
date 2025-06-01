@@ -378,8 +378,16 @@ const translations = {
   "common.gallery": "Galería",
   "dimensions.title": "Dimensiones",
   "dimensions.width": "Ancho",
-  "dimensions.height": "Alto",
+  "dimensions.height": "Alto", 
   "dimensions.depth": "Profundidad",
+
+  // Dimensions object structure
+  dimensions: {
+    title: "Dimensiones",
+    width: "Ancho",
+    height: "Alto",
+    depth: "Profundidad"
+  },
   mode: "Modo",
 
   // Alternative keys without dots for nested structure
