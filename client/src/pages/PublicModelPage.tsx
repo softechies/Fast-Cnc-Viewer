@@ -263,18 +263,31 @@ Reason for report:
             </CardContent>
           </Card>
 
-          {/* Model Description */}
-          {getModelDescription() && (
+          {/* Model Description and Category */}
+          {(getModelDescription() || modelInfo.categoryId) && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>{t("common.description") || "Description"}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {getModelDescription()}
-                  </p>
-                </div>
+              <CardContent className="space-y-4">
+                {modelInfo.categoryId && (
+                  <div>
+                    <span className="text-sm font-medium">{t("common.category") || "Category"}:</span>
+                    <p className="text-sm text-muted-foreground">
+                      {t(modelInfo.categoryName || 'unknown')}
+                    </p>
+                  </div>
+                )}
+                
+                {getModelDescription() && (
+                  <div>
+                    <div className="prose prose-sm max-w-none">
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {getModelDescription()}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
