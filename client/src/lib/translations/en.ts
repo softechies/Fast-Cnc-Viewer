@@ -507,6 +507,12 @@ const translations = {
   select_image_file: "Select Image File",
   supported_formats_jpg_png_max_5mb: "Supported formats: JPG, PNG. Maximum size: 5MB",
   max_6_photos_at_once: "Maximum 6 photos at once.",
+
+  // Client dashboard library section
+  your_cad_library: "Your CAD Library",
+  models_uploaded_to_account: "Models you have uploaded to your account",
+  models_count_in_library: "You have {count} models in your library",
+  no_models_in_library: "You have no models in your library yet",
   preview: "Preview",
   original: "Original",
   cropped_to_square: "Cropped to Square",

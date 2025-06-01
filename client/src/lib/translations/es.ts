@@ -459,6 +459,12 @@ const translations = {
   upload_new_images: "Subir nuevas imágenes",
   supported_formats_jpg_png_max_5mb: "Formatos soportados: JPG, PNG (máx. 5MB)",
   max_6_photos_at_once: "Máximo 6 fotos a la vez.",
+
+  // Client dashboard library section
+  your_cad_library: "Tu Biblioteca CAD",
+  models_uploaded_to_account: "Modelos subidos a tu cuenta",
+  models_count_in_library: "Tienes {count} modelos en tu biblioteca",
+  no_models_in_library: "Aún no tienes modelos en tu biblioteca",
   gallery_images: "Imágenes de galería",
   no_gallery_images: "Sin imágenes en galería",
   click_set_thumbnail_note: "Haz clic en una imagen para establecerla como miniatura",

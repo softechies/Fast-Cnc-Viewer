@@ -423,8 +423,8 @@ export default function ClientDashboardPage() {
           <Card className="mb-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="space-y-1">
-                <CardTitle>Your CAD Library</CardTitle>
-                <CardDescription>Models you have uploaded to your account</CardDescription>
+                <CardTitle>{t('your_cad_library')}</CardTitle>
+                <CardDescription>{t('models_uploaded_to_account')}</CardDescription>
               </div>
               <div className="flex flex-row space-x-2">
                 <Button onClick={() => setIsCadUploaderOpen(true)} variant="outline">
@@ -446,11 +446,11 @@ export default function ClientDashboardPage() {
             <CardContent>
               {models && models.length > 0 ? (
                 <div className="text-muted-foreground">
-                  You have {models.length} models in your library
+                  {t('models_count_in_library', { count: models.length })}
                 </div>
               ) : (
                 <div className="text-muted-foreground">
-                  You have no models in your library yet
+                  {t('no_models_in_library')}
                 </div>
               )}
             </CardContent>

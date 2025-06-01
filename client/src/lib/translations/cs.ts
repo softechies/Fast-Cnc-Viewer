@@ -479,6 +479,12 @@ const translations = {
   select_image_file: "Vybrat soubor obrázku",
   supported_formats_jpg_png_max_5mb: "Podporované formáty: JPG, PNG. Maximální velikost: 5MB",
   max_6_photos_at_once: "Maximálně 6 fotografií najednou.",
+
+  // Client dashboard library section
+  your_cad_library: "Vaše CAD knihovna",
+  models_uploaded_to_account: "Modely nahrané na váš účet",
+  models_count_in_library: "Máte {count} modelů ve své knihovně",
+  no_models_in_library: "Ve své knihovně ještě nemáte žádné modely",
   preview: "Náhled",
   original: "Originál",
   cropped_to_square: "Oříznut na čtverec",
