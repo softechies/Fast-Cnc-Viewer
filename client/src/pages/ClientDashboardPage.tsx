@@ -785,15 +785,37 @@ export default function ClientDashboardPage() {
                                       
                                       <Button 
                                         size="sm"
-                                        onClick={() => {
+                                        onClick={async () => {
                                           const language = selectedLanguages[model.id] || currentLanguage;
                                           const description = modelDescriptions[`${model.id}_${language}`];
                                           if (description?.trim()) {
-                                            console.log(`Saving description for model ${model.id} in ${language}: ${description}`);
-                                            toast({
-                                              title: t('success'),
-                                              description: t('description_saved_successfully'),
-                                            });
+                                            try {
+                                              const response = await fetch(`/api/models/${model.id}/description`, {
+                                                method: 'POST',
+                                                headers: {
+                                                  'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({
+                                                  description: description.trim(),
+                                                  language: language
+                                                }),
+                                              });
+                                              
+                                              if (response.ok) {
+                                                toast({
+                                                  title: t('success'),
+                                                  description: t('description_saved_successfully'),
+                                                });
+                                              } else {
+                                                throw new Error('Failed to save description');
+                                              }
+                                            } catch (error) {
+                                              toast({
+                                                title: t('error'),
+                                                description: t('description_save_failed'),
+                                                variant: "destructive",
+                                              });
+                                            }
                                           }
                                         }}
                                       >
