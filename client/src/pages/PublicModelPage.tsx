@@ -274,7 +274,7 @@ Reason for report:
                   <div>
                     <span className="text-sm font-medium">{t("common.category") || "Category"}:</span>
                     <p className="text-sm text-muted-foreground">
-                      {t(modelInfo.categoryName || 'unknown')}
+                      {modelInfo.categoryId}
                     </p>
                   </div>
                 )}
