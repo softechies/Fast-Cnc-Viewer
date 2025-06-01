@@ -46,7 +46,7 @@ interface ClientModel {
 }
 
 export default function ClientDashboardPage() {
-  const { t } = useLanguage();
+  const { t, language: currentLanguage } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -58,8 +58,9 @@ export default function ClientDashboardPage() {
   const [shareLink, setShareLink] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCadUploaderOpen, setIsCadUploaderOpen] = useState(false);
-  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
-  const [selectedModelForDescription, setSelectedModelForDescription] = useState<ClientModel | null>(null);
+  const [expandedModelId, setExpandedModelId] = useState<number | null>(null);
+  const [modelDescriptions, setModelDescriptions] = useState<Record<string, string>>({});
+  const [selectedLanguages, setSelectedLanguages] = useState<Record<number, string>>({});
   
   // Konfiguracja uploadera plików
   const { isUploading, uploadProgress, upload } = useModelUpload({
@@ -613,18 +614,20 @@ export default function ClientDashboardPage() {
                                 <span className="sr-only">{t('view_model')}</span>
                               </Button>
                               
-                              {/* Przycisk dodawania/edycji opisu modelu */}
+                              {/* Przycisk rozwijania szczegółów modelu */}
                               <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={() => {
-                                  setSelectedModelForDescription(model);
-                                  setIsDescriptionDialogOpen(true);
+                                  setExpandedModelId(expandedModelId === model.id ? null : model.id);
+                                  if (!selectedLanguages[model.id]) {
+                                    setSelectedLanguages(prev => ({ ...prev, [model.id]: currentLanguage }));
+                                  }
                                 }}
-                                title={t('add_description')}
+                                title={t('expand_details')}
                               >
                                 <Edit className="h-4 w-4" />
-                                <span className="sr-only">{t('add_description')}</span>
+                                <span className="sr-only">{t('expand_details')}</span>
                               </Button>
                               
                               {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
@@ -847,15 +850,7 @@ export default function ClientDashboardPage() {
         onSuccess={() => refetch()}
       />
 
-      {/* Model Description Dialog */}
-      {selectedModelForDescription && (
-        <ModelDescriptionDialog
-          open={isDescriptionDialogOpen}
-          onOpenChange={setIsDescriptionDialogOpen}
-          modelId={selectedModelForDescription.id}
-          modelName={selectedModelForDescription.filename}
-        />
-      )}
+
     </div>
   );
 }
