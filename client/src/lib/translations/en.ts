@@ -506,6 +506,7 @@ const translations = {
   upload_thumbnail_description: "Upload a custom thumbnail image for '{modelName}'. The image will be automatically cropped to a square format.",
   select_image_file: "Select Image File",
   supported_formats_jpg_png_max_5mb: "Supported formats: JPG, PNG. Maximum size: 5MB",
+  max_6_photos_at_once: "Maximum 6 photos at once.",
   preview: "Preview",
   original: "Original",
   cropped_to_square: "Cropped to Square",

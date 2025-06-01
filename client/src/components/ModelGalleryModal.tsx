@@ -357,7 +357,7 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
                 className="mt-2"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                {t('supported_formats_jpg_png_max_5mb')} Maksymalnie 6 zdjęć na raz.
+                {t('supported_formats_jpg_png_max_5mb')} {t('max_6_photos_at_once')}
               </p>
               
               {/* Progress Bar */}

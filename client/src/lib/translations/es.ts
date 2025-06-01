@@ -468,7 +468,12 @@ const translations = {
 
   // Additional missing translations
   set_as_thumbnail: "Establecer como miniatura",
-  thumbnail_active: "Miniatura activa"
+  thumbnail_active: "Miniatura activa",
+
+  // Final missing button translations
+  "button.upload": "Subir",
+  "button.cancel": "Cancelar",
+  "message.no.model": "No hay modelo disponible"
 };
 
 export default translations;

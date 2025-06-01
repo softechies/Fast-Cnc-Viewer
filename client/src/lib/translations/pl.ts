@@ -436,6 +436,7 @@ const translations = {
   upload_thumbnail_description: "Prześlij własną miniaturkę dla '{modelName}'. Obraz zostanie automatycznie przycięty do kwadratu.",
   select_image_file: "Wybierz plik obrazu",
   supported_formats_jpg_png_max_5mb: "Obsługiwane formaty: JPG, PNG. Maksymalny rozmiar: 5MB",
+  max_6_photos_at_once: "Maksymalnie 6 zdjęć na raz.",
   preview: "Podgląd",
   original: "Oryginał",
   cropped_to_square: "Przycięty do kwadratu",
