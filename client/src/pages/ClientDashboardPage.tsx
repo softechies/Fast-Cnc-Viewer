@@ -704,6 +704,7 @@ export default function ClientDashboardPage() {
                 </Table>
                 </div>
 
+                {/* Panel rozszerzalny */}
                 {expandedModelId && (
                   <div className="mt-4 bg-gray-50 border rounded-lg p-6">
                     <div className="space-y-4">
@@ -721,12 +722,7 @@ export default function ClientDashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <Label className="text-sm font-medium">{t('category')}</Label>
-                          <Select 
-                            value="" 
-                            onValueChange={(value) => {
-                              console.log(`Category changed: ${value}`);
-                            }}
-                          >
+                          <Select value="" onValueChange={() => {}}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder={t('select_category')} />
                             </SelectTrigger>
@@ -734,7 +730,6 @@ export default function ClientDashboardPage() {
                               <SelectItem value="">{t('no_category')}</SelectItem>
                               <SelectItem value="1">CAD Parts</SelectItem>
                               <SelectItem value="2">Mechanical</SelectItem>
-                              <SelectItem value="3">Electronics</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -742,44 +737,29 @@ export default function ClientDashboardPage() {
                         <div className="space-y-3">
                           <Label className="text-sm font-medium">{t('model_description')}</Label>
                           <div className="space-y-2">
-                            <Select 
-                              value={currentLanguage} 
-                              onValueChange={(value) => {
-                                console.log(`Language changed: ${value}`);
-                              }}
-                            >
+                            <Select value={currentLanguage} onValueChange={() => {}}>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder={t('select_language')} />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="en">English</SelectItem>
                                 <SelectItem value="pl">Polski</SelectItem>
-                                <SelectItem value="cs">Čeština</SelectItem>
-                                <SelectItem value="de">Deutsch</SelectItem>
-                                <SelectItem value="fr">Français</SelectItem>
-                                <SelectItem value="es">Español</SelectItem>
                               </SelectContent>
                             </Select>
                             
                             <Textarea
                               placeholder={t('enter_model_description_placeholder')}
                               value=""
-                              onChange={(e) => {
-                                console.log(`Description changed: ${e.target.value}`);
-                              }}
+                              onChange={() => {}}
                               rows={3}
-                              className="w-full"
                             />
                             
-                            <Button 
-                              size="sm"
-                              onClick={() => {
-                                toast({
-                                  title: t('success'),
-                                  description: t('description_saved_successfully'),
-                                });
-                              }}
-                            >
+                            <Button size="sm" onClick={() => {
+                              toast({
+                                title: t('success'),
+                                description: t('description_saved_successfully'),
+                              });
+                            }}>
                               {t('save_description')}
                             </Button>
                           </div>
