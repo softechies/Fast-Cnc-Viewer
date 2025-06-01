@@ -703,75 +703,6 @@ export default function ClientDashboardPage() {
                   </TableBody>
                 </Table>
                 </div>
-
-                {/* Panel rozszerzalny */}
-                {expandedModelId && (
-                  <div className="mt-4 bg-gray-50 border rounded-lg p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-lg">{t('model_details')}</h4>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setExpandedModelId(null)}
-                        >
-                          {t('close')}
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">{t('category')}</Label>
-                          <Select value="" onValueChange={() => {}}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder={t('select_category')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="">{t('no_category')}</SelectItem>
-                              <SelectItem value="1">CAD Parts</SelectItem>
-                              <SelectItem value="2">Mechanical</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">{t('model_description')}</Label>
-                          <div className="space-y-2">
-                            <Select value={currentLanguage} onValueChange={() => {}}>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder={t('select_language')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="en">English</SelectItem>
-                                <SelectItem value="pl">Polski</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            
-                            <Textarea
-                              placeholder={t('enter_model_description_placeholder')}
-                              value=""
-                              onChange={() => {}}
-                              rows={3}
-                            />
-                            
-                            <Button size="sm" onClick={() => {
-                              toast({
-                                title: t('success'),
-                                description: t('description_saved_successfully'),
-                              });
-                            }}>
-                              {t('save_description')}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground">
-                        {t('auto_translation_note')}
-                      </p>
-                    </div>
-                  </div>
-                )}
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -781,6 +712,82 @@ export default function ClientDashboardPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Rozszerzalny panel szczegółów modelu */}
+          {expandedModelId && (
+            <Card className="mt-4">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{t('model_details')}</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setExpandedModelId(null)}
+                  >
+                    {t('close')}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">{t('category')}</Label>
+                    <Select value="" onValueChange={() => {}}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t('select_category')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t('no_category')}</SelectItem>
+                        <SelectItem value="1">CAD Parts</SelectItem>
+                        <SelectItem value="2">Mechanical</SelectItem>
+                        <SelectItem value="3">Electronics</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">{t('model_description')}</Label>
+                    <div className="space-y-2">
+                      <Select value={currentLanguage} onValueChange={() => {}}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t('select_language')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="pl">Polski</SelectItem>
+                          <SelectItem value="cs">Čeština</SelectItem>
+                          <SelectItem value="de">Deutsch</SelectItem>
+                          <SelectItem value="fr">Français</SelectItem>
+                          <SelectItem value="es">Español</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Textarea
+                        placeholder={t('enter_model_description_placeholder')}
+                        value=""
+                        onChange={() => {}}
+                        rows={3}
+                        className="w-full"
+                      />
+                      
+                      <Button size="sm" onClick={() => {
+                        toast({
+                          title: t('success'),
+                          description: t('description_saved_successfully'),
+                        });
+                      }}>
+                        {t('save_description')}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mt-4">
+                  {t('auto_translation_note')}
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       
