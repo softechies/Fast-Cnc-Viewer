@@ -179,6 +179,12 @@ const translations = {
   file_converter: "Conversor de archivos",
   batch_processing: "Procesamiento por lotes",
   
+  // Library section
+  library: {
+    title: "Biblioteca CAD",
+    description: "Explora y gestiona tu colección de modelos CAD"
+  },
+  
   // Company/brand specific
   welcome_message: "Bienvenido al Visor CAD",
   app_description: "Visualiza y gestiona tus archivos CAD en línea",
