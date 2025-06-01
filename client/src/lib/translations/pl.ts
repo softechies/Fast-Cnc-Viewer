@@ -464,7 +464,6 @@ const translations = {
   add_description: "Dodaj opis",
   expand_details: "Rozwiń szczegóły",
   model_details: "Szczegóły modelu",
-  close: "Zamknij",
   no_category: "Brak kategorii",
   select_category: "Wybierz kategorię",
   preview: "Podgląd",
@@ -512,8 +511,7 @@ const translations = {
   
   // Categories
   category: "Kategoria",
-  select_category: "Wybierz kategorię",
-  no_category: "Bez kategorii",
+
   art: "Sztuka",
   "home-garden": "Dom i Ogród",
   home_garden: "Dom i Ogród",
