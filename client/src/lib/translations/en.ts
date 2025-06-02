@@ -436,7 +436,10 @@ const translations = {
     format: "Format",
     filesize: "File Size",
     gallery: "Gallery",
-    goBack: "Go Back"
+    goBack: "Go Back",
+    description: "Description",
+    category: "Category",
+    tags: "Tags"
   },
 
   // Abuse reporting translations
