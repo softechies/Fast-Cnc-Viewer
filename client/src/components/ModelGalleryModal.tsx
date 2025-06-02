@@ -176,32 +176,46 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
   // Generate thumbnail mutation
   const generateThumbnailMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/models/${modelId}/generate-thumbnail`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate thumbnail');
+      try {
+        const response = await apiRequest('POST', `/api/models/${modelId}/generate-thumbnail`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+          throw new Error(errorData.message || 'Failed to generate thumbnail');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Thumbnail generation error:', error);
+        throw error;
       }
-      return await response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('thumbnail_generated_successfully'),
-        variant: "default",
-      });
-      // Force thumbnail re-render by updating key
-      setThumbnailKey(prev => prev + 1);
-      // Dispatch custom event to notify ModelThumbnail components
-      window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
-      // Invalidate cache to refresh thumbnails
-      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
-      if (onThumbnailUpdate) {
-        onThumbnailUpdate();
+    onSuccess: async () => {
+      try {
+        toast({
+          title: t('success'),
+          description: t('thumbnail_generated_successfully'),
+          variant: "default",
+        });
+        
+        // Force thumbnail re-render by updating key
+        setThumbnailKey(prev => prev + 1);
+        
+        // Dispatch custom event to notify ModelThumbnail components
+        window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
+        
+        // Invalidate cache to refresh thumbnails sequentially to avoid race conditions
+        await queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+        
+        if (onThumbnailUpdate) {
+          onThumbnailUpdate();
+        }
+      } catch (updateError) {
+        console.error('Error updating UI after thumbnail generation:', updateError);
       }
     },
     onError: (error: any) => {
+      console.error('Thumbnail generation mutation error:', error);
       toast({
         title: t('error'),
         description: error.message || t('thumbnail_generation_failed'),
