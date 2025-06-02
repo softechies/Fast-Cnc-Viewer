@@ -61,6 +61,7 @@ export default function ClientDashboardPage() {
   const [isCadUploaderOpen, setIsCadUploaderOpen] = useState(false);
   const [expandedModelId, setExpandedModelId] = useState<number | null>(null);
   const [modelDescriptions, setModelDescriptions] = useState<Record<string, string>>({});
+  const [modelTags, setModelTags] = useState<Record<string, string>>({});
   const [selectedLanguages, setSelectedLanguages] = useState<Record<number, string>>({});
   
   // Konfiguracja uploadera plików
@@ -749,6 +750,86 @@ export default function ClientDashboardPage() {
                                       </SelectContent>
                                     </Select>
                                   </div>
+
+                                  <div className="space-y-3">
+                                    <Label className="text-sm font-medium">{t('common.tags')}</Label>
+                                    <div className="space-y-2">
+                                      <Select 
+                                        value={selectedLanguages[model.id] || currentLanguage} 
+                                        onValueChange={(value) => {
+                                          setSelectedLanguages(prev => ({ ...prev, [model.id]: value }));
+                                        }}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder={t('select_language')} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="en">English</SelectItem>
+                                          <SelectItem value="pl">Polski</SelectItem>
+                                          <SelectItem value="cs">Čeština</SelectItem>
+                                          <SelectItem value="de">Deutsch</SelectItem>
+                                          <SelectItem value="fr">Français</SelectItem>
+                                          <SelectItem value="es">Español</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      
+                                      <Input
+                                        placeholder={t('enter_tags_placeholder')}
+                                        value={modelTags[`${model.id}_${selectedLanguages[model.id] || currentLanguage}`] || ""}
+                                        onChange={(e) => {
+                                          const key = `${model.id}_${selectedLanguages[model.id] || currentLanguage}`;
+                                          setModelTags(prev => ({ ...prev, [key]: e.target.value }));
+                                        }}
+                                        className="w-full"
+                                      />
+                                      
+                                      <Button 
+                                        size="sm"
+                                        onClick={async () => {
+                                          const language = selectedLanguages[model.id] || currentLanguage;
+                                          const tags = modelTags[`${model.id}_${language}`];
+                                          if (tags?.trim()) {
+                                            try {
+                                              const response = await fetch(`/api/models/${model.id}/tags`, {
+                                                method: 'POST',
+                                                headers: {
+                                                  'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({
+                                                  tags: tags.trim(),
+                                                  language: language
+                                                }),
+                                              });
+                                              
+                                              if (response.ok) {
+                                                toast({
+                                                  title: t('success'),
+                                                  description: t('tags_saved_successfully'),
+                                                });
+                                              } else {
+                                                throw new Error('Failed to save tags');
+                                              }
+                                            } catch (error) {
+                                              toast({
+                                                title: t('error'),
+                                                description: t('tags_save_failed'),
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }
+                                        }}
+                                      >
+                                        {t('save_tags')}
+                                      </Button>
+                                      
+                                      <p className="text-xs text-muted-foreground">
+                                        {t('tags_help_text')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-3">
 
                                   <div className="space-y-3">
                                     <Label className="text-sm font-medium">{t('model_description')}</Label>

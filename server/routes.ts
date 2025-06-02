@@ -3990,6 +3990,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Model tags endpoint with automatic translation
+  app.post("/api/models/:id/tags", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const modelId = parseInt(req.params.id);
+      if (isNaN(modelId)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const { tags, language } = req.body;
+      if (!tags || !language) {
+        return res.status(400).json({ error: "Tags and language are required" });
+      }
+
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Parse comma-separated tags
+      const tagList = tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0);
+      
+      if (tagList.length === 0) {
+        return res.status(400).json({ error: "At least one tag is required" });
+      }
+
+      // Check if Google Translate is available
+      const { translateDescription } = await import('./google-translate');
+      
+      // Process each tag with automatic translation
+      const processedTags = [];
+      
+      for (const tagName of tagList) {
+        try {
+          console.log(`Translating tag from ${language}: "${tagName}"`);
+          
+          // Use translateDescription function to get all language versions
+          const translations = await translateDescription(tagName, language as any);
+          
+          // Create or update tag with all translations
+          const tagData = {
+            nameEn: translations.descriptionEn || tagName,
+            namePl: translations.descriptionPl || tagName,
+            nameCs: translations.descriptionCs || tagName,
+            nameDe: translations.descriptionDe || tagName,
+            nameFr: translations.descriptionFr || tagName,
+            nameEs: translations.descriptionEs || tagName,
+            slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            color: "#6B7280", // Default color
+            isActive: true
+          };
+
+          console.log('Tag translations:', tagData);
+          
+          // Check if tag already exists by slug
+          let existingTag = await storage.getTagBySlug(tagData.slug);
+          
+          if (existingTag) {
+            // Update existing tag with new translations
+            const updatedTag = await storage.updateTag(existingTag.id, tagData);
+            processedTags.push(updatedTag);
+          } else {
+            // Create new tag
+            const newTag = await storage.createTag(tagData);
+            processedTags.push(newTag);
+          }
+        } catch (translationError) {
+          console.error(`Translation failed for tag "${tagName}":`, translationError);
+          // Fallback: create tag with original language only
+          const fallbackTag = {
+            nameEn: language === 'en' ? tagName : '',
+            namePl: language === 'pl' ? tagName : '',
+            nameCs: language === 'cs' ? tagName : '',
+            nameDe: language === 'de' ? tagName : '',
+            nameFr: language === 'fr' ? tagName : '',
+            nameEs: language === 'es' ? tagName : '',
+            slug: tagName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            color: "#6B7280",
+            isActive: true
+          };
+          
+          let existingTag = await storage.getTagBySlug(fallbackTag.slug);
+          
+          if (existingTag) {
+            processedTags.push(existingTag);
+          } else {
+            const newTag = await storage.createTag(fallbackTag);
+            processedTags.push(newTag);
+          }
+        }
+      }
+
+      // Associate tags with model
+      await storage.setModelTags(modelId, processedTags.map(tag => tag.id));
+
+      res.json({ 
+        success: true, 
+        tags: processedTags,
+        message: "Tags saved and translated successfully"
+      });
+    } catch (error) {
+      console.error("Error creating/updating model tags:", error);
+      res.status(500).json({ error: "Failed to save model tags" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
