@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen, Download } from "lucide-react";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
@@ -405,6 +405,16 @@ export default function ClientDashboardPage() {
     upload(file, uploadUrl);
   };
 
+  const handleDownload = (model: ClientModel) => {
+    const downloadUrl = `/api/models/${model.id}/file`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = model.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header onUploadClick={() => setIsUploadModalOpen(true)} />
@@ -606,6 +616,17 @@ export default function ClientDashboardPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
+                              {/* Przycisk pobierania */}
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDownload(model)}
+                                title={t('common.download') || 'Download'}
+                              >
+                                <Download className="h-4 w-4" />
+                                <span className="sr-only">{t('common.download') || 'Download'}</span>
+                              </Button>
+                              
                               {/* Przycisk podglądu modelu */}
                               <Button
                                 variant="outline"
