@@ -1037,6 +1037,40 @@ export class PostgresStorage implements IStorage {
     const result = await db.delete(modelDescriptions).where(eq(modelDescriptions.modelId, modelId));
     return (result.rowCount || 0) > 0;
   }
+
+  // Additional tag methods for the new tags system
+  async getTagBySlug(slug: string): Promise<Tag | undefined> {
+    const result = await db.select().from(tags).where(eq(tags.slug, slug)).limit(1);
+    return result[0] || undefined;
+  }
+
+  async updateTag(id: number, updates: Partial<InsertTag>): Promise<Tag | undefined> {
+    const result = await db.update(tags)
+      .set({ ...updates, createdAt: sql`${tags.createdAt}` }) // Preserve original createdAt
+      .where(eq(tags.id, id))
+      .returning();
+    return result[0] || undefined;
+  }
+
+  async setModelTags(modelId: number, tagIds: number[]): Promise<void> {
+    // First, remove all existing tags for this model
+    await db.delete(modelTags).where(eq(modelTags.modelId, modelId));
+    
+    // Then add the new tags
+    if (tagIds.length > 0) {
+      const insertData = tagIds.map(tagId => ({
+        modelId,
+        tagId
+      }));
+      
+      await db.insert(modelTags).values(insertData);
+      
+      // Update usage count for tags
+      await db.update(tags)
+        .set({ usageCount: sql`${tags.usageCount} + 1` })
+        .where(sql`${tags.id} = ANY(${tagIds})`);
+    }
+  }
 }
 
 // Use PostgreSQL storage

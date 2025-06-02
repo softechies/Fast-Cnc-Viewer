@@ -471,6 +471,13 @@ const translations = {
   select_category: "Wybierz kategorię",
   preview: "Podgląd",
   original: "Oryginał",
+  
+  // Tags management
+  enter_tags_placeholder: "Wprowadź tagi oddzielone przecinkami",
+  save_tags: "Zapisz tagi",
+  tags_saved_successfully: "Tagi zostały pomyślnie zapisane i przetłumaczone",
+  tags_save_failed: "Nie udało się zapisać tagów",
+  tags_help_text: "Wprowadź tagi oddzielone przecinkami. Zostaną automatycznie przetłumaczone na wszystkie języki.",
   cropped_to_square: "Przycięty do kwadratu",
   processing: "Przetwarzanie...",
   thumbnail_uploaded_successfully: "Miniaturka została przesłana pomyślnie",
