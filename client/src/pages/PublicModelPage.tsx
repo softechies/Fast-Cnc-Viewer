@@ -41,6 +41,28 @@ interface ModelDescription {
   updatedAt: string;
 }
 
+interface ModelTag {
+  id: number;
+  nameEn: string;
+  namePl: string;
+  nameCs: string;
+  nameDe: string;
+  nameFr: string;
+  nameEs: string;
+  slug: string;
+  color: string;
+}
+
+interface Category {
+  id: number;
+  nameEn: string;
+  namePl: string;
+  nameCs: string;
+  nameDe: string;
+  nameFr: string;
+  nameEs: string;
+}
+
 export default function PublicModelPage() {
   const { t, language } = useLanguage();
   const [, params] = useRoute("/library/model/:publicId");
@@ -81,6 +103,32 @@ export default function PublicModelPage() {
     enabled: !!publicId,
   });
 
+  // Fetch model tags
+  const { data: modelTags } = useQuery<ModelTag[]>({
+    queryKey: ['public-model-tags', modelInfo?.id],
+    queryFn: async () => {
+      if (!modelInfo?.id) return [];
+      const response = await fetch(`/api/models/${modelInfo.id}/tags`);
+      if (!response.ok) {
+        return [];
+      }
+      return response.json();
+    },
+    enabled: !!modelInfo?.id,
+  });
+
+  // Fetch categories
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      return response.json();
+    },
+  });
+
   console.log('Gallery state:', { galleryImages, isLoadingGallery, galleryError });
 
   const formatFileSize = (bytes: number): string => {
@@ -118,6 +166,23 @@ export default function PublicModelPage() {
     
     const languageKey = `description${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof ModelDescription;
     return modelDescription[languageKey] || modelDescription.descriptionEn || null;
+  };
+
+  // Get category name in current language
+  const getCategoryName = () => {
+    if (!modelInfo?.categoryId || !categories) return null;
+    
+    const category = categories.find(cat => cat.id === modelInfo.categoryId);
+    if (!category) return null;
+    
+    const languageKey = `name${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof Category;
+    return category[languageKey] || category.nameEn;
+  };
+
+  // Get tag name in current language
+  const getTagName = (tag: ModelTag) => {
+    const languageKey = `name${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof ModelTag;
+    return tag[languageKey] || tag.nameEn;
   };
 
   const getImageUrl = (image: GalleryImage) => {
@@ -263,19 +328,37 @@ Reason for report:
             </CardContent>
           </Card>
 
-          {/* Model Description and Category */}
-          {(getModelDescription() || modelInfo.categoryId) && (
+          {/* Model Description, Category, and Tags */}
+          {(getModelDescription() || getCategoryName() || (modelTags && modelTags.length > 0)) && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>{t("common.description") || "Description"}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {modelInfo.categoryId && (
+                {getCategoryName() && (
                   <div>
                     <span className="text-sm font-medium">{t("common.category") || "Category"}:</span>
                     <p className="text-sm text-muted-foreground">
-                      {modelInfo.categoryId}
+                      {getCategoryName()}
                     </p>
+                  </div>
+                )}
+
+                {modelTags && modelTags.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium">{t("common.tags") || "Tags"}:</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {modelTags.map((tag) => (
+                        <Badge 
+                          key={tag.id} 
+                          variant="secondary" 
+                          className="text-xs"
+                          style={{ backgroundColor: tag.color + '20', color: tag.color, borderColor: tag.color }}
+                        >
+                          {getTagName(tag)}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
                 
