@@ -622,6 +622,7 @@ export default function ClientDashboardPage() {
                                 size="icon"
                                 onClick={() => handleDownload(model)}
                                 title={t('common.download') || 'Download'}
+                                className="border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
                               >
                                 <Download className="h-4 w-4" />
                                 <span className="sr-only">{t('common.download') || 'Download'}</span>
