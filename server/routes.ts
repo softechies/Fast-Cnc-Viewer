@@ -3991,7 +3991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Model tags endpoint with automatic translation
-  app.post("/api/models/:id/tags", async (req: Request, res: Response) => {
+  app.post("/api/models/:id/tags-translate", async (req: Request, res: Response) => {
     try {
       if (!req.isAuthenticated() || (!req.user?.isClient && !req.user?.isAdmin)) {
         return res.status(401).json({ error: "Authentication required" });

@@ -790,7 +790,7 @@ export default function ClientDashboardPage() {
                                           const tags = modelTags[`${model.id}_${language}`];
                                           if (tags?.trim()) {
                                             try {
-                                              const response = await fetch(`/api/models/${model.id}/tags`, {
+                                              const response = await fetch(`/api/models/${model.id}/tags-translate`, {
                                                 method: 'POST',
                                                 headers: {
                                                   'Content-Type': 'application/json',
