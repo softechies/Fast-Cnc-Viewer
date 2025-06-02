@@ -1068,7 +1068,7 @@ export class PostgresStorage implements IStorage {
       // Update usage count for tags
       await db.update(tags)
         .set({ usageCount: sql`${tags.usageCount} + 1` })
-        .where(sql`${tags.id} = ANY(${tagIds})`);
+        .where(inArray(tags.id, tagIds));
     }
   }
 }
