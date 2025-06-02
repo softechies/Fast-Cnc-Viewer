@@ -943,6 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         format: model.format,
         created: model.created,
         sourceSystem: model.sourceSystem,
+        categoryId: model.categoryId,
         parts: metadata?.parts,
         assemblies: metadata?.assemblies,
         surfaces: metadata?.surfaces,
