@@ -9,7 +9,7 @@ import {
   modelTags, type ModelTag,
   type ModelViewStats
 } from "@shared/schema";
-import { eq, sql, and, desc, or, like, ilike } from "drizzle-orm";
+import { eq, sql, and, desc, or, like, ilike, inArray } from "drizzle-orm";
 import { db } from "./db";
 
 // Interface for storage operations
