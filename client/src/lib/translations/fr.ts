@@ -409,7 +409,8 @@ const translations = {
     format: "Format",
     filesize: "Taille du fichier",
     gallery: "Galerie",
-    goBack: "Retour"
+    goBack: "Retour",
+    tags: "Tags"
   },
 
   // Signalement d'abus
@@ -496,7 +497,32 @@ const translations = {
   file_too_large_5mb: "Le fichier est trop volumineux. Taille maximale: 5MB",
   image_processing_failed: "Échec du traitement de l'image",
   invalid_image_file: "Fichier image invalide",
-  thumbnail_required_for_public: "Une miniature est requise pour ajouter ce modèle à la bibliothèque publique. Veuillez d'abord télécharger une miniature."
+  thumbnail_required_for_public: "Une miniature est requise pour ajouter ce modèle à la bibliothèque publique. Veuillez d'abord télécharger une miniature.",
+  
+  // Tags and description management
+  save_tags: "Enregistrer les tags",
+  tags_saved_successfully: "Les tags ont été enregistrés et traduits avec succès",
+  tags_save_failed: "Échec de l'enregistrement des tags",
+  description_save_failed: "Échec de l'enregistrement de la description",
+  tags_help_text: "Entrez les tags séparés par des virgules. Ils seront automatiquement traduits dans toutes les langues.",
+  enter_tags_placeholder: "Entrez les tags séparés par des virgules",
+  enter_model_description_placeholder: "Entrez la description du modèle...",
+  model_description: "Description du modèle",
+  select_language: "Sélectionner la langue",
+  save_description: "Enregistrer la description",
+  auto_translation_note: "La description sera automatiquement traduite dans toutes les langues prises en charge.",
+  
+  // Gallery management
+  gallery_management: "Gestion de la galerie",
+  upload_new_images: "Télécharger de nouvelles images",
+  current_thumbnail: "Miniature actuelle",
+  select_image_files: "Sélectionner les fichiers d'image",
+  click_set_thumbnail_note: "Cliquez sur 'Définir comme miniature' sur n'importe quelle image pour en faire la miniature du modèle",
+  thumbnail_active: "Cette miniature est actuellement active",
+  capture_screenshot: "Capturer une capture d'écran",
+  gallery_images: "Images de la galerie",
+  manage_model_gallery: "Gérer la galerie pour le modèle {modelName}",
+  images_in_gallery: "images dans la galerie"
 };
 
 export default translations;
