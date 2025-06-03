@@ -523,7 +523,15 @@ const translations = {
   gallery_images: "Images de la galerie",
   manage_model_gallery: "Gérer la galerie pour le modèle {modelName}",
   images_in_gallery: "images dans la galerie",
-  screenshot_instructions: "Positionnez le modèle 3D comme souhaité et cliquez sur le bouton pour capturer une capture d'écran pour la galerie"
+  screenshot_instructions: "Positionnez le modèle 3D comme souhaité et cliquez sur le bouton pour capturer une capture d'écran pour la galerie",
+  
+  // Category and tags update messages
+  category_updated: "Catégorie Mise à Jour",
+  category_updated_successfully: "La catégorie du modèle a été mise à jour avec succès",
+  category_update_failed: "Échec de la mise à jour de la catégorie du modèle",
+  tags_updated: "Tags Mis à Jour",
+  tags_updated_successfully: "Les tags du modèle ont été mis à jour avec succès",
+  tags_update_failed: "Échec de la mise à jour des tags du modèle"
 };
 
 export default translations;

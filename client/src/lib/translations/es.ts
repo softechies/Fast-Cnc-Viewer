@@ -519,7 +519,15 @@ const translations = {
   send_notification: "Enviar notificación",
   sharing_enabled: "Compartir habilitado",
   sharing_disabled: "Compartir deshabilitado",
-  update_sharing: "Actualizar compartir"
+  update_sharing: "Actualizar compartir",
+  
+  // Category and tags update messages
+  category_updated: "Categoría Actualizada",
+  category_updated_successfully: "La categoría del modelo ha sido actualizada exitosamente",
+  category_update_failed: "No se pudo actualizar la categoría del modelo",
+  tags_updated: "Etiquetas Actualizadas",
+  tags_updated_successfully: "Las etiquetas del modelo han sido actualizadas exitosamente",
+  tags_update_failed: "No se pudieron actualizar las etiquetas del modelo"
 };
 
 export default translations;

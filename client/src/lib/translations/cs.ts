@@ -523,7 +523,15 @@ const translations = {
   gallery_images: "Obrázky galerie",
   manage_model_gallery: "Správa galerie pro model {modelName}",
   images_in_gallery: "obrázků v galerii",
-  screenshot_instructions: "Umístěte 3D model podle potřeby a klikněte na tlačítko pro zachycení snímku obrazovky do galerie"
+  screenshot_instructions: "Umístěte 3D model podle potřeby a klikněte na tlačítko pro zachycení snímku obrazovky do galerie",
+  
+  // Category and tags update messages
+  category_updated: "Kategorie Aktualizována",
+  category_updated_successfully: "Kategorie modelu byla úspěšně aktualizována",
+  category_update_failed: "Nepodařilo se aktualizovat kategorii modelu",
+  tags_updated: "Tagy Aktualizovány",
+  tags_updated_successfully: "Tagy modelu byly úspěšně aktualizovány",
+  tags_update_failed: "Nepodařilo se aktualizovat tagy modelu"
 };
 
 export default translations;

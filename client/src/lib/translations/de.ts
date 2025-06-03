@@ -524,7 +524,15 @@ const translations = {
   gallery_images: "Galeriebilder",
   manage_model_gallery: "Galerie für Modell {modelName} verwalten",
   images_in_gallery: "Bilder in der Galerie",
-  screenshot_instructions: "Positionieren Sie das 3D-Modell wie gewünscht und klicken Sie auf die Schaltfläche, um einen Screenshot für die Galerie aufzunehmen"
+  screenshot_instructions: "Positionieren Sie das 3D-Modell wie gewünscht und klicken Sie auf die Schaltfläche, um einen Screenshot für die Galerie aufzunehmen",
+  
+  // Category and tags update messages
+  category_updated: "Kategorie Aktualisiert",
+  category_updated_successfully: "Die Modellkategorie wurde erfolgreich aktualisiert",
+  category_update_failed: "Die Modellkategorie konnte nicht aktualisiert werden",
+  tags_updated: "Tags Aktualisiert",
+  tags_updated_successfully: "Die Modell-Tags wurden erfolgreich aktualisiert",
+  tags_update_failed: "Die Modell-Tags konnten nicht aktualisiert werden"
 };
 
 export default translations;

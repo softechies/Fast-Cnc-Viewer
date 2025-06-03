@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { X, Plus, Tag, FolderOpen } from "lucide-react";
 import type { Category, Tag as TagType, Model } from "@shared/schema";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface ModelCategorizationProps {
   model: Model;
@@ -18,6 +19,7 @@ interface ModelCategorizationProps {
 
 export function ModelCategorization({ model, onUpdate }: ModelCategorizationProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(model.categoryId);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
@@ -65,16 +67,16 @@ export function ModelCategorization({ model, onUpdate }: ModelCategorizationProp
     },
     onSuccess: () => {
       toast({
-        title: "Category updated",
-        description: "Model category has been updated successfully.",
+        title: t("category_updated"),
+        description: t("category_updated_successfully"),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/models"] });
       onUpdate?.();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update model category.",
+        title: t("error"),
+        description: t("category_update_failed"),
         variant: "destructive",
       });
     },
@@ -93,8 +95,8 @@ export function ModelCategorization({ model, onUpdate }: ModelCategorizationProp
     },
     onSuccess: () => {
       toast({
-        title: "Tags updated",
-        description: "Model tags have been updated successfully.",
+        title: t("tags_updated"),
+        description: t("tags_updated_successfully"),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/models", model.id, "tags"] });
       onUpdate?.();

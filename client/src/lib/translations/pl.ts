@@ -545,7 +545,15 @@ const translations = {
   change_model_color: "Zmień Kolor Modelu",
   custom_color: "Kolor Niestandardowy",
   validation_error: "Błąd Walidacji",
-  public_library_requirements: "Aby dodać model do biblioteki publicznej musi mieć: miniaturkę, opis i co najmniej jeden tag"
+  public_library_requirements: "Aby dodać model do biblioteki publicznej musi mieć: miniaturkę, opis i co najmniej jeden tag",
+  
+  // Category and tags update messages
+  category_updated: "Kategoria Zaktualizowana",
+  category_updated_successfully: "Kategoria modelu została pomyślnie zaktualizowana",
+  category_update_failed: "Nie udało się zaktualizować kategorii modelu",
+  tags_updated: "Tagi Zaktualizowane",
+  tags_updated_successfully: "Tagi modelu zostały pomyślnie zaktualizowane", 
+  tags_update_failed: "Nie udało się zaktualizować tagów modelu"
 };
 
 export default translations;

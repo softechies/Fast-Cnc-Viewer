@@ -582,7 +582,15 @@ const translations = {
   architecture: "Architecture",
   gadget: "Gadget",
   game: "Game",
-  tools: "Tools"
+  tools: "Tools",
+  
+  // Category and tags update messages
+  category_updated: "Category Updated",
+  category_updated_successfully: "Model category has been updated successfully",
+  category_update_failed: "Failed to update model category",
+  tags_updated: "Tags Updated", 
+  tags_updated_successfully: "Model tags have been updated successfully",
+  tags_update_failed: "Failed to update model tags"
 };
 
 export default translations;
