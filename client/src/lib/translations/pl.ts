@@ -45,7 +45,10 @@ const translations = {
   confirm: "Potwierdź",
   
   // Auth Page
-  app_description: "Zaawansowana aplikacja do analizy i wizualizacji plików CAD 3D",
+  app_description: "Całkowicie bezpłatna platforma do przeglądania plików CAD. Przechoduj modele STL, STEP, DXF i DWG bezpośrednio w przeglądarce. Udostępniaj pliki zabezpieczone hasłem i przeglądaj modele CAD z dowolnego miejsca.",
+  app_title: "Profesjonalna Przeglądarka Plików CAD",
+  supported_formats: "Obsługiwane Formaty",
+  upload_file: "Wyślij Plik",
   feature_1_title: "Zaawansowana wizualizacja",
   feature_1_desc: "Przeglądaj i analizuj modele 3D z precyzją i szczegółami",
   feature_2_title: "Bezpieczne udostępnianie",

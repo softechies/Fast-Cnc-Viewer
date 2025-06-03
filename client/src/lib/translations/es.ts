@@ -42,10 +42,13 @@ const translations = {
   file_size: "Tamaño del archivo",
   file_type: "Tipo de archivo",
   format: "Formato",
+  // Auth Page
+  app_description: "Plataforma completamente gratuita para visualizar archivos CAD. Almacena modelos STL, STEP, DXF y DWG directamente en tu navegador. Comparte archivos protegidos con contraseña y navega modelos CAD desde cualquier lugar.",
+  app_title: "Visor Profesional de Archivos CAD",
   upload_file: "Subir archivo",
   select_file: "Seleccionar archivo",
   drag_drop_files: "Arrastra y suelta archivos aquí o haz clic para seleccionar",
-  supported_formats: "Formatos soportados",
+  supported_formats: "Formatos Soportados",
   max_file_size: "Tamaño máximo del archivo",
   
   // Authentication
@@ -187,7 +190,6 @@ const translations = {
   
   // Company/brand specific
   welcome_message: "Bienvenido al Visor CAD",
-  app_description: "Visualiza y gestiona tus archivos CAD en línea",
   
   // Header and navigation
   header: "Encabezado",

@@ -45,7 +45,10 @@ const translations = {
   confirm: "Bestätigen",
   
   // Auth Page
-  app_description: "Eine umfassende Webanwendung für fortschrittliche 3D-CAD-Dateianalyse und -Visualisierung",
+  app_description: "Völlig kostenlose Plattform zur Betrachtung von CAD-Dateien. Speichern Sie STL-, STEP-, DXF- und DWG-Modelle direkt in Ihrem Browser. Teilen Sie passwortgeschützte Dateien und durchsuchen Sie CAD-Modelle von überall.",
+  app_title: "Professioneller CAD-Dateibetrachter",
+  supported_formats: "Unterstützte Formate",
+  upload_file: "Datei Hochladen",
   feature_1_title: "Fortschrittliche Visualisierung",
   feature_1_desc: "Betrachten und analysieren Sie 3D-Modelle mit Präzision und Detail",
   feature_2_title: "Sicheres Teilen",

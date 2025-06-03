@@ -47,7 +47,10 @@ const translations = {
   client_dashboard: "Client Dashboard",
   
   // Auth Page
-  app_description: "A comprehensive web application for advanced 3D CAD file analysis and visualization",
+  app_description: "Completely free platform for viewing CAD files. Store STL, STEP, DXF and DWG models directly in your browser. Share files secured with password protection and browse CAD models from anywhere.",
+  app_title: "Professional CAD File Viewer",
+  supported_formats: "Supported Formats",
+  upload_file: "Upload File",
   feature_1_title: "Advanced Visualization",
   feature_1_desc: "View and analyze 3D models with precision and detail",
   feature_2_title: "Secure Sharing",

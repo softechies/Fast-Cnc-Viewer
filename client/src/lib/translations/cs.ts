@@ -44,7 +44,10 @@ const translations = {
   confirm: "Potvrdit",
   
   // Auth Page
-  app_description: "Komplexní webová aplikace pro pokročilou analýzu a vizualizaci 3D CAD souborů",
+  app_description: "Zcela bezplatná platforma pro prohlížení CAD souborů. Ukládejte modely STL, STEP, DXF a DWG přímo v prohlížeči. Sdílejte soubory chráněné heslem a procházejte CAD modely odkudkoli.",
+  app_title: "Profesionální Prohlížeč CAD Souborů",
+  supported_formats: "Podporované Formáty",
+  upload_file: "Nahrát Soubor",
   feature_1_title: "Pokročilá vizualizace",
   feature_1_desc: "Prohlížejte a analyzujte 3D modely s přesností a detaily",
   feature_2_title: "Bezpečné sdílení",
