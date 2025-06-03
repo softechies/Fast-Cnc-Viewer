@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, ImageIcon, Sparkles } from 'lucide-react';
+import { Camera, ImageIcon, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/lib/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
+import ModelViewer from './ModelViewer';
 
 interface ModelGalleryModalProps {
   modelId: number;
@@ -30,6 +31,7 @@ interface GalleryImage {
 
 export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: ModelGalleryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showModelViewer, setShowModelViewer] = useState(false);
   const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
   const [thumbnailKey, setThumbnailKey] = useState(0); // Force re-render of thumbnail
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -377,21 +379,11 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => generateThumbnailMutation.mutate()}
-                  disabled={generateThumbnailMutation.isPending}
+                  onClick={() => setShowModelViewer(true)}
                   className="mt-2"
                 >
-                  {generateThumbnailMutation.isPending ? (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2 animate-spin" />
-                      {t('generating_thumbnail')}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      {t('generate_thumbnail')}
-                    </>
-                  )}
+                  <Camera className="h-4 w-4 mr-2" />
+                  {t('capture_screenshot')}
                 </Button>
               </div>
             </div>
