@@ -523,7 +523,8 @@ const translations = {
   capture_screenshot: "Screenshot aufnehmen",
   gallery_images: "Galeriebilder",
   manage_model_gallery: "Galerie für Modell {modelName} verwalten",
-  images_in_gallery: "Bilder in der Galerie"
+  images_in_gallery: "Bilder in der Galerie",
+  screenshot_instructions: "Positionieren Sie das 3D-Modell wie gewünscht und klicken Sie auf die Schaltfläche, um einen Screenshot für die Galerie aufzunehmen"
 };
 
 export default translations;

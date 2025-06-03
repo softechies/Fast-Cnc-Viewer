@@ -582,7 +582,14 @@ const translations = {
   architecture: "Architecture",
   gadget: "Gadget",
   game: "Game",
-  tools: "Tools"
+  tools: "Tools",
+  
+  // Gallery management
+  capture_screenshot: "Capture screenshot",
+  gallery_images: "Gallery images",
+  manage_model_gallery: "Manage gallery for model {modelName}",
+  images_in_gallery: "images in gallery",
+  screenshot_instructions: "Position the 3D model as desired and click the button to capture a screenshot for the gallery"
 };
 
 export default translations;

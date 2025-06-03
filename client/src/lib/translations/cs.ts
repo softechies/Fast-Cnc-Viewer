@@ -522,7 +522,8 @@ const translations = {
   capture_screenshot: "Zachytit snímek obrazovky",
   gallery_images: "Obrázky galerie",
   manage_model_gallery: "Správa galerie pro model {modelName}",
-  images_in_gallery: "obrázků v galerii"
+  images_in_gallery: "obrázků v galerii",
+  screenshot_instructions: "Umístěte 3D model podle potřeby a klikněte na tlačítko pro zachycení snímku obrazovky do galerie"
 };
 
 export default translations;
