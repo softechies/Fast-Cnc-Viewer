@@ -249,6 +249,8 @@ const translations = {
   disable_sharing: "Stop Sharing",
   change_model_color: "Change Model Color",
   custom_color: "Custom Color",
+  validation_error: "Validation Error",
+  public_library_requirements: "To add model to public library, it must have: thumbnail, description, and at least one tag",
   open_link: "Open Link",
   no_models: "No Models Found",
   no_models_description: "Upload your first model to get started",

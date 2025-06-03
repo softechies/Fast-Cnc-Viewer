@@ -542,7 +542,9 @@ const translations = {
   image_removed_from_gallery: "Obraz usunięty z galerii",
   images_in_gallery: "obrazów w galerii",
   change_model_color: "Zmień Kolor Modelu",
-  custom_color: "Kolor Niestandardowy"
+  custom_color: "Kolor Niestandardowy",
+  validation_error: "Błąd Walidacji",
+  public_library_requirements: "Aby dodać model do biblioteki publicznej musi mieć: miniaturkę, opis i co najmniej jeden tag"
 };
 
 export default translations;
