@@ -1222,7 +1222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // Dodaj screenshot do galerii modelu
+          // Dodaj screenshot do galerii modelu (bez automatycznego ustawiania jako miniaturka)
           const galleryImage = await storage.addGalleryImage({
             modelId: modelId,
             filename: `screenshot_${Date.now()}.png`,
@@ -1230,7 +1230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             filesize: file.size,
             mimeType: 'image/png',
             displayOrder: 1,
-            isThumbnail: true,
+            isThumbnail: false,
             s3Key: s3Key
           });
 
