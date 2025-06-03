@@ -1452,14 +1452,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const metadata = model.metadata as any;
+      let dxfFilePath = metadata?.filePath;
+      const s3Key = metadata?.s3Key;
+      
+      // Jeśli plik jest w S3, pobierz go lokalnie do konwersji
+      if (s3Key && s3Service.isInitialized()) {
+        try {
+          const signedUrl = await s3Service.getSignedDownloadUrl(s3Key, 3600);
+          const response = await fetch(signedUrl);
+          
+          if (response.ok) {
+            // Zapisz plik tymczasowo do konwersji
+            const tempFilePath = `/tmp/dxf_temp_${Date.now()}.${model.format.toLowerCase()}`;
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            fs.writeFileSync(tempFilePath, buffer);
+            dxfFilePath = tempFilePath;
+            console.log(`Downloaded ${model.format} file from S3 for conversion: ${s3Key}`);
+          }
+        } catch (s3Error) {
+          console.error('Failed to get DXF/DWG file from S3:', s3Error);
+          // Kontynuuj próbę lokalnego pliku
+        }
+      }
       
       // Sprawdź czy mamy ścieżkę do pliku DXF
-      if (!metadata?.filePath || !fs.existsSync(metadata.filePath)) {
-        return res.status(404).json({ message: "DXF file not found" });
+      if (!dxfFilePath || !fs.existsSync(dxfFilePath)) {
+        return res.status(404).json({ message: "DXF/DWG file not found" });
       }
       
       // Konwertuj DXF do SVG
-      const svgContent = await convertDxfToSvg(metadata.filePath);
+      const svgContent = await convertDxfToSvg(dxfFilePath);
+      
+      // Usuń plik tymczasowy jeśli został pobrany z S3
+      if (s3Key && dxfFilePath.includes('/tmp/dxf_temp_')) {
+        try {
+          fs.unlinkSync(dxfFilePath);
+        } catch (cleanupError) {
+          console.warn('Failed to cleanup temp DXF file:', cleanupError);
+        }
+      }
       
       if (!svgContent) {
         return res.status(500).json({ message: "Failed to convert DXF to SVG" });
