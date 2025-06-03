@@ -283,12 +283,6 @@ const translations = {
   },
   
   // Actions
-  actions: {
-    back_to_home: "Powrót do strony głównej",
-    access: "Uzyskaj dostęp",
-    verifying: "Weryfikacja...",
-    go_to_app: "Przejdź do aplikacji"
-  },
   action: {
     back_to_home: "Powrót do strony głównej",
     access: "Uzyskaj dostęp",
@@ -537,7 +531,12 @@ const translations = {
   capture_screenshot: "Przechwyć Zrzut Ekranu",
   screenshot_captured_successfully: "Zrzut ekranu przechwycony i ustawiony jako miniaturka",
   screenshot_capture_failed: "Nie udało się przechwycić zrzutu ekranu",
-  screenshot_instructions: "Ustaw idealny kąt widzenia i powiększenie, następnie kliknij przycisk kamery w przeglądarce 3D aby przechwycić zrzut ekranu jako miniaturkę"
+  screenshot_instructions: "Ustaw idealny kąt widzenia i powiększenie, następnie kliknij przycisk kamery w przeglądarce 3D aby przechwycić zrzut ekranu jako miniaturkę",
+  filename: "Nazwa pliku",
+  table_actions: "Akcje",
+  view_model: "Zobacz Model",
+  view_share_link: "Zobacz Link Udostępniania",
+  disable_sharing: "Wyłącz Udostępnianie"
 };
 
 export default translations;
