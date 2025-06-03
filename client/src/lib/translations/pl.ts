@@ -545,10 +545,7 @@ const translations = {
   change_model_color: "Zmień Kolor Modelu",
   custom_color: "Kolor Niestandardowy",
   validation_error: "Błąd Walidacji",
-  public_library_requirements: "Aby dodać model do biblioteki publicznej musi mieć: miniaturkę, opis i co najmniej jeden tag",
-  
-  // Gallery management
-  no_thumbnail_set: "Brak miniaturki"
+  public_library_requirements: "Aby dodać model do biblioteki publicznej musi mieć: miniaturkę, opis i co najmniej jeden tag"
 };
 
 export default translations;

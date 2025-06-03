@@ -487,8 +487,7 @@ const translations = {
   images_in_gallery: "imágenes en la galería",
   capture_screenshot: "Capturar pantalla",
   uploaded_images: "Imágenes subidas",
-  screenshot_instructions: "Posicione el modelo 3D como desee y haga clic en el botón para capturar una captura de pantalla para la galería",
-  no_thumbnail_set: "Sin miniatura establecida"
+  screenshot_instructions: "Posicione el modelo 3D como desee y haga clic en el botón para capturar una captura de pantalla para la galería"
 };
 
 export default translations;
