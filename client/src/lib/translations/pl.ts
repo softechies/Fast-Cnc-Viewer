@@ -540,7 +540,9 @@ const translations = {
   images_uploaded_to_gallery: "Obrazy przesłane do galerii",
   new_thumbnail_set: "Nowa miniaturka została ustawiona",
   image_removed_from_gallery: "Obraz usunięty z galerii",
-  images_in_gallery: "obrazów w galerii"
+  images_in_gallery: "obrazów w galerii",
+  change_model_color: "Zmień Kolor Modelu",
+  custom_color: "Kolor Niestandardowy"
 };
 
 export default translations;
