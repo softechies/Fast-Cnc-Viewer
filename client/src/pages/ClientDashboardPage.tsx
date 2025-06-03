@@ -19,7 +19,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen, Download, Camera, ImageIcon, X } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
 import FooterBar from "@/components/FooterBar";
@@ -105,6 +105,94 @@ export default function ClientDashboardPage() {
     queryKey: ["/api/categories"],
     enabled: !!user
   });
+
+  // Pobieranie tagów i opisów dla wszystkich modeli
+  const { data: modelTagsData = {} } = useQuery({
+    queryKey: ["/api/models/tags-descriptions"],
+    queryFn: async () => {
+      if (!models || models.length === 0) return {};
+      
+      const tagsAndDescriptions: Record<string, any> = {};
+      
+      // Pobierz tagi i opisy dla każdego modelu
+      for (const model of models) {
+        try {
+          // Pobierz tagi
+          const tagsRes = await apiRequest("GET", `/api/models/${model.id}/tags`);
+          const tags = tagsRes.ok ? await tagsRes.json() : [];
+          
+          // Pobierz opis
+          const descRes = await apiRequest("GET", `/api/models/${model.id}/description`);
+          const description = descRes.ok ? await descRes.json() : null;
+          
+          tagsAndDescriptions[model.id] = {
+            tags,
+            description
+          };
+        } catch (error) {
+          console.error(`Error fetching data for model ${model.id}:`, error);
+        }
+      }
+      
+      return tagsAndDescriptions;
+    },
+    enabled: !!models && models.length > 0
+  });
+
+  // Aktualizuj pola tekstowe na podstawie pobranych danych
+  useEffect(() => {
+    if (modelTagsData && Object.keys(modelTagsData).length > 0) {
+      const newDescriptions: Record<string, string> = {};
+      const newTags: Record<string, string> = {};
+      
+      Object.entries(modelTagsData).forEach(([modelId, data]: [string, any]) => {
+        const modelIdNum = parseInt(modelId);
+        
+        // Aktualizuj opisy dla każdego języka
+        if (data.description) {
+          if (data.description.descriptionEn) {
+            newDescriptions[`${modelId}_en`] = data.description.descriptionEn;
+          }
+          if (data.description.descriptionPl) {
+            newDescriptions[`${modelId}_pl`] = data.description.descriptionPl;
+          }
+          if (data.description.descriptionCs) {
+            newDescriptions[`${modelId}_cs`] = data.description.descriptionCs;
+          }
+          if (data.description.descriptionDe) {
+            newDescriptions[`${modelId}_de`] = data.description.descriptionDe;
+          }
+          if (data.description.descriptionFr) {
+            newDescriptions[`${modelId}_fr`] = data.description.descriptionFr;
+          }
+          if (data.description.descriptionEs) {
+            newDescriptions[`${modelId}_es`] = data.description.descriptionEs;
+          }
+        }
+        
+        // Aktualizuj tagi dla każdego języka
+        if (data.tags && data.tags.length > 0) {
+          const tagsByLanguage = {
+            en: data.tags.map((tag: any) => tag.nameEn).filter(Boolean).join(', '),
+            pl: data.tags.map((tag: any) => tag.namePl).filter(Boolean).join(', '),
+            cs: data.tags.map((tag: any) => tag.nameCs).filter(Boolean).join(', '),
+            de: data.tags.map((tag: any) => tag.nameDe).filter(Boolean).join(', '),
+            fr: data.tags.map((tag: any) => tag.nameFr).filter(Boolean).join(', '),
+            es: data.tags.map((tag: any) => tag.nameEs).filter(Boolean).join(', ')
+          };
+          
+          Object.entries(tagsByLanguage).forEach(([lang, tagsStr]) => {
+            if (tagsStr) {
+              newTags[`${modelId}_${lang}`] = tagsStr;
+            }
+          });
+        }
+      });
+      
+      setModelDescriptions(prev => ({ ...prev, ...newDescriptions }));
+      setModelTags(prev => ({ ...prev, ...newTags }));
+    }
+  }, [modelTagsData]);
 
   // Mutacja zmiany hasła modelu
   const changePasswordMutation = useMutation({
