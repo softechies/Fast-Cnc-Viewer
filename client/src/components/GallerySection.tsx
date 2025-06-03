@@ -101,7 +101,7 @@ export function GallerySection({ modelId, modelName, onThumbnailUpdate }: Galler
   // Mutacja do ustawiania miniaturki
   const setThumbnailMutation = useMutation({
     mutationFn: async (imageId: number) => {
-      const response = await apiRequest('POST', `/api/models/${modelId}/gallery/${imageId}/set-thumbnail`);
+      const response = await apiRequest('PUT', `/api/models/${modelId}/gallery/${imageId}/thumbnail`);
       if (!response.ok) {
         throw new Error('Failed to set thumbnail');
       }
