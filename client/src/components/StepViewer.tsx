@@ -22,10 +22,11 @@ interface StepViewerProps {
   modelId: number | null;
   isPublic?: boolean;
   publicId?: string;
+  allowScreenshots?: boolean; // Kontrola dostępności funkcji zrzutu ekranu
 }
 
 // Component for viewing STL models
-export default function StepViewer({ modelId, isPublic, publicId }: StepViewerProps) {
+export default function StepViewer({ modelId, isPublic, publicId, allowScreenshots = false }: StepViewerProps) {
   // Get translation function
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -997,7 +998,18 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
         >
           <Palette className="h-6 w-6" />
         </Button>
-
+        {allowScreenshots && modelId && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={captureScreenshot}
+            disabled={isCapturingScreenshot}
+            className="bg-black/50 text-white hover:bg-black/70 border-none p-2"
+            title={t('capture_screenshot')}
+          >
+            <Camera className="h-6 w-6" />
+          </Button>
+        )}
       </div>
       
       {/* Color picker panel */}

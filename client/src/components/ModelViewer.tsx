@@ -38,12 +38,13 @@ interface ModelViewerProps {
   modelId: number | null;
   isPublic?: boolean;
   publicId?: string;
+  allowScreenshots?: boolean;
 }
 
 // Typ modelu określa, jaki renderer będzie używany
 type ModelType = '3d' | '2d' | 'unknown';
 
-export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewerProps) {
+export default function ModelViewer({ modelId, isPublic, publicId, allowScreenshots = false }: ModelViewerProps) {
   const { t } = useLanguage();
   const [modelType, setModelType] = useState<ModelType>('unknown');
   const [modelInfo, setModelInfo] = useState<any>(null);
@@ -195,7 +196,7 @@ export default function ModelViewer({ modelId, isPublic, publicId }: ModelViewer
                         </Button>
                       </div>
                     }>
-                      <StepViewer modelId={modelId} isPublic={isPublic} publicId={publicId} />
+                      <StepViewer modelId={modelId} isPublic={isPublic} publicId={publicId} allowScreenshots={allowScreenshots} />
                     </ErrorBoundary>
                   </Suspense>
                 )}
