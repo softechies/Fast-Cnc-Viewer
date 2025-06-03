@@ -524,7 +524,7 @@ export default function ClientDashboardPage() {
                               className="w-full"
                             >
                               <ImageIcon className="h-4 w-4 mr-2" />
-                              {t('gallery_management')}
+                              {t('model_details')}
                             </Button>
                           </TableCell>
                           <TableCell>
@@ -647,22 +647,6 @@ export default function ClientDashboardPage() {
                               >
                                 <FileText className="h-4 w-4" />
                                 <span className="sr-only">{t('view_model')}</span>
-                              </Button>
-                              
-                              {/* Przycisk rozwijania szczegółów modelu */}
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => {
-                                  setExpandedModelId(expandedModelId === model.id ? null : model.id);
-                                  if (!selectedLanguages[model.id]) {
-                                    setSelectedLanguages(prev => ({ ...prev, [model.id]: currentLanguage }));
-                                  }
-                                }}
-                                title={t('expand_details')}
-                              >
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">{t('expand_details')}</span>
                               </Button>
                               
                               {/* Przycisk udostępniania - pokazuje link jeśli model jest już udostępniony */}
