@@ -269,6 +269,17 @@ const translations = {
   delete_model: "Delete Model",
   delete_model_confirmation: "Are you sure you want to delete this model? This action cannot be undone.",
   
+  // Tags and description management
+  save_tags: "Save Tags",
+  tags_saved_successfully: "Tags have been successfully saved and translated",
+  tags_save_failed: "Failed to save tags",
+  description_save_failed: "Failed to save description",
+  tags_help_text: "Enter tags separated by commas. They will be automatically translated to all languages.",
+  enter_tags_placeholder: "Enter tags separated by commas",
+  enter_model_description_placeholder: "Enter model description...",
+  model_description: "Model Description",
+  select_language: "Select Language",
+  
   // Shared model access
   sharedModel: "Shared Model",
   enterPassword: "Enter password to view this model",
@@ -537,9 +548,6 @@ const translations = {
   manage_model_description: "Manage Model Description",
   model_description_explanation: "Add a descriptive text for the model. The system will automatically translate it to all supported languages.",
   original_language: "Original Language",
-  select_language: "Select Language",
-  model_description: "Model Description",
-  enter_model_description_placeholder: "Enter a descriptive text for the model...",
   auto_translation_note: "The description will be automatically translated to all supported languages.",
   available_translations: "Available Translations",
   google_translate_powered: "Translations powered by Google Translate API",
