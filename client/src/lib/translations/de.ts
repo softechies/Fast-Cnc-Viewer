@@ -524,7 +524,8 @@ const translations = {
   gallery_images: "Galeriebilder",
   manage_model_gallery: "Galerie für Modell {modelName} verwalten",
   images_in_gallery: "Bilder in der Galerie",
-  screenshot_instructions: "Positionieren Sie das 3D-Modell wie gewünscht und klicken Sie auf die Schaltfläche, um einen Screenshot für die Galerie aufzunehmen"
+  screenshot_instructions: "Positionieren Sie das 3D-Modell wie gewünscht und klicken Sie auf die Schaltfläche, um einen Screenshot für die Galerie aufzunehmen",
+  no_thumbnail_set: "Keine Miniaturansicht festgelegt"
 };
 
 export default translations;

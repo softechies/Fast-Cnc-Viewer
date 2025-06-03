@@ -582,7 +582,10 @@ const translations = {
   architecture: "Architecture",
   gadget: "Gadget",
   game: "Game",
-  tools: "Tools"
+  tools: "Tools",
+  
+  // Gallery management
+  no_thumbnail_set: "No thumbnail set"
 };
 
 export default translations;

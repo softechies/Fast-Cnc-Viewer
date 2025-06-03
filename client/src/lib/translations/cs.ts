@@ -523,7 +523,8 @@ const translations = {
   gallery_images: "Obrázky galerie",
   manage_model_gallery: "Správa galerie pro model {modelName}",
   images_in_gallery: "obrázků v galerii",
-  screenshot_instructions: "Umístěte 3D model podle potřeby a klikněte na tlačítko pro zachycení snímku obrazovky do galerie"
+  screenshot_instructions: "Umístěte 3D model podle potřeby a klikněte na tlačítko pro zachycení snímku obrazovky do galerie",
+  no_thumbnail_set: "Není nastaven náhled"
 };
 
 export default translations;
