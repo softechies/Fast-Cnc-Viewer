@@ -1010,6 +1010,8 @@ export default function StepViewer({ modelId, isPublic, publicId, allowScreensho
             <Camera className="h-6 w-6" />
           </Button>
         )}
+        {/* Debug info */}
+        {console.log('StepViewer Debug:', { allowScreenshots, modelId, showButton: allowScreenshots && modelId })}
       </div>
       
       {/* Color picker panel */}
