@@ -79,16 +79,43 @@ export default function Home() {
                   </div>
                   
                   <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                    {t('app_title', 'CAD File Viewer')}
+                    {t('app_title', 'Profesjonalna Przeglądarka Plików CAD')}
                   </h1>
                   
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {t('app_description', 'Professional online viewer for CAD files. Upload and view STL, STEP, DXF, and DWG files directly in your browser. Share models securely with password protection and access them from anywhere.')}
+                  <p className="text-gray-600 mb-8 leading-relaxed">
+                    {t('app_description', 'Całkowicie bezpłatna platforma do przeglądania plików CAD. Przechoduj modele STL, STEP, DXF i DWG bezpośrednio w przeglądarce. Udostępniaj pliki zabezpieczone hasłem i przeglądaj modele CAD z dowolnego miejsca.')}
                   </p>
                   
                   <div className="mb-8">
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-bold text-sm">✓</span>
+                        </div>
+                        <span className="text-gray-700 font-medium">Całkowicie bezpłatnie</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-bold text-sm">✓</span>
+                        </div>
+                        <span className="text-gray-700 font-medium">Przechowuj pliki CAD</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-bold text-sm">✓</span>
+                        </div>
+                        <span className="text-gray-700 font-medium">Udostępniaj zabezpieczone hasłem</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-bold text-sm">✓</span>
+                        </div>
+                        <span className="text-gray-700 font-medium">Przeglądaj modele CAD</span>
+                      </div>
+                    </div>
+                    
                     <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                      {t('supported_formats', 'Supported Formats')}
+                      {t('supported_formats', 'Obsługiwane Formaty')}
                     </h3>
                     <div className="flex flex-wrap justify-center gap-2">
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">STL</span>
