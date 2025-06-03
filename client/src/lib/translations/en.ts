@@ -236,6 +236,7 @@ const translations = {
   capture_screenshot: "Capture Screenshot",
   screenshot_captured_successfully: "Screenshot captured and set as thumbnail",
   screenshot_capture_failed: "Failed to capture screenshot",
+  screenshot_instructions: "Set the perfect view angle and zoom, then click the camera button in the 3D viewer to capture a screenshot as thumbnail",
   gallery_images: "Gallery Images",
   no_gallery_images: "No gallery images available",
   view_model: "View Model",

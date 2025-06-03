@@ -483,6 +483,41 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal podglądu modelu 3D do robienia screenshotów */}
+      {showModelViewer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg w-[90vw] h-[90vh] max-w-6xl max-h-[800px] relative">
+            {/* Header modalnego okna */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">{t('capture_screenshot')} - {modelName}</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowModelViewer(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Podgląd modelu 3D */}
+            <div className="p-4 h-[calc(100%-120px)]">
+              <ModelViewer
+                modelId={modelId}
+                isPublic={false}
+              />
+            </div>
+            
+            {/* Footer z instrukcjami */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t rounded-b-lg">
+              <p className="text-sm text-gray-600">
+                {t('screenshot_instructions')}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

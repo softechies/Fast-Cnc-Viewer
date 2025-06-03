@@ -536,7 +536,8 @@ const translations = {
   image_delete_failed: "Nie udało się usunąć obrazu",
   capture_screenshot: "Przechwyć Zrzut Ekranu",
   screenshot_captured_successfully: "Zrzut ekranu przechwycony i ustawiony jako miniaturka",
-  screenshot_capture_failed: "Nie udało się przechwycić zrzutu ekranu"
+  screenshot_capture_failed: "Nie udało się przechwycić zrzutu ekranu",
+  screenshot_instructions: "Ustaw idealny kąt widzenia i powiększenie, następnie kliknij przycisk kamery w przeglądarce 3D aby przechwycić zrzut ekranu jako miniaturkę"
 };
 
 export default translations;
