@@ -1205,15 +1205,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.unlinkSync(thumbnailPath);
       }
       
-      fs.copyFileSync(file.path, thumbnailPath);
-      fs.unlinkSync(file.path); // Usuń tymczasowy plik
-
-      // Dodaj screenshot do galerii jeśli pochodz z przeglądarki 3D
+      // Dodaj screenshot do galerii jeśli pochodz z przeglądarki 3D PRZED usunięciem pliku
       let galleryImageId = null;
       try {
         // Sprawdź czy to jest screenshot z przeglądarki (na podstawie nazwy pliku)
         if (file.originalname === 'screenshot.png') {
-          // Upload do S3 jeśli jest dostępne
+          // Upload do S3 jeśli jest dostępne (używamy oryginalnego pliku przed jego usunięciem)
           let s3Key = null;
           if (s3Service.isInitialized()) {
             try {
@@ -1244,6 +1241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Failed to add screenshot to gallery:', galleryError);
         // Kontynuuj bez dodawania do galerii
       }
+
+      fs.copyFileSync(file.path, thumbnailPath);
+      fs.unlinkSync(file.path); // Usuń tymczasowy plik po przetworzeniu
 
       console.log(`Custom thumbnail uploaded for model ${modelId}`);
       
