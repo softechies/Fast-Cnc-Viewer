@@ -33,6 +33,7 @@ import { ModelCategorization } from "@/components/ModelCategorization";
 import { ModelDescriptionDialog } from "@/components/ModelDescriptionDialog";
 import ModelViewer from "@/components/ModelViewer";
 import { Progress } from "@/components/ui/progress";
+import { GallerySection } from "@/components/GallerySection";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -940,6 +941,9 @@ export default function ClientDashboardPage() {
                                 <p className="text-sm text-muted-foreground">
                                   {t('auto_translation_note')}
                                 </p>
+                                
+                                {/* Sekcja galerii */}
+                                <GallerySection modelId={model.id} modelName={model.filename} />
                               </div>
                             </TableCell>
                           </TableRow>

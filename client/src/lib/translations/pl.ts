@@ -536,7 +536,11 @@ const translations = {
   table_actions: "Akcje",
   view_model: "Zobacz Model",
   view_share_link: "Zobacz Link Udostępniania",
-  disable_sharing: "Wyłącz Udostępnianie"
+  disable_sharing: "Wyłącz Udostępnianie",
+  images_uploaded_to_gallery: "Obrazy przesłane do galerii",
+  new_thumbnail_set: "Nowa miniaturka została ustawiona",
+  image_removed_from_gallery: "Obraz usunięty z galerii",
+  images_in_gallery: "obrazów w galerii"
 };
 
 export default translations;
