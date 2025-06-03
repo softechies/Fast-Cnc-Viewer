@@ -103,8 +103,8 @@ export function ModelCategorization({ model, onUpdate }: ModelCategorizationProp
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update model tags.",
+        title: t("error"),
+        description: t("tags_update_failed"),
         variant: "destructive",
       });
     },
