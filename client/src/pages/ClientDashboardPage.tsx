@@ -894,15 +894,9 @@ export default function ClientDashboardPage() {
                                           const tags = modelTags[`${model.id}_${language}`];
                                           if (tags?.trim()) {
                                             try {
-                                              const response = await fetch(`/api/models/${model.id}/tags-translate`, {
-                                                method: 'POST',
-                                                headers: {
-                                                  'Content-Type': 'application/json',
-                                                },
-                                                body: JSON.stringify({
-                                                  tags: tags.trim(),
-                                                  language: language
-                                                }),
+                                              const response = await apiRequest('POST', `/api/models/${model.id}/tags-translate`, {
+                                                tags: tags.trim(),
+                                                language: language
                                               });
                                               
                                               if (response.ok) {
@@ -910,6 +904,9 @@ export default function ClientDashboardPage() {
                                                   title: t('success'),
                                                   description: t('tags_saved_successfully'),
                                                 });
+                                                // Invaliduj cache'e
+                                                queryClient.invalidateQueries({ queryKey: ["/api/models/tags-descriptions"] });
+                                                queryClient.invalidateQueries({ queryKey: [`/api/models/${model.id}/tags`] });
                                               } else {
                                                 throw new Error('Failed to save tags');
                                               }
@@ -975,15 +972,9 @@ export default function ClientDashboardPage() {
                                           const description = modelDescriptions[`${model.id}_${language}`];
                                           if (description?.trim()) {
                                             try {
-                                              const response = await fetch(`/api/models/${model.id}/description`, {
-                                                method: 'POST',
-                                                headers: {
-                                                  'Content-Type': 'application/json',
-                                                },
-                                                body: JSON.stringify({
-                                                  description: description.trim(),
-                                                  language: language
-                                                }),
+                                              const response = await apiRequest('POST', `/api/models/${model.id}/description`, {
+                                                description: description.trim(),
+                                                language: language
                                               });
                                               
                                               if (response.ok) {
@@ -991,6 +982,9 @@ export default function ClientDashboardPage() {
                                                   title: t('success'),
                                                   description: t('description_saved_successfully'),
                                                 });
+                                                // Invaliduj cache'e
+                                                queryClient.invalidateQueries({ queryKey: ["/api/models/tags-descriptions"] });
+                                                queryClient.invalidateQueries({ queryKey: [`/api/models/${model.id}/description`] });
                                               } else {
                                                 throw new Error('Failed to save description');
                                               }

@@ -471,6 +471,7 @@ const translations = {
   save_tags: "Zapisz tagi",
   tags_saved_successfully: "Tagi zostały pomyślnie zapisane i przetłumaczone",
   tags_save_failed: "Nie udało się zapisać tagów",
+  description_save_failed: "Nie udało się zapisać opisu",
   tags_help_text: "Wprowadź tagi oddzielone przecinkami. Zostaną automatycznie przetłumaczone na wszystkie języki.",
   cropped_to_square: "Przycięty do kwadratu",
   processing: "Przetwarzanie...",
