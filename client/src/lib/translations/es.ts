@@ -487,7 +487,39 @@ const translations = {
   images_in_gallery: "imágenes en la galería",
   capture_screenshot: "Capturar pantalla",
   uploaded_images: "Imágenes subidas",
-  screenshot_instructions: "Posicione el modelo 3D como desee y haga clic en el botón para capturar una captura de pantalla para la galería"
+  screenshot_instructions: "Posicione el modelo 3D como desee y haga clic en el botón para capturar una captura de pantalla para la galería",
+  
+  // Upload modal translations
+  upload_and_share: "Subir y Compartir",
+  drag_drop_file: "Arrastra y suelta tu archivo aquí",
+  or_click_to_browse: "o haz clic para explorar",
+  selected_file: "Archivo seleccionado",
+  file_verification: "Verificación de archivo",
+  uploading: "Subiendo...",
+  email_for_notifications: "Email para notificaciones",
+  enter_email_address: "Ingresa tu dirección de email",
+  checking_email: "Verificando email...",
+  email_exists_create_account: "Este email ya existe. ¿Crear cuenta?",
+  create_new_account: "Crear nueva cuenta",
+  use_existing_account: "Usar cuenta existente",
+  username_placeholder: "Nombre de usuario",
+  full_name_placeholder: "Nombre completo",
+  company_placeholder: "Empresa (opcional)",
+  register_and_upload: "Registrar y Subir",
+  
+  // Share dialog translations
+  enable_model_sharing: "Habilitar compartir modelo",
+  password_protection: "Protección con contraseña",
+  optional_password: "Contraseña (opcional)",
+  expiry_date: "Fecha de vencimiento",
+  select_expiry_date: "Seleccionar fecha de vencimiento",
+  recipient_email: "Email del destinatario",
+  enter_recipient_email: "Ingresa el email del destinatario",
+  share_link_generated: "Enlace de compartir generado",
+  send_notification: "Enviar notificación",
+  sharing_enabled: "Compartir habilitado",
+  sharing_disabled: "Compartir deshabilitado",
+  update_sharing: "Actualizar compartir"
 };
 
 export default translations;
