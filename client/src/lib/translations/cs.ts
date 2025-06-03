@@ -409,7 +409,8 @@ const translations = {
     format: "Formát",
     filesize: "Velikost souboru",
     gallery: "Galerie",
-    goBack: "Zpět"
+    goBack: "Zpět",
+    tags: "Tagy"
   },
 
   // Nahlášení zneužití
@@ -496,7 +497,32 @@ const translations = {
   file_too_large_5mb: "Soubor je příliš velký. Maximální velikost je 5MB",
   image_processing_failed: "Zpracování obrázku selhalo",
   invalid_image_file: "Neplatný soubor obrázku",
-  thumbnail_required_for_public: "Pro přidání tohoto modelu do veřejné knihovny je vyžadován náhled. Nejprve prosím nahrajte náhled."
+  thumbnail_required_for_public: "Pro přidání tohoto modelu do veřejné knihovny je vyžadován náhled. Nejprve prosím nahrajte náhled.",
+  
+  // Tags and description management
+  save_tags: "Uložit tagy",
+  tags_saved_successfully: "Tagy byly úspěšně uloženy a přeloženy",
+  tags_save_failed: "Nepodařilo se uložit tagy",
+  description_save_failed: "Nepodařilo se uložit popis",
+  tags_help_text: "Zadejte tagy oddělené čárkami. Budou automaticky přeloženy do všech jazyků.",
+  enter_tags_placeholder: "Zadejte tagy oddělené čárkami",
+  enter_model_description_placeholder: "Zadejte popis modelu...",
+  model_description: "Popis modelu",
+  select_language: "Vybrat jazyk",
+  save_description: "Uložit popis",
+  auto_translation_note: "Popis bude automaticky přeložen do všech podporovaných jazyků.",
+  
+  // Gallery management
+  gallery_management: "Správa galerie",
+  upload_new_images: "Nahrát nové obrázky",
+  current_thumbnail: "Aktuální náhled",
+  select_image_files: "Vybrat soubory obrázků",
+  click_set_thumbnail_note: "Klikněte na 'Nastavit jako náhled' u libovolného obrázku pro nastavení náhledu modelu",
+  thumbnail_active: "Tento náhled je aktuálně aktivní",
+  capture_screenshot: "Zachytit snímek obrazovky",
+  gallery_images: "Obrázky galerie",
+  manage_model_gallery: "Správa galerie pro model {modelName}",
+  images_in_gallery: "obrázků v galerii"
 };
 
 export default translations;

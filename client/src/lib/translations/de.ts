@@ -410,7 +410,8 @@ const translations = {
     format: "Format",
     filesize: "Dateigröße",
     gallery: "Galerie",
-    goBack: "Zurück"
+    goBack: "Zurück",
+    tags: "Tags"
   },
 
   // Missbrauch melden
@@ -497,7 +498,32 @@ const translations = {
   file_too_large_5mb: "Datei ist zu groß. Maximale Größe ist 5MB",
   image_processing_failed: "Bildverarbeitung fehlgeschlagen",
   invalid_image_file: "Ungültige Bilddatei",
-  thumbnail_required_for_public: "Ein Vorschaubild ist erforderlich, um dieses Modell zur öffentlichen Bibliothek hinzuzufügen. Bitte laden Sie zuerst ein Vorschaubild hoch."
+  thumbnail_required_for_public: "Ein Vorschaubild ist erforderlich, um dieses Modell zur öffentlichen Bibliothek hinzuzufügen. Bitte laden Sie zuerst ein Vorschaubild hoch.",
+  
+  // Tags and description management
+  save_tags: "Tags speichern",
+  tags_saved_successfully: "Tags wurden erfolgreich gespeichert und übersetzt",
+  tags_save_failed: "Fehler beim Speichern der Tags",
+  description_save_failed: "Fehler beim Speichern der Beschreibung",
+  tags_help_text: "Geben Sie Tags durch Kommas getrennt ein. Sie werden automatisch in alle Sprachen übersetzt.",
+  enter_tags_placeholder: "Tags durch Kommas getrennt eingeben",
+  enter_model_description_placeholder: "Modellbeschreibung eingeben...",
+  model_description: "Modellbeschreibung",
+  select_language: "Sprache auswählen",
+  save_description: "Beschreibung speichern",
+  auto_translation_note: "Die Beschreibung wird automatisch in alle unterstützten Sprachen übersetzt.",
+  
+  // Gallery management
+  gallery_management: "Galerie-Verwaltung",
+  upload_new_images: "Neue Bilder hochladen",
+  current_thumbnail: "Aktuelles Vorschaubild",
+  select_image_files: "Bilddateien auswählen",
+  click_set_thumbnail_note: "Klicken Sie bei einem beliebigen Bild auf 'Als Vorschaubild setzen', um es als Modellvorschaubild festzulegen",
+  thumbnail_active: "Dieses Vorschaubild ist derzeit aktiv",
+  capture_screenshot: "Screenshot aufnehmen",
+  gallery_images: "Galeriebilder",
+  manage_model_gallery: "Galerie für Modell {modelName} verwalten",
+  images_in_gallery: "Bilder in der Galerie"
 };
 
 export default translations;

@@ -214,7 +214,7 @@ export default function CadUploader({
                 onClick={handleBrowseClick}
                 className="bg-primary hover:bg-blue-700 mt-2"
               >
-                Select Files
+                {t('selectFile')}
               </Button>
             </div>
             <p className="mt-2 text-xs text-gray-500">
