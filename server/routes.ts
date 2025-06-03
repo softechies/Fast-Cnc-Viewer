@@ -1208,12 +1208,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fs.copyFileSync(file.path, thumbnailPath);
       fs.unlinkSync(file.path); // Usuń tymczasowy plik
 
+      // Dodaj screenshot do galerii jeśli pochodz z przeglądarki 3D
+      let galleryImageId = null;
+      try {
+        // Sprawdź czy to jest screenshot z przeglądarki (na podstawie nazwy pliku)
+        if (file.originalname === 'screenshot.png') {
+          // Upload do S3 jeśli jest dostępne
+          let s3Key = null;
+          if (s3Service.isInitialized()) {
+            try {
+              const s3Path = `thumbnails/${modelId}/screenshot_${Date.now()}.png`;
+              s3Key = await s3Service.uploadFile(file.path, s3Path, 'image/png');
+              console.log(`Screenshot uploaded to S3: ${s3Key}`);
+            } catch (s3Error) {
+              console.error('Failed to upload screenshot to S3:', s3Error);
+            }
+          }
+
+          // Dodaj screenshot do galerii modelu
+          const galleryImage = await storage.addGalleryImage({
+            modelId: modelId,
+            filename: `screenshot_${Date.now()}.png`,
+            originalName: 'Screenshot',
+            filesize: file.size,
+            mimeType: 'image/png',
+            displayOrder: 1,
+            isThumbnail: true,
+            s3Key: s3Key
+          });
+
+          galleryImageId = galleryImage.id;
+          console.log(`Screenshot added to gallery with ID: ${galleryImageId}`);
+        }
+      } catch (galleryError) {
+        console.error('Failed to add screenshot to gallery:', galleryError);
+        // Kontynuuj bez dodawania do galerii
+      }
+
       console.log(`Custom thumbnail uploaded for model ${modelId}`);
       
       res.json({ 
         success: true, 
         message: "Thumbnail uploaded successfully",
-        thumbnailUrl: `/api/models/${modelId}/thumbnail`
+        thumbnailUrl: `/api/models/${modelId}/thumbnail`,
+        galleryImageId: galleryImageId
       });
       
     } catch (error) {
