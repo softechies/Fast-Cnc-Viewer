@@ -997,6 +997,7 @@ export class PostgresStorage implements IStorage {
         nameDe: tags.nameDe,
         nameFr: tags.nameFr,
         nameCs: tags.nameCs,
+        nameEs: tags.nameEs,
         slug: tags.slug,
         categoryId: tags.categoryId,
         color: tags.color,

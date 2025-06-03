@@ -3882,7 +3882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { nameEn, namePl, nameDe, nameFr, nameCs, slug, categoryId } = req.body;
+      const { nameEn, namePl, nameDe, nameFr, nameCs, nameEs, slug, categoryId } = req.body;
       
       if (!nameEn || !slug) {
         return res.status(400).json({ error: "Name (English) and slug are required" });
@@ -3894,6 +3894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nameDe: nameDe || nameEn,
         nameFr: nameFr || nameEn,
         nameCs: nameCs || nameEn,
+        nameEs: nameEs || nameEn,
         slug,
         categoryId
       });
