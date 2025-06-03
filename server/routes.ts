@@ -704,6 +704,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail = userEmail;
       }
       
+      // Przesyłanie pliku do S3 (jeśli skonfigurowane)
+      let filePath = file.path;
+      let s3Key = null;
+      
+      if (s3Service.isInitialized()) {
+        try {
+          s3Key = s3Service.generateS3Key(userId, file.originalname, 'step');
+          await s3Service.uploadFile(file.path, s3Key, 'application/step');
+          console.log(`STEP file uploaded to S3: ${s3Key}`);
+        } catch (s3Error) {
+          console.error('Failed to upload STEP file to S3, using local storage:', s3Error);
+          // Kontynuujemy z lokalnym przechowywaniem w przypadku błędu S3
+        }
+      }
+
       // Create initial model record
       const modelData = {
         userId: userId,
@@ -717,7 +732,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         metadata: {
           ...metadata,
-          filePath: file.path, // Store the file path for later processing
+          filePath: filePath, // Store the file path for later processing
+          s3Key: s3Key, // Dodajemy klucz S3 do metadanych
           conversionStatus: 'pending',
           userEmail: userEmail, // Zachowaj e-mail użytkownika w metadanych do przyszłego użytku
           autoShare: autoShare // Zapisz informację o autoShare w metadanych
@@ -1732,6 +1748,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEmail = userEmail;
       }
       
+      // Przesyłanie pliku do S3 (jeśli skonfigurowane)
+      let filePath = file.path;
+      let s3Key = null;
+      
+      if (s3Service.isInitialized()) {
+        try {
+          s3Key = s3Service.generateS3Key(userId, file.originalname, 'dxf');
+          const mimeType = format === 'DXF' ? 'application/dxf' : 'application/dwg';
+          await s3Service.uploadFile(file.path, s3Key, mimeType);
+          console.log(`${format} file uploaded to S3: ${s3Key}`);
+        } catch (s3Error) {
+          console.error(`Failed to upload ${format} file to S3, using local storage:`, s3Error);
+          // Kontynuujemy z lokalnym przechowywaniem w przypadku błędu S3
+        }
+      }
+
       // Ustawianie shareEnabled na podstawie parametru autoShare
       const isOwner = req.isAuthenticated();
       const shareId = nanoid(10); // Zawsze generujemy shareId, ale włączamy udostępnianie tylko jeśli autoShare = true
@@ -1749,7 +1781,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareEnabled: autoShare && req.isAuthenticated(), // Tylko dla zalogowanych użytkowników włączamy autoShare
         shareId: shareId,
         metadata: {
-          filePath: file.path,
+          filePath: filePath,
+          s3Key: s3Key, // Dodajemy klucz S3 do metadanych
           fileType: '2d',
           cadFormat: format.toLowerCase(),
           entities: 0, // To be determined by the renderer
