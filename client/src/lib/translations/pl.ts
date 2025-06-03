@@ -528,7 +528,15 @@ const translations = {
   architecture: "Architektura",
   gadget: "Gadżety",
   game: "Gry",
-  tools: "Narzędzia"
+  tools: "Narzędzia",
+
+  // Gallery and screenshot functionality
+  deleting: "Usuwanie",
+  image_deleted_successfully: "Obraz został pomyślnie usunięty",
+  image_delete_failed: "Nie udało się usunąć obrazu",
+  capture_screenshot: "Przechwyć Zrzut Ekranu",
+  screenshot_captured_successfully: "Zrzut ekranu przechwycony i ustawiony jako miniaturka",
+  screenshot_capture_failed: "Nie udało się przechwycić zrzutu ekranu"
 };
 
 export default translations;

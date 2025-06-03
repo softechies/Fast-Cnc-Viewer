@@ -971,6 +971,18 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
         >
           <Ruler className="h-6 w-6" />
         </Toggle>
+        {!isPublic && modelId && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={captureScreenshot}
+            disabled={isCapturingScreenshot}
+            className="bg-black/50 text-white hover:bg-black/70 border-none p-2"
+            title={t('capture_screenshot')}
+          >
+            <Camera className="h-6 w-6" />
+          </Button>
+        )}
       </div>
       
       {/* Measurement info */}
