@@ -173,6 +173,42 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
     },
   });
 
+  const deleteImageMutation = useMutation({
+    mutationFn: async (imageId: number) => {
+      const response = await fetch(`/api/models/${modelId}/gallery/${imageId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete image');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('success'),
+        description: t('image_deleted_successfully'),
+      });
+      refetch();
+      // Invalidate cache to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'gallery'] });
+      // Force thumbnail re-render in case deleted image was the thumbnail
+      setThumbnailKey(prev => prev + 1);
+      window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
+      if (onThumbnailUpdate) {
+        onThumbnailUpdate();
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: t('error'),
+        description: t('image_delete_failed'),
+        variant: "destructive",
+      });
+    },
+  });
+
   // Generate thumbnail mutation
   const generateThumbnailMutation = useMutation({
     mutationFn: async () => {
@@ -416,6 +452,14 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
                           className="bg-blue-500 hover:bg-blue-600"
                         >
                           {setAsThumbnailMutation.isPending ? `${t('processing')}...` : t('set_as_thumbnail')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteImageMutation.mutate(img.id)}
+                          disabled={deleteImageMutation.isPending || uploadGalleryMutation.isPending}
+                        >
+                          {deleteImageMutation.isPending ? `${t('deleting')}...` : t('delete')}
                         </Button>
                       </div>
                       

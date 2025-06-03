@@ -3494,6 +3494,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete gallery image
+  app.delete("/api/models/:modelId/gallery/:imageId", async (req: Request, res: Response) => {
+    try {
+      const modelId = parseInt(req.params.modelId);
+      const imageId = parseInt(req.params.imageId);
+      
+      // Sprawdź czy użytkownik ma dostęp do modelu
+      const hasAccess = await hasAccessToModel(req, modelId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const model = await storage.getModel(modelId);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+      
+      const galleryImages = await storage.getModelGallery(modelId);
+      const image = galleryImages.find(img => img.id === imageId);
+      
+      if (!image) {
+        return res.status(404).json({ error: "Gallery image not found" });
+      }
+
+      // Usuń plik z S3 jeśli istnieje
+      if (image.s3Key && s3Service.isInitialized()) {
+        try {
+          await s3Service.deleteFile(image.s3Key);
+          console.log(`Deleted gallery image from S3: ${image.s3Key}`);
+        } catch (s3Error) {
+          console.error('Failed to delete image from S3:', s3Error);
+          // Kontynuuj usuwanie z bazy danych nawet jeśli S3 nie działa
+        }
+      }
+
+      // Usuń z bazy danych
+      const deleted = await storage.deleteGalleryImage(imageId);
+      if (!deleted) {
+        return res.status(500).json({ error: "Failed to delete image from database" });
+      }
+
+      console.log(`Gallery image ${imageId} deleted successfully`);
+      res.json({ success: true, message: "Image deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting gallery image:", error);
+      res.status(500).json({ error: "Failed to delete image" });
+    }
+  });
+
   // Generate thumbnail from model file
   app.post("/api/models/:id/generate-thumbnail", async (req: Request, res: Response) => {
     try {
