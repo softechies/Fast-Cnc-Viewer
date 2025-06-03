@@ -506,6 +506,7 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
               <ModelViewer
                 modelId={modelId}
                 isPublic={false}
+                allowScreenshots={true}
               />
             </div>
             
