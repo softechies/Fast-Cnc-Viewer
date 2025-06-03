@@ -247,6 +247,8 @@ const translations = {
   view_share_link: "View Share Link",
   enable_sharing: "Share Model",
   disable_sharing: "Stop Sharing",
+  change_model_color: "Change Model Color",
+  custom_color: "Custom Color",
   open_link: "Open Link",
   no_models: "No Models Found",
   no_models_description: "Upload your first model to get started",

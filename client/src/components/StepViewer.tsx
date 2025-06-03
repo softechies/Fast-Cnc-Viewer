@@ -48,7 +48,17 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [modelColor, setModelColor] = useState('#4A90E2'); // Domyślny kolor niebieski
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const modelMeshRef = useRef<THREE.Mesh | null>(null);
+  const modelMaterialRef = useRef<THREE.MeshStandardMaterial | null>(null);
+
+  // Funkcja zmiany koloru modelu
+  const changeModelColor = (color: string) => {
+    setModelColor(color);
+    if (modelMaterialRef.current) {
+      const threeColor = new THREE.Color(color);
+      modelMaterialRef.current.color = threeColor;
+      modelMaterialRef.current.needsUpdate = true;
+    }
+  };
   
   // We only use STL rendering (no STEP)
   const renderMode = 'stl_only' as const;
@@ -551,6 +561,9 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
           modelGroup.name = "StepModel";
           sceneRef.current.add(modelGroup);
           
+          // Zachowaj referencję do materiału do zmiany kolorów
+          modelMaterialRef.current = stlLoadResult.material;
+          
           // Dopasuj kamerę do modelu, ale nie używaj funkcji fitCameraToObject, która nadpisuje wymiary
           if (cameraRef.current && controlsRef.current) {
             // Uzyskaj środek modelu dla kamery
@@ -974,6 +987,15 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
         >
           <Ruler className="h-6 w-6" />
         </Toggle>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setShowColorPicker(!showColorPicker)}
+          className="bg-black/50 text-white hover:bg-black/70 border-none p-2"
+          title="Change model color"
+        >
+          <Palette className="h-6 w-6" />
+        </Button>
         {!isPublic && modelId && (
           <Button 
             variant="outline" 
@@ -987,6 +1009,54 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
           </Button>
         )}
       </div>
+      
+      {/* Color picker panel */}
+      {showColorPicker && (
+        <div className="absolute top-2 right-40 z-10 bg-white rounded-lg shadow-lg p-4 border">
+          <h4 className="text-sm font-medium mb-3">{t('change_model_color')}</h4>
+          <div className="grid grid-cols-6 gap-2 mb-3">
+            {[
+              '#4A90E2', // Niebieski (domyślny)
+              '#FF6B6B', // Czerwony
+              '#4ECDC4', // Turkusowy
+              '#45B7D1', // Jasnoniebieski
+              '#96CEB4', // Zielony
+              '#FFEAA7', // Żółty
+              '#DDA0DD', // Fioletowy
+              '#FFA07A', // Łososiowy
+              '#98D8C8', // Miętowy
+              '#F7DC6F', // Złoty
+              '#BB8FCE', // Lawenda
+              '#85C1E9', // Błękitny
+              '#82E0AA', // Jasny zielony
+              '#F8C471', // Pomarańczowy
+              '#F1948A', // Różowy
+              '#D7DBDD', // Szary
+              '#2C3E50', // Ciemny granat
+              '#E74C3C'  // Ciemny czerwony
+            ].map((color) => (
+              <button
+                key={color}
+                onClick={() => changeModelColor(color)}
+                className={`w-8 h-8 rounded-full border-2 hover:scale-110 transition-transform ${
+                  modelColor === color ? 'border-gray-800' : 'border-gray-300'
+                }`}
+                style={{ backgroundColor: color }}
+                title={color}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-600">{t('custom_color')}:</label>
+            <input
+              type="color"
+              value={modelColor}
+              onChange={(e) => changeModelColor(e.target.value)}
+              className="w-8 h-8 rounded border cursor-pointer"
+            />
+          </div>
+        </div>
+      )}
       
       {/* Measurement info */}
       {measureMode && (
