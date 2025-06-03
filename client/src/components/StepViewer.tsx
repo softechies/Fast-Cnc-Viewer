@@ -5,10 +5,11 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Ruler } from 'lucide-react';
+import { RefreshCw, Ruler, Camera } from 'lucide-react';
 import { loadSTLModel } from '@/lib/step-parser';
 import { Toggle } from '@/components/ui/toggle';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 
 // Interface for STL File Information
 interface StlFileInfo {
@@ -27,6 +28,7 @@ interface StepViewerProps {
 export default function StepViewer({ modelId, isPublic, publicId }: StepViewerProps) {
   // Get translation function
   const { t } = useLanguage();
+  const { toast } = useToast();
   
   // Refs for Three.js elements
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,7 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
   const [stlFileInfo, setStlFileInfo] = useState<StlFileInfo | null>(null);
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Initializing...");
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   
   // We only use STL rendering (no STEP)
   const renderMode = 'stl_only' as const;
@@ -875,6 +878,71 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
     // Update controls after scaling
     controls.update();
   }
+
+  // Funkcja do przechwytywania screenshotu z przeglądarki 3D
+  const captureScreenshot = async () => {
+    if (!rendererRef.current || !modelId || isPublic) {
+      toast({
+        title: t('error'),
+        description: 'Cannot capture screenshot - renderer not available or model is public',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCapturingScreenshot(true);
+
+    try {
+      // Renderuj aktualną scenę
+      if (sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+
+      // Pobierz canvas jako blob
+      const canvas = rendererRef.current.domElement;
+      
+      // Konwertuj canvas do blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Failed to create blob'));
+        }, 'image/png', 0.9);
+      });
+
+      // Przygotuj formData do wysłania
+      const formData = new FormData();
+      formData.append('thumbnail', blob, 'screenshot.png');
+
+      // Wyślij screenshot jako nową miniaturkę
+      const response = await fetch(`/api/models/${modelId}/thumbnail`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload screenshot');
+      }
+
+      toast({
+        title: t('success'),
+        description: t('screenshot_captured_successfully'),
+      });
+
+      // Powiadom inne komponenty o aktualizacji miniaturki
+      window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
+
+    } catch (error) {
+      console.error('Error capturing screenshot:', error);
+      toast({
+        title: t('error'),
+        description: t('screenshot_capture_failed'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsCapturingScreenshot(false);
+    }
+  };
   
   return (
     <div className="relative w-full h-full">
