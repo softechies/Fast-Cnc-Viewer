@@ -60,6 +60,19 @@ export function GallerySection({ modelId, modelName, onThumbnailUpdate }: Galler
     }
   }, [galleryImages, modelId]);
 
+  // Nasłuchuj na zdarzenia odświeżania galerii
+  React.useEffect(() => {
+    const handleGalleryUpdate = () => {
+      refetch();
+    };
+
+    window.addEventListener(`gallery-updated-${modelId}`, handleGalleryUpdate);
+    
+    return () => {
+      window.removeEventListener(`gallery-updated-${modelId}`, handleGalleryUpdate);
+    };
+  }, [modelId, refetch]);
+
   // Mutacja do przesyłania obrazów
   const uploadImagesMutation = useMutation({
     mutationFn: async (files: FileList) => {

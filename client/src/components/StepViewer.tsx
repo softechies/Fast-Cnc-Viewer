@@ -945,8 +945,9 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
         description: t('screenshot_captured_successfully'),
       });
 
-      // Powiadom inne komponenty o aktualizacji miniaturki
+      // Powiadom inne komponenty o aktualizacji miniaturki i galerii
       window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
+      window.dispatchEvent(new CustomEvent(`gallery-updated-${modelId}`));
 
     } catch (error) {
       console.error('Error capturing screenshot:', error);
