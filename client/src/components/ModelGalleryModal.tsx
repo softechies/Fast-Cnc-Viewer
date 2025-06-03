@@ -202,10 +202,14 @@ export function ModelGalleryModal({ modelId, modelName, onThumbnailUpdate }: Mod
         // Dispatch custom event to notify ModelThumbnail components
         window.dispatchEvent(new CustomEvent(`thumbnail-updated-${modelId}`));
         
-        // Invalidate cache to refresh thumbnails sequentially to avoid race conditions
+        // Invalidate cache to refresh thumbnails and gallery sequentially to avoid race conditions
         await queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
         await queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'thumbnail'] });
         await queryClient.invalidateQueries({ queryKey: [`/api/models/${modelId}/thumbnail`] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/models', modelId, 'gallery'] });
+        
+        // Refresh the gallery data in this modal
+        refetch();
         
         if (onThumbnailUpdate) {
           onThumbnailUpdate();

@@ -3571,6 +3571,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Jeśli S3 jest włączone, prześlij miniaturkę używając buffer zamiast stream
       let s3UploadSuccess = false;
+      let galleryImageId = null;
+      
       if (s3Service.isInitialized()) {
         try {
           const thumbnailKey = `thumbnails/${req.user!.id}/model_${modelId}_thumbnail.png`;
@@ -3579,16 +3581,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateModelThumbnail(modelId, thumbnailKey);
           s3UploadSuccess = true;
           console.log(`Thumbnail uploaded to S3 for model ${modelId}`);
+          
+          // Dodaj wygenerowaną miniaturkę do galerii modelu
+          try {
+            const galleryImage = await storage.addGalleryImage({
+              modelId: modelId,
+              filename: `generated_thumbnail_${modelId}_${Date.now()}.png`,
+              originalName: 'Generated Thumbnail',
+              filesize: thumbnailBuffer.length,
+              mimeType: 'image/png',
+              displayOrder: 0,
+              isThumbnail: true,
+              s3Key: thumbnailKey
+            });
+            galleryImageId = galleryImage.id;
+            console.log(`Generated thumbnail added to gallery with ID: ${galleryImageId}`);
+          } catch (galleryError) {
+            console.error('Failed to add generated thumbnail to gallery:', galleryError);
+          }
         } catch (s3Error) {
           console.error('Failed to upload thumbnail to S3:', s3Error);
           console.log('Thumbnail will remain stored locally');
+        }
+      } else {
+        // Dla lokalnego storage, również dodaj do galerii
+        try {
+          const thumbnailBuffer = fs.readFileSync(thumbnailPath);
+          const galleryImage = await storage.addGalleryImage({
+            modelId: modelId,
+            filename: `generated_thumbnail_${modelId}_${Date.now()}.png`,
+            originalName: 'Generated Thumbnail',
+            filesize: thumbnailBuffer.length,
+            mimeType: 'image/png',
+            displayOrder: 0,
+            isThumbnail: true,
+            s3Key: null
+          });
+          galleryImageId = galleryImage.id;
+          console.log(`Generated thumbnail added to local gallery with ID: ${galleryImageId}`);
+        } catch (galleryError) {
+          console.error('Failed to add generated thumbnail to local gallery:', galleryError);
         }
       }
 
       res.json({ 
         success: true, 
         message: s3UploadSuccess ? "Thumbnail generated and uploaded to cloud storage" : "Thumbnail generated locally",
-        thumbnailUrl: `/api/models/${modelId}/thumbnail?t=${Date.now()}`
+        thumbnailUrl: `/api/models/${modelId}/thumbnail?t=${Date.now()}`,
+        galleryImageId: galleryImageId
       });
     } catch (error) {
       console.error("Error generating thumbnail:", error);
