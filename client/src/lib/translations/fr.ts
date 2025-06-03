@@ -44,7 +44,10 @@ const translations = {
   confirm: "Confirmer",
   
   // Auth Page
-  app_description: "Une application web complète pour l'analyse et la visualisation avancées de fichiers CAO 3D",
+  app_description: "Plateforme entièrement gratuite pour visualiser les fichiers CAO. Stockez les modèles STL, STEP, DXF et DWG directement dans votre navigateur. Partagez des fichiers protégés par mot de passe et parcourez les modèles CAO de n'importe où.",
+  app_title: "Visionneuse Professionnelle de Fichiers CAO",
+  supported_formats: "Formats Supportés",
+  upload_file: "Télécharger Fichier",
   feature_1_title: "Visualisation avancée",
   feature_1_desc: "Visualisez et analysez des modèles 3D avec précision et détail",
   feature_2_title: "Partage sécurisé",
