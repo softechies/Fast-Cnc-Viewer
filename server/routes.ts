@@ -3296,12 +3296,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Brak uprawnień do modyfikacji tego modelu" });
       }
       
-      // Walidacja: sprawdź czy model jest udostępniony z hasłem
-      if (isPublic && model.shareEnabled && model.sharePassword && model.sharePassword.trim() !== '') {
-        return res.status(400).json({ 
-          error: "Nie można dodać do publicznej biblioteki modelu chronionego hasłem. Najpierw usuń udostępnianie prywatne lub usuń hasło.",
-          requiresPasswordRemoval: true
-        });
+      // Walidacje przy dodawaniu do publicznej biblioteki
+      if (isPublic) {
+        const validationErrors = [];
+        
+        // 1. Sprawdź czy model jest udostępniony z hasłem
+        if (model.shareEnabled && model.sharePassword && model.sharePassword.trim() !== '') {
+          return res.status(400).json({ 
+            error: "Nie można dodać do publicznej biblioteki modelu chronionego hasłem. Najpierw usuń udostępnianie prywatne lub usuń hasło.",
+            requiresPasswordRemoval: true
+          });
+        }
+        
+        // 2. Sprawdź czy model ma miniaturkę
+        const metadata = model.metadata as any;
+        const hasThumbnail = metadata?.thumbnailPath || 
+                            (fs.existsSync && fs.existsSync(getThumbnailPath(modelId)));
+        if (!hasThumbnail) {
+          validationErrors.push("Model musi mieć miniaturkę");
+        }
+        
+        // 3. Sprawdź czy model ma opis
+        try {
+          const description = await storage.getModelDescription(modelId);
+          if (!description || (!description.descriptionEn && !description.descriptionPl)) {
+            validationErrors.push("Model musi mieć opis w co najmniej jednym języku");
+          }
+        } catch (descError) {
+          validationErrors.push("Model musi mieć opis");
+        }
+        
+        // 4. Sprawdź czy model ma tagi
+        try {
+          const modelTags = await storage.getModelTags(modelId);
+          if (!modelTags || modelTags.length === 0) {
+            validationErrors.push("Model musi mieć co najmniej jeden tag");
+          }
+        } catch (tagsError) {
+          validationErrors.push("Model musi mieć tagi");
+        }
+        
+        // Jeśli są błędy walidacji, zwróć je
+        if (validationErrors.length > 0) {
+          return res.status(400).json({ 
+            error: "Model nie spełnia wymagań publicznej biblioteki",
+            validationErrors: validationErrors
+          });
+        }
       }
       
       // Aktualizuj status publicznej biblioteki
