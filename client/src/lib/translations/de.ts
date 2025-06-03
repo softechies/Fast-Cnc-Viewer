@@ -532,7 +532,8 @@ const translations = {
   category_update_failed: "Die Modellkategorie konnte nicht aktualisiert werden",
   tags_updated: "Tags Aktualisiert",
   tags_updated_successfully: "Die Modell-Tags wurden erfolgreich aktualisiert",
-  tags_update_failed: "Die Modell-Tags konnten nicht aktualisiert werden"
+  tags_update_failed: "Die Modell-Tags konnten nicht aktualisiert werden",
+  description_saved_successfully: "Beschreibung erfolgreich gespeichert"
 };
 
 export default translations;

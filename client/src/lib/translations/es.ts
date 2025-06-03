@@ -527,7 +527,8 @@ const translations = {
   category_update_failed: "No se pudo actualizar la categoría del modelo",
   tags_updated: "Etiquetas Actualizadas",
   tags_updated_successfully: "Las etiquetas del modelo han sido actualizadas exitosamente",
-  tags_update_failed: "No se pudieron actualizar las etiquetas del modelo"
+  tags_update_failed: "No se pudieron actualizar las etiquetas del modelo",
+  description_saved_successfully: "Descripción guardada exitosamente"
 };
 
 export default translations;

@@ -531,7 +531,8 @@ const translations = {
   category_update_failed: "Nepodařilo se aktualizovat kategorii modelu",
   tags_updated: "Tagy Aktualizovány",
   tags_updated_successfully: "Tagy modelu byly úspěšně aktualizovány",
-  tags_update_failed: "Nepodařilo se aktualizovat tagy modelu"
+  tags_update_failed: "Nepodařilo se aktualizovat tagy modelu",
+  description_saved_successfully: "Popis byl úspěšně uložen"
 };
 
 export default translations;

@@ -531,7 +531,8 @@ const translations = {
   category_update_failed: "Échec de la mise à jour de la catégorie du modèle",
   tags_updated: "Tags Mis à Jour",
   tags_updated_successfully: "Les tags du modèle ont été mis à jour avec succès",
-  tags_update_failed: "Échec de la mise à jour des tags du modèle"
+  tags_update_failed: "Échec de la mise à jour des tags du modèle",
+  description_saved_successfully: "Description sauvegardée avec succès"
 };
 
 export default translations;
