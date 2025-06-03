@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/LanguageContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen, Download } from "lucide-react";
+import { Loader2, Lock, Unlock, Trash2, Share, FileText, Edit, ExternalLink, Copy, ArrowLeft, Plus, BookOpen, Download, Camera, ImageIcon, X } from "lucide-react";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import Header from "@/components/Header";
@@ -27,10 +27,12 @@ import UploadModal from "@/components/UploadModal";
 import CadUploader from "@/components/CadUploader";
 import { useModelUpload } from "@/lib/hooks";
 import { ModelThumbnail } from "@/components/ModelThumbnail";
-import { ModelGalleryModal } from "@/components/ModelGalleryModal";
+
 import { Textarea } from "@/components/ui/textarea";
 import { ModelCategorization } from "@/components/ModelCategorization";
 import { ModelDescriptionDialog } from "@/components/ModelDescriptionDialog";
+import ModelViewer from "@/components/ModelViewer";
+import { Progress } from "@/components/ui/progress";
 
 // Typ modelu do wyświetlenia
 interface ClientModel {
@@ -63,6 +65,8 @@ export default function ClientDashboardPage() {
   const [modelDescriptions, setModelDescriptions] = useState<Record<string, string>>({});
   const [modelTags, setModelTags] = useState<Record<string, string>>({});
   const [selectedLanguages, setSelectedLanguages] = useState<Record<number, string>>({});
+  const [showModelViewer, setShowModelViewer] = useState(false);
+  const [currentModelForScreenshot, setCurrentModelForScreenshot] = useState<ClientModel | null>(null);
   
   // Konfiguracja uploadera plików
   const { isUploading, uploadProgress, upload } = useModelUpload({
@@ -507,15 +511,20 @@ export default function ClientDashboardPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <ModelGalleryModal 
-                              modelId={model.id} 
-                              modelName={model.filename}
-                              onThumbnailUpdate={() => {
-                                // Odśwież listę modeli aby zaktualizować miniaturki
-                                refetch();
-                                queryClient.invalidateQueries({ queryKey: ['/api/client/models'] });
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setExpandedModelId(expandedModelId === model.id ? null : model.id);
+                                if (!selectedLanguages[model.id]) {
+                                  setSelectedLanguages(prev => ({ ...prev, [model.id]: currentLanguage }));
+                                }
                               }}
-                            />
+                              className="w-full"
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              {t('gallery_management')}
+                            </Button>
                           </TableCell>
                           <TableCell>
                             <Select
