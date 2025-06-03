@@ -331,6 +331,7 @@ export function GallerySection({ modelId, modelName, onThumbnailUpdate }: Galler
               <ModelViewer
                 modelId={modelId}
                 isPublic={false}
+                allowScreenshots={true}
               />
             </div>
             
