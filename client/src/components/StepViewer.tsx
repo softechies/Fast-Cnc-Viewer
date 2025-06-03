@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Ruler, Camera } from 'lucide-react';
+import { RefreshCw, Ruler, Camera, Palette } from 'lucide-react';
 import { loadSTLModel } from '@/lib/step-parser';
 import { Toggle } from '@/components/ui/toggle';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -46,6 +46,9 @@ export default function StepViewer({ modelId, isPublic, publicId }: StepViewerPr
   const [isLoadingStlFile, setIsLoadingStlFile] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Initializing...");
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
+  const [modelColor, setModelColor] = useState('#4A90E2'); // Domyślny kolor niebieski
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const modelMeshRef = useRef<THREE.Mesh | null>(null);
   
   // We only use STL rendering (no STEP)
   const renderMode = 'stl_only' as const;

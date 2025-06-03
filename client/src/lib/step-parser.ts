@@ -6,9 +6,9 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { ModelTree, ModelInfo } from '@shared/schema';
 
 // Material definitions for models
-const createMaterials = () => ({
+const createMaterials = (color: number = 0x3b82f6) => ({
   main: new THREE.MeshStandardMaterial({ 
-    color: 0x3b82f6,  // Blue
+    color: color,
     metalness: 0.5,
     roughness: 0.3,
     flatShading: false
@@ -28,6 +28,7 @@ const createMaterials = () => ({
 export interface STLLoadResult {
   model: THREE.Group;
   scale: number;  // Zastosowany współczynnik skalowania
+  material: THREE.MeshStandardMaterial;  // Referencja do materiału do zmiany koloru
   originalDimensions?: {  // Oryginalne wymiary przed skalowaniem
     width: number;
     height: number;
@@ -169,10 +170,11 @@ export function loadSTLModel(
             console.log("Pominięto generowanie wireframe - zbyt złożona geometria");
           }
           
-          // Zwróć obiekt zawierający model, skalę i oryginalne wymiary
+          // Zwróć obiekt zawierający model, skalę, materiał i oryginalne wymiary
           resolve({
             model: group,
             scale: scale,
+            material: materials.main,
             originalDimensions: originalDimensions
           });
         } catch (processingError: any) {
@@ -231,10 +233,19 @@ function createErrorModel(errorMessage: string, resolve: (value: STLLoadResult) 
   // Zapisz informację o błędzie jako właściwość grupy
   (fallbackGroup as any).errorMessage = errorMessage;
   
+  // Stwórz podstawowy materiał dla modelu błędu
+  const errorMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xff0000,  // Czerwony dla błędu
+    metalness: 0.5,
+    roughness: 0.3,
+    flatShading: false
+  });
+
   // Zwróć obiekt zgodny z interfejsem STLLoadResult
   resolve({
     model: fallbackGroup,
     scale: 1.0,
+    material: errorMaterial,
     originalDimensions: {
       width: 0,   // X (szerokość)
       depth: 0,   // Y (głębokość) 
