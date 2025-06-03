@@ -78,6 +78,7 @@ export const tags = pgTable("tags", {
   nameDe: text("name_de").notNull(),
   nameFr: text("name_fr").notNull(),
   nameCs: text("name_cs").notNull(),
+  nameEs: text("name_es").notNull(),
   slug: text("slug").notNull().unique(),
   categoryId: integer("category_id").references(() => categories.id),
   color: text("color").default("#6B7280"),
