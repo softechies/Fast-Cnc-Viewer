@@ -113,6 +113,7 @@ const translations = {
   zoom: "Přiblížení",
   fitToView: "Přizpůsobit pohledu",
   modelDetails: "Detaily modelu",
+  model_details: "Detaily modelu",
   format: "Formát",
   fileSize: "Velikost souboru",
   created: "Vytvořeno",

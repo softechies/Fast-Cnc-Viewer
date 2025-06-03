@@ -114,6 +114,7 @@ const translations = {
   zoom: "Zoom",
   fitToView: "An Ansicht anpassen",
   modelDetails: "Modelldetails",
+  model_details: "Modelldetails",
   format: "Format",
   fileSize: "Dateigröße",
   created: "Erstellt",

@@ -219,6 +219,7 @@ const translations = {
   
   // Gallery modal translations
   gallery_management: "Gallery Management",
+  model_details: "Model Details",
   manage_model_gallery: "Manage gallery for model {modelName}",
   current_thumbnail: "Current Thumbnail",
   thumbnail_active: "This thumbnail is currently active",

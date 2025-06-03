@@ -113,6 +113,7 @@ const translations = {
   zoom: "Zoom",
   fitToView: "Ajuster à la vue",
   modelDetails: "Détails du modèle",
+  model_details: "Détails du modèle",
   format: "Format",
   fileSize: "Taille du fichier",
   created: "Créé",
