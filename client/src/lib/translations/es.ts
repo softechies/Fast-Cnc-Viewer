@@ -406,7 +406,8 @@ const translations = {
     gallery: "Galería",
     filename: "Nombre del archivo",
     format: "Formato",
-    filesize: "Tamaño del archivo"
+    filesize: "Tamaño del archivo",
+    tags: "Etiquetas"
   },
 
   // Services section translations
@@ -473,8 +474,19 @@ const translations = {
   // Additional missing translations
   set_as_thumbnail: "Establecer como miniatura",
   thumbnail_active: "Miniatura activa",
-
-
+  
+  // Tags and description management
+  save_tags: "Guardar etiquetas",
+  tags_help_text: "Ingrese etiquetas separadas por comas. Se traducirán automáticamente a todos los idiomas.",
+  model_description: "Descripción del modelo",
+  save_description: "Guardar descripción",
+  auto_translation_note: "La descripción se traducirá automáticamente a todos los idiomas compatibles.",
+  
+  // Gallery management
+  select_image_files: "Seleccionar archivos de imagen",
+  images_in_gallery: "imágenes en la galería",
+  capture_screenshot: "Capturar pantalla",
+  uploaded_images: "Imágenes subidas"
 };
 
 export default translations;
