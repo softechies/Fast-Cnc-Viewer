@@ -13,10 +13,23 @@ import sys
 import json
 import traceback
 import numpy as np
+import math
+import ezdxf
+from typing import Dict, Any, List, Tuple, Optional
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Constants for SVG generation
+SVG_PRECISION = 6  # Decimal places for SVG coordinates
+DEFAULT_MARGIN_PERCENT = 0.1  # 10% margin
+MIN_DIMENSION = 200  # Minimum dimension in SVG units
+MAX_DIMENSION = 1000  # Maximum dimension in SVG units
 
 # Importuj bibliotekę ezdxf jako fallback
 try:
-    import ezdxf
     from ezdxf.addons import r12writer
     HAVE_EZDXF = True
 except ImportError:
@@ -190,324 +203,239 @@ def parse_dxf_file(dxf_path):
         }
 
 
-def convert_dxf_to_svg(dxf_path, svg_path=None):
-    """Konwersja pliku DXF do SVG"""
-    try:
-        # Zapisz informację debugowania
-        with open("/tmp/dxf_debug.log", "a") as f:
-            f.write(f"Converting DXF: {dxf_path}\n")
+def normalize_scale(width: float, height: float) -> Tuple[float, float]:
+    """
+    Normalize drawing scale to fit within reasonable SVG dimensions while preserving aspect ratio.
+    """
+    aspect_ratio = width / height if height != 0 else 1
+    
+    if width > height:
+        if width > MAX_DIMENSION:
+            width = MAX_DIMENSION
+            height = width / aspect_ratio
+        elif width < MIN_DIMENSION:
+            width = MIN_DIMENSION
+            height = width / aspect_ratio
+    else:
+        if height > MAX_DIMENSION:
+            height = MAX_DIMENSION
+            width = height * aspect_ratio
+        elif height < MIN_DIMENSION:
+            height = MIN_DIMENSION
+            width = height * aspect_ratio
+            
+    return width, height
 
-        # Sprawdź czy plik istnieje
-        if not os.path.exists(dxf_path):
-            with open("/tmp/dxf_debug.log", "a") as f:
-                f.write(f"File does not exist: {dxf_path}\n")
-            raise FileNotFoundError(f"DXF file not found: {dxf_path}")
-            
-        # Sprawdź rozmiar pliku
-        file_size = os.path.getsize(dxf_path)
-        if file_size == 0:
-            with open("/tmp/dxf_debug.log", "a") as f:
-                f.write(f"File is empty: {dxf_path}\n")
-            raise ValueError("DXF file is empty")
-            
-        # Zapisz zawartość pliku do debugowania
-        with open("/tmp/dxf_debug.log", "a") as f:
-            f.write(f"File size: {file_size} bytes\n")
-            with open(dxf_path, 'r', errors='ignore') as dxf_file:
-                head = dxf_file.read(100)  # Pierwsze 100 bajtów
-                f.write(f"File start: {repr(head)}\n")
+def detect_units(doc: ezdxf.document.Drawing) -> Tuple[str, float]:
+    """
+    Detect the units used in the DXF file and return the appropriate scale factor.
+    """
+    try:
+        # Get units from DXF header
+        dxf_units = doc.header.get('$INSUNITS', 4)  # Default to mm (4)
         
-        # Wczytaj plik DXF z obsługą różnych formatów i kodowań
-        try:
-            doc = ezdxf.readfile(dxf_path)
-        except Exception as e:
-            with open("/tmp/dxf_debug.log", "a") as f:
-                f.write(f"Standard readfile failed: {str(e)}\n")
-            
-            # Spróbuj otworzyć jako strumień z różnymi kodowaniami
-            for encoding in ['utf-8', 'latin1', 'ascii', 'cp1250', 'cp1252']:
-                try:
-                    with open("/tmp/dxf_debug.log", "a") as f:
-                        f.write(f"Trying encoding: {encoding}\n")
-                    with open(dxf_path, encoding=encoding, errors='ignore') as fp:
-                        doc = ezdxf.read(fp)
-                    with open("/tmp/dxf_debug.log", "a") as f:
-                        f.write(f"Success with encoding: {encoding}\n")
-                    break
-                except Exception as e2:
-                    with open("/tmp/dxf_debug.log", "a") as f:
-                        f.write(f"Failed with encoding {encoding}: {str(e2)}\n")
-            else:
-                # Jeśli żadne kodowanie nie zadziałało, zwróć ogólny SVG z informacją o błędzie
-                with open("/tmp/dxf_debug.log", "a") as f:
-                    f.write("All encoding attempts failed\n")
-                raise ValueError(f"Could not read DXF file with any encoding: {str(e)}")
+        # Map DXF unit codes to unit names and scale factors (relative to mm)
+        unit_map = {
+            1: ("in", 25.4),      # inches
+            2: ("ft", 304.8),     # feet
+            3: ("mi", 1609344.0), # miles
+            4: ("mm", 1.0),       # millimeters
+            5: ("cm", 10.0),      # centimeters
+            6: ("m", 1000.0),     # meters
+            7: ("km", 1000000.0), # kilometers
+            8: ("µm", 0.001),     # micrometers
+            9: ("dm", 100.0),     # decimeters
+        }
         
-        # Pobierz modelspace
+        unit_info = unit_map.get(dxf_units, ("mm", 1.0))
+        return unit_info[0], unit_info[1]
+    except Exception as e:
+        logger.warning(f"Error detecting units: {e}")
+        return "mm", 1.0
+
+def get_entity_bounds(entity) -> Tuple[float, float, float, float]:
+    """
+    Get the bounding box of a DXF entity.
+    Returns (min_x, min_y, max_x, max_y)
+    """
+    try:
+        points = []
+        if hasattr(entity, 'get_points'):
+            points.extend(entity.get_points())
+        elif entity.dxftype() == 'LINE':
+            points.extend([entity.dxf.start, entity.dxf.end])
+        elif entity.dxftype() == 'CIRCLE':
+            center = entity.dxf.center
+            radius = entity.dxf.radius
+            points.extend([
+                (center[0] - radius, center[1] - radius),
+                (center[0] + radius, center[1] + radius)
+            ])
+        elif entity.dxftype() == 'ARC':
+            center = entity.dxf.center
+            radius = entity.dxf.radius
+            start_angle = math.radians(entity.dxf.start_angle)
+            end_angle = math.radians(entity.dxf.end_angle)
+            
+            # Add center and points at 90-degree intervals within the arc
+            points.append(center)
+            current_angle = start_angle
+            while current_angle <= end_angle:
+                points.append((
+                    center[0] + radius * math.cos(current_angle),
+                    center[1] + radius * math.sin(current_angle)
+                ))
+                current_angle += math.pi/2
+            
+            # Add end point
+            points.append((
+                center[0] + radius * math.cos(end_angle),
+                center[1] + radius * math.sin(end_angle)
+            ))
+            
+        if not points:
+            return (0, 0, 0, 0)
+            
+        x_coords = [p[0] for p in points]
+        y_coords = [p[1] for p in points]
+        return (
+            min(x_coords),
+            min(y_coords),
+            max(x_coords),
+            max(y_coords)
+        )
+    except Exception as e:
+        logger.warning(f"Error getting entity bounds: {e}")
+        return (0, 0, 0, 0)
+
+def convert_dxf_to_svg(dxf_path: str, svg_path: Optional[str] = None) -> str:
+    """
+    Convert DXF file to SVG with improved scale preservation and centering.
+    """
+    try:
+        # Load DXF file
+        doc = ezdxf.readfile(dxf_path)
         modelspace = doc.modelspace()
         
-        # Określenie wymiarów dokumentu
-        min_x, min_y = float('inf'), float('inf')
-        max_x, max_y = float('-inf'), float('-inf')
+        # Detect units and get scale factor
+        unit_name, scale_factor = detect_units(doc)
+        logger.info(f"Detected units: {unit_name} (scale factor: {scale_factor})")
+        
+        # Calculate bounds
+        min_x = min_y = float('inf')
+        max_x = max_y = float('-inf')
         
         for entity in modelspace:
-            if hasattr(entity, 'get_points'):
-                try:
-                    points = entity.get_points()
-                    for point in points:
-                        min_x = min(min_x, point[0])
-                        min_y = min(min_y, point[1])
-                        max_x = max(max_x, point[0])
-                        max_y = max(max_y, point[1])
-                except Exception as e:
-                    with open("/tmp/dxf_debug.log", "a") as f:
-                        f.write(f"Error getting points: {str(e)}\n")
+            entity_min_x, entity_min_y, entity_max_x, entity_max_y = get_entity_bounds(entity)
+            min_x = min(min_x, entity_min_x)
+            min_y = min(min_y, entity_min_y)
+            max_x = max(max_x, entity_max_x)
+            max_y = max(max_y, entity_max_y)
         
-        # Jeśli nie znaleziono encji, ustaw domyślne wymiary
         if min_x == float('inf'):
-            min_x, min_y = 0, 0
-            max_x, max_y = 100, 100
+            min_x = min_y = 0
+            max_x = max_y = 100
         
-        width = max_x - min_x
-        height = max_y - min_y
+        # Calculate dimensions
+        width = (max_x - min_x) * scale_factor
+        height = (max_y - min_y) * scale_factor
         
-        # Dodaj margines
-        margin = max(width, height) * 0.1
-        min_x -= margin
-        min_y -= margin
-        max_x += margin
-        max_y += margin
-        width = max_x - min_x
-        height = max_y - min_y
+        # Add margin
+        margin = max(width, height) * DEFAULT_MARGIN_PERCENT
+        min_x -= margin / scale_factor
+        min_y -= margin / scale_factor
+        max_x += margin / scale_factor
+        max_y += margin / scale_factor
         
-        # Flip Y coordinates for SVG (w SVG oś Y rośnie w dół, w CAD oś Y rośnie w górę)
-        # Zamieniamy współrzędne Y i obliczamy nowe granice
-        min_y_flipped = -max_y
-        max_y_flipped = -min_y
-        height_flipped = max_y_flipped - min_y_flipped
+        # Normalize scale for SVG
+        svg_width, svg_height = normalize_scale(width, height)
+        scale = min(svg_width / width, svg_height / height)
         
-        # Stwórz SVG
-        lines = []
-        
-        # Używamy stałego rozmiaru SVG 100% i zmieniamy zakres viewBox
-        svg_width = "100%"
-        svg_height = "100%"
-        
-        # Całkowicie przebudowane podejście - używamy stałego viewBoxa i skalujemy zawartość
-        
-        # Znajdujemy punkt środkowy oryginalnego rysunku
+        # Calculate translation to center the drawing
         center_x = (min_x + max_x) / 2
         center_y = (min_y + max_y) / 2
         
-        # Dodajemy 10% marginesu do lepszej wizualizacji
-        padding = max(width, height) * 0.1
-        adjusted_width = width + 2 * padding
-        adjusted_height = height + 2 * padding
+        # Start SVG
+        lines = []
+        lines.append('<?xml version="1.0" encoding="UTF-8"?>')
+        lines.append('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">')
+        lines.append(f'<svg version="1.1" width="{svg_width:.{SVG_PRECISION}f}" height="{svg_height:.{SVG_PRECISION}f}" ' +
+                    f'viewBox="{min_x:.{SVG_PRECISION}f} {min_y:.{SVG_PRECISION}f} {(max_x-min_x):.{SVG_PRECISION}f} {(max_y-min_y):.{SVG_PRECISION}f}" ' +
+                    'xmlns="http://www.w3.org/2000/svg">')
         
-        # Zapewniamy minimalne wymiary, by uniknąć zbyt małych rysunków
-        min_dimension = 200  # zwiększamy minimalny wymiar dla lepszej widoczności
-        if adjusted_width < min_dimension:
-            adjusted_width = min_dimension
-        if adjusted_height < min_dimension:
-            adjusted_height = min_dimension
-            
-        # Przekształcamy układ współrzędnych, by środek rysunku był w (0,0)
-        # To jest kluczowa zmiana - przesuwamy wszystkie elementy tak, by centrum rysunku było na środku
-        offset_x = -center_x
-        offset_y = -center_y
-            
-        # Ustalamy viewBox jako symetryczny prostokąt centrowany na (0,0)
-        half_width = adjusted_width / 2
-        half_height = adjusted_height / 2
+        # Add metadata
+        lines.append('<metadata>')
+        lines.append(f'<units>{unit_name}</units>')
+        lines.append(f'<scale>{scale:.{SVG_PRECISION}f}</scale>')
+        lines.append('</metadata>')
         
-        view_min_x = -half_width
-        view_min_y = -half_height
-        view_max_x = half_width
-        view_max_y = half_height
+        # Transform group for proper orientation
+        lines.append(f'<g transform="scale(1,-1) translate({-center_x:.{SVG_PRECISION}f},{-center_y:.{SVG_PRECISION}f})">')
         
-        # W SVG oś Y rośnie w dół, przeciwnie niż w układzie kartezjańskim
-        # Odwracamy współrzędne Y
-        view_min_y_flipped = -view_max_y
-        view_max_y_flipped = -view_min_y
-        view_height_flipped = adjusted_height
-        
-        # Zapisujemy informacje o skalowaniu do debugowania
-        with open("/tmp/dxf_debug.log", "a") as f:
-            f.write(f"Drawing bounds: min_x={min_x}, min_y={min_y}, max_x={max_x}, max_y={max_y}\n")
-            f.write(f"Width: {width}, Height: {height}, Center: ({center_x}, {center_y})\n")
-            f.write(f"ViewBox: {view_min_x} {view_min_y_flipped} {adjusted_width} {view_height_flipped}\n")
-        
-        # Używamy ustalonego viewBox, który wymusza wyśrodkowanie
-        fixed_viewbox_min_x = -100  # Stały zakres viewBox
-        fixed_viewbox_min_y = -100
-        fixed_viewbox_width = 200
-        fixed_viewbox_height = 200
-        
-        lines.append(f'''<svg xmlns="http://www.w3.org/2000/svg" 
-          viewBox="{fixed_viewbox_min_x} {fixed_viewbox_min_y} {fixed_viewbox_width} {fixed_viewbox_height}"
-          width="{svg_width}" height="{svg_height}"
-          data-units="mm"
-          preserveAspectRatio="xMidYMid meet">''')
-        
-        # Dodajemy tło do lepszej wizualizacji - używamy ustalonego viewBox
-        lines.append(f'<rect x="{fixed_viewbox_min_x}" y="{fixed_viewbox_min_y}" width="{fixed_viewbox_width}" height="{fixed_viewbox_height}" fill="#ffffff" />')
-        
-        # Dodajemy grupę dla wszystkich elementów
-        lines.append('<g>')
-        
-        # Używamy siatki bazującej na stałym viewBox
-        grid_step = 20  # 10 podziałek na stronę (20 linii w siatce)
-        lines.append(f'<g id="grid" stroke="#d0d0d0" stroke-width="0.1" opacity="0.5">')
-        
-        # Obsługa zakresu wartości
-        try:
-            # Rysujemy siatkę pionową - linie równoległe do osi Y
-            for x in range(-100, 101, grid_step):
-                lines.append(f'<line x1="{x}" y1="{fixed_viewbox_min_y}" x2="{x}" y2="{fixed_viewbox_min_y + fixed_viewbox_height}" stroke-width="0.1" />')
-            
-            # Rysujemy siatkę poziomą - linie równoległe do osi X
-            for y in range(-100, 101, grid_step):
-                lines.append(f'<line x1="{fixed_viewbox_min_x}" y1="{y}" x2="{fixed_viewbox_min_x + fixed_viewbox_width}" y2="{y}" stroke-width="0.1" />')
-                
-        except Exception as e:
-            with open("/tmp/dxf_debug.log", "a") as f:
-                f.write(f"Error generating grid: {str(e)}\n")
-        
-        lines.append('</g>')
-        
-        # Dodaj osie dla nowego stałego viewBox
-        # Używamy punktu (0,0) jako przecięcia osi
-        
-        lines.append(f'<g id="axes">')
-        lines.append(f'<line x1="{fixed_viewbox_min_x}" y1="0" x2="{fixed_viewbox_min_x + fixed_viewbox_width}" y2="0" stroke="red" stroke-width="0.2" />')
-        lines.append(f'<line x1="0" y1="{fixed_viewbox_min_y}" x2="0" y2="{fixed_viewbox_min_y + fixed_viewbox_height}" stroke="blue" stroke-width="0.2" />')
-        lines.append('</g>')
-        
-        # Dodaj encje
-        lines.append('<g id="entities">')
-        
+        # Convert entities
         for entity in modelspace:
             if entity.dxftype() == 'LINE':
                 start = entity.dxf.start
                 end = entity.dxf.end
-                # Przesuń do środka i odwróć współrzędne Y
-                # Używamy stałej skali proporcjonalnej dla wszystkich elementów
-                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                start_x = (start[0] + offset_x) * scale_factor
-                start_y = -(start[1] + offset_y) * scale_factor
-                end_x = (end[0] + offset_x) * scale_factor
-                end_y = -(end[1] + offset_y) * scale_factor
-                lines.append(f'<line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="black" stroke-width="0.5" />')
+                lines.append(f'<line x1="{start[0]:.{SVG_PRECISION}f}" y1="{start[1]:.{SVG_PRECISION}f}" ' +
+                           f'x2="{end[0]:.{SVG_PRECISION}f}" y2="{end[1]:.{SVG_PRECISION}f}" ' +
+                           'stroke="black" stroke-width="0.5"/>')
             
             elif entity.dxftype() == 'CIRCLE':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
-                # Przesuń do środka i odwróć współrzędne Y oraz skaluj
-                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                center_x = (center[0] + offset_x) * scale_factor
-                center_y = -(center[1] + offset_y) * scale_factor
-                scaled_radius = radius * scale_factor
-                lines.append(f'<circle cx="{center_x}" cy="{center_y}" r="{scaled_radius}" stroke="black" fill="none" stroke-width="0.5" />')
+                lines.append(f'<circle cx="{center[0]:.{SVG_PRECISION}f}" cy="{center[1]:.{SVG_PRECISION}f}" ' +
+                           f'r="{radius:.{SVG_PRECISION}f}" stroke="black" fill="none" stroke-width="0.5"/>')
             
             elif entity.dxftype() == 'ARC':
                 center = entity.dxf.center
                 radius = entity.dxf.radius
-                # Przesuń środek do punktu (0,0) i skaluj
-                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                center_x = (center[0] + offset_x) * scale_factor
-                center_y = (center[1] + offset_y) * scale_factor
-                scaled_radius = radius * scale_factor
+                start_angle = entity.dxf.start_angle
+                end_angle = entity.dxf.end_angle
                 
-                # W systemie SVG kąty idą w odwrotnym kierunku niż w DXF gdy Y jest odwrócone
-                start_angle = 360 - entity.dxf.start_angle
-                end_angle = 360 - entity.dxf.end_angle
-                # Zamiana miejscami dla poprawnego kierunku łuku
-                start_angle, end_angle = end_angle, start_angle
+                # Ensure angles are properly ordered
+                if end_angle < start_angle:
+                    end_angle += 360
                 
-                # Konwersja kątów na współrzędne punktów
-                import math
-                start_x = center_x + scaled_radius * math.cos(math.radians(start_angle))
-                # Odwracamy współrzędne Y
-                start_y = -center_y + scaled_radius * math.sin(math.radians(start_angle))
-                end_x = center_x + scaled_radius * math.cos(math.radians(end_angle))
-                # Odwracamy współrzędne Y
-                end_y = -center_y + scaled_radius * math.sin(math.radians(end_angle))
+                # Calculate start and end points
+                start_x = center[0] + radius * math.cos(math.radians(start_angle))
+                start_y = center[1] + radius * math.sin(math.radians(start_angle))
+                end_x = center[0] + radius * math.cos(math.radians(end_angle))
+                end_y = center[1] + radius * math.sin(math.radians(end_angle))
                 
-                large_arc = 1 if (end_angle - start_angle) % 360 > 180 else 0
-                sweep = 1  # Kierunek rysowania w SVG
+                # Determine if arc is larger than 180 degrees
+                large_arc = 1 if (end_angle - start_angle) > 180 else 0
                 
-                lines.append(f'<path d="M {start_x} {start_y} A {scaled_radius} {scaled_radius} 0 {large_arc} {sweep} {end_x} {end_y}" stroke="black" fill="none" stroke-width="0.5" />')
+                lines.append(f'<path d="M {start_x:.{SVG_PRECISION}f},{start_y:.{SVG_PRECISION}f} ' +
+                           f'A {radius:.{SVG_PRECISION}f},{radius:.{SVG_PRECISION}f} 0 {large_arc} 1 {end_x:.{SVG_PRECISION}f},{end_y:.{SVG_PRECISION}f}" ' +
+                           'stroke="black" fill="none" stroke-width="0.5"/>')
             
-            elif entity.dxftype() == 'POLYLINE':
-                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                if entity.is_closed:
-                    # Przesuń do środka, skaluj i odwróć współrzędne Y
-                    points = [f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in entity.points()]
-                    lines.append(f'<polygon points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
-                else:
-                    # Przesuń do środka, skaluj i odwróć współrzędne Y
-                    points = [f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in entity.points()]
-                    lines.append(f'<polyline points="{" ".join(points)}" stroke="black" fill="none" stroke-width="0.5" />')
-            
-            elif entity.dxftype() == 'LWPOLYLINE':
-                points = entity.get_points()
-                scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                if entity.closed:
-                    # Przesuń do środka, skaluj i odwróć współrzędne Y
-                    points_str = " ".join([f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in points])
-                    lines.append(f'<polygon points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
-                else:
-                    # Przesuń do środka, skaluj i odwróć współrzędne Y
-                    points_str = " ".join([f"{(p[0] + offset_x) * scale_factor},{-(p[1] + offset_y) * scale_factor}" for p in points])
-                    lines.append(f'<polyline points="{points_str}" stroke="black" fill="none" stroke-width="0.5" />')
-            
-            elif entity.dxftype() == 'TEXT':
-                try:
-                    insert = entity.dxf.insert
-                    text = entity.dxf.text
-                    height = entity.dxf.height
-                    # Przesuń do środka, skaluj i odwróć współrzędne Y
-                    scale_factor = 100 / max(width, height)  # Skalujemy do maksymalnie 100 jednostek
-                    insert_x = (insert[0] + offset_x) * scale_factor
-                    insert_y = -(insert[1] + offset_y) * scale_factor
-                    scaled_height = height * scale_factor
-                    lines.append(f'<text x="{insert_x}" y="{insert_y}" font-size="{scaled_height}">{text}</text>')
-                except Exception:
-                    pass
+            elif entity.dxftype() in ('LWPOLYLINE', 'POLYLINE'):
+                points = entity.get_points() if hasattr(entity, 'get_points') else []
+                if points:
+                    points_str = " ".join([f"{p[0]:.{SVG_PRECISION}f},{p[1]:.{SVG_PRECISION}f}" for p in points])
+                    if getattr(entity, 'closed', False):
+                        lines.append(f'<polygon points="{points_str}" stroke="black" fill="none" stroke-width="0.5"/>')
+                    else:
+                        lines.append(f'<polyline points="{points_str}" stroke="black" fill="none" stroke-width="0.5"/>')
         
-        lines.append('</g>')
-        # Zamykamy grupę transformacji
+        # Close groups and SVG
         lines.append('</g>')
         lines.append('</svg>')
         
         svg_content = '\n'.join(lines)
         
-        # Zapisz SVG do pliku, jeśli podano ścieżkę
+        # Save to file if path provided
         if svg_path:
             with open(svg_path, 'w') as f:
                 f.write(svg_content)
         
         return svg_content
-    
+        
     except Exception as e:
-        # Zapisz pełny traceback do pliku debugowania
-        with open("/tmp/dxf_debug.log", "a") as f:
-            f.write(f"Error in convert_dxf_to_svg: {str(e)}\n")
-            f.write(traceback.format_exc() + "\n")
-        
-        # Stwórz SVG z informacją o błędzie
-        error_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-            <rect width="300" height="300" fill="#f8f8f8" />
-            <text x="20" y="80" font-family="Arial" font-size="16" fill="red">Error converting DXF to SVG:</text>
-            <text x="20" y="110" font-family="Arial" font-size="12">{str(e)[:50]}</text>
-            <text x="20" y="130" font-family="Arial" font-size="12">{str(e)[50:100] if len(str(e)) > 50 else ""}</text>
-        </svg>'''
-        
-        if svg_path:
-            with open(svg_path, 'w') as f:
-                f.write(error_svg)
-        
-        return error_svg
+        logger.error(f"Error converting DXF to SVG: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 
 def export_to_json(dxf_path, json_path):

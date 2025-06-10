@@ -8,6 +8,7 @@ try:
     import FreeCAD
     import Part
     import Mesh
+    from FreeCAD import Gui, App
 except ImportError:
     print("Error: Cannot import FreeCAD modules. Make sure FreeCAD is installed correctly.")
     sys.exit(1)
@@ -38,6 +39,32 @@ def convert_step_to_stl(input_file, output_file):
         return True
     except Exception as e:
         print(f"Error converting file: {str(e)}")
+        return False
+def convert_dwg_to_svg(input_file, output_file):
+    """Konwertuje plik DWG do formatu SVG."""
+    try:
+        # Otwórz plik DWG
+        print(f"Opening DWG file: {input_file}")
+        doc = App.openDocument(input_file)
+        if not doc:
+            raise Exception("Failed to open DWG file")
+
+        # Aktywuj Drawing Workbench
+        Gui.activateWorkbench("DrawingWorkbench")
+        
+        # Utwórz stronę rysunku
+        page = doc.addObject("Drawing::FeaturePage", "Page")
+        page.ViewResult = "SVG"
+        
+        # Eksportuj do SVG
+        print(f"Exporting to SVG: {output_file}")
+        doc.saveAs(output_file)
+        App.closeDocument(doc.Name)
+        
+        print("Conversion completed successfully")
+        return True
+    except Exception as e:
+        print(f"Error converting DWG to SVG: {str(e)}")
         return False
 
 def create_model_info(shape, output_file):

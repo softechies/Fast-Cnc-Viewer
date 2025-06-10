@@ -40,6 +40,7 @@ export default function Home() {
   
   const { isUploading, uploadProgress, upload } = useModelUpload({
     onSuccess: (data) => {
+      console.log('Upload success:', data);
       setActiveModelId(data.id);
       setIsUploadModalOpen(false);
       toast({
@@ -59,6 +60,7 @@ export default function Home() {
   });
 
   const hasModel = !!activeModelId;
+  console.log("Active model ID:", activeModelId); 
 
   return (
     <div className="min-h-screen flex flex-col">

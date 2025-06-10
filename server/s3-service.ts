@@ -77,6 +77,7 @@ class S3Service {
     this.ensureInitialized();
 
     try {
+      console.log('Uploading buffer to S3:', s3Key, buffer.length, contentType);
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: s3Key,
@@ -158,8 +159,9 @@ export const s3Service = new S3Service();
 export function initializeS3Service(): boolean {
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const bucketName = process.env.AWS_S3_BUCKET_NAME;
+  const bucketName = "viewer-fastcnc"||process.env.AWS_S3_BUCKET_NAME  as string;
   const region = process.env.AWS_REGION || 'us-east-1';
+  console.log('AWS',{ accessKeyId, secretAccessKey, bucketName, region });
 
   // Sprawdź czy wszystkie wymagane zmienne są ustawione
   if (!accessKeyId || !secretAccessKey || !bucketName) {

@@ -8,6 +8,13 @@
       "when": 1743627636521,
       "tag": "0000_huge_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749123622065,
+      "tag": "0001_great_bastion",
+      "breakpoints": true
     }
   ]
 }

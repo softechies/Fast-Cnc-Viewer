@@ -1,10 +1,12 @@
 [project]
 name = "repl-nix-workspace"
 version = "0.1.0"
-description = "Add your description here"
+description = "A 3D CAD viewer with DXF/DWG to STL conversion"
 requires-python = ">=3.11"
 dependencies = [
     "ezdxf>=1.4.0",
     "matplotlib>=3.10.1",
     "pillow>=11.2.1",
+    "numpy>=1.26.4",
+    "stl>=0.2.0"
 ]

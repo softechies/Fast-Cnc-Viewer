@@ -182,6 +182,7 @@ export function setupAuth(app: Express): void {
   app.post("/api/register", async (req, res) => {
     try {
       const { username, password, email, fullName, company } = req.body;
+      console.log({req:req.body})
       
       // Email jest teraz głównym identyfikatorem i jest wymagany
       if (!email) {

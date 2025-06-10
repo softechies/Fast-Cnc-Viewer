@@ -210,6 +210,7 @@ export default function DxfViewer({ modelId, isPublic, publicId }: DxfViewerProp
     // Pobierz SVG dla modelu DXF
     fetch(`/api/models/${modelId}/svg`)
       .then(response => {
+        console.log('response',response)
         if (!response.ok) {
           throw new Error(`Błąd ${response.status}: ${response.statusText}`);
         }
@@ -300,7 +301,7 @@ export default function DxfViewer({ modelId, isPublic, publicId }: DxfViewerProp
       </div>
     );
   };
-
+  console.log('svgcont',svgContent)
   return (
     <div className="h-full w-full flex flex-col">
       <Tabs defaultValue="preview" className="flex-1 flex flex-col">
